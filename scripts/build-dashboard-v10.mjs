@@ -1,10 +1,14 @@
 // Assemble self-contained Apps Script files from the supplied source and v10 extension.
 import { readFile,writeFile } from 'node:fs/promises';
+import {gunzipSync} from 'node:zlib';
 const base=new URL('../apps-script/v10/',import.meta.url);
 const read=name=>readFile(new URL(name,base),'utf8');
 let html=await read('template.html');
 const css=(await read('dashboard.css'))+'\n'+(await read('easy-ui.css'))+'\n'+await read('followup.css')+'\n'+await read('readability.css')+'\n'+await read('sales-meeting.css')+'\n'+await read('sales-minutes.css')+'\n'+await read('business-parts.css')+'\n'+await read('weekly.css');
-const contractData=JSON.stringify(JSON.parse(await read('contracts-data.json'))).replaceAll('<','\\u003c').replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
+const contractInput=process.env.CONTRACT_DATA_GZIP_BASE64?gunzipSync(Buffer.from(process.env.CONTRACT_DATA_GZIP_BASE64,'base64')).toString('utf8'):await read('contracts-data.json');
+const parsedContracts=JSON.parse(contractInput);
+if(!Array.isArray(parsedContracts.sources))throw Error('Contract build data is missing or invalid');
+const contractData=JSON.stringify(parsedContracts).replaceAll('<','\\u003c').replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
 const contracts=(await read('contracts.js')).replace('__CONTRACT_DATA__',contractData);
 const extension=(await read('dashboard.js')).replace('v10Boot();','')+'\n'+await read('source-audit.js')+'\n'+await read('easy-ui.js')+'\n'+await read('sales-meeting.js')+'\n'+contracts+'\n'+await read('followup.js')+'\n'+await read('weekly.js')+'\nv10Boot();';
 if(!html.includes('(function boot(){'))throw new Error('Template boot marker missing');
@@ -31,8 +35,13 @@ server+='\n'+await read('presentation-comments.gs');
 server+='\n'+await read('weekly-data.gs');
 server=server.replace('  var fresh = !!p.fresh;',"  if (p.weekly === '1') return ContentService.createTextOutput(JSON.stringify(collectWeeklyMeetingDataV10())).setMimeType(ContentService.MimeType.JSON);\n  var fresh = !!p.fresh;");
 // The access secret is local-only; only its SHA-256 hash enters server code.
-const access=JSON.parse(await readFile(new URL('../.codex-work/followup-access.json',import.meta.url),'utf8'));
-server=server.replace('__FOLLOWUP_ADMIN_HASH__',access.hash);
+const adminHash=process.env.FOLLOWUP_ADMIN_HASH||JSON.parse(await readFile(new URL('../.codex-work/followup-access.json',import.meta.url),'utf8')).hash;
+if(!/^[a-f0-9]{64}$/i.test(adminHash))throw Error('Valid administrator hash is required; authentication cannot be reset during deployment');
+server=server.replace('__FOLLOWUP_ADMIN_HASH__',adminHash);
+const release=process.env.GITHUB_SHA||'local';
+if(release!=='local'&&!/^[a-f0-9]{40}$/i.test(release))throw Error('Invalid release identifier');
+html=html.replace('</head>',`<meta name="dashboard-release" content="${release}">\n</head>`);
+server=server.replace('  var fresh = !!p.fresh;',`  if (p.health === '1') return ContentService.createTextOutput(JSON.stringify({ok:true,release:'${release}'})).setMimeType(ContentService.MimeType.JSON);\n  var fresh = !!p.fresh;`);
 await writeFile(new URL('index.html',base),html);
 await writeFile(new URL('대시보드.gs',base),server);
 console.log('v10 Apps Script HTML and server assembled.');
