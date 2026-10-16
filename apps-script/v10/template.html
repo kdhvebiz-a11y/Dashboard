@@ -1,0 +1,3509 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>그랜드썬 에너지사업부 대시보드</title>
+<style>:root{color-scheme:light;--plane:#f9f9f7;--surface:#fcfcfb;--rail:#f4f4f1;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--border:rgba(11,11,11,0.10);--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--good:#0ca30c;--warn:#fab219;--crit:#d03b3b;--pos:#006300;--seq1:#cde2fb;--seq2:#9ec5f4;--seq3:#6da7ec;--seq4:#3987e5;--seq5:#256abf;--seq6:#184f95;--wrm1:#fde5d6;--wrm2:#fbc7a8;--wrm3:#f7a578;--wrm4:#ef7d47;--wrm5:#d95926;--wrm6:#a84015;--grn1:#d6f0e2;--grn2:#a9dfc5;--grn3:#75cba5;--grn4:#3fb086;--grn5:#1f9068;--grn6:#0e6c4c;--r:10px;--rail-w:212px;--f-kpi:26px;--f-kpi-lab:11.5px;--f-kpi-sub:11.5px;--f-tbl:12.5px;--f-th:11.5px;--f-axis:10.5px;--f-h2:14.5px;--f-sub:11.5px;--f-note:11.5px;--f-body:13px;--f-gauge:21px;--f-gauge-lab:11.5px;--mark:2px;--pad:13px;}:root[data-present="1"]{--f-kpi:46px;--f-kpi-lab:16px;--f-kpi-sub:15px;--f-tbl:18px;--f-th:15px;--f-axis:15px;--f-h2:22px;--f-sub:15px;--f-note:16px;--f-body:17px;--f-gauge:32px;--f-gauge-lab:16px;--mark:3px;--pad:18px;}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){color-scheme:dark;--plane:#0d0d0d;--surface:#1a1a19;--rail:#151514;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,0.10);--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--pos:#0ca30c;--seq1:#104281;--seq2:#184f95;--seq3:#256abf;--seq4:#2a78d6;--seq5:#3987e5;--seq6:#5598e7;--wrm1:#4a1c08;--wrm2:#6b2a0d;--wrm3:#8f3a13;--wrm4:#b34a1a;--wrm5:#d95926;--wrm6:#ef7d47;--grn1:#0a3a29;--grn2:#0e5039;--grn3:#12694b;--grn4:#178360;--grn5:#1f9068;--grn6:#3fb086;}}:root[data-theme="dark"]{color-scheme:dark;--plane:#0d0d0d;--surface:#1a1a19;--rail:#151514;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,0.10);--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--pos:#0ca30c;--seq1:#104281;--seq2:#184f95;--seq3:#256abf;--seq4:#2a78d6;--seq5:#3987e5;--seq6:#5598e7;--wrm1:#4a1c08;--wrm2:#6b2a0d;--wrm3:#8f3a13;--wrm4:#b34a1a;--wrm5:#d95926;--wrm6:#ef7d47;--grn1:#0a3a29;--grn2:#0e5039;--grn3:#12694b;--grn4:#178360;--grn5:#1f9068;--grn6:#3fb086;}*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:var(--plane);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}.shell{display:flex;min-height:100vh}.rail{width:var(--rail-w);flex:none;background:var(--rail);border-right:1px solid var(--border);padding:16px 12px 30px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}.rail .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 14px}.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--s1);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}.brand b{display:block;font-size:13.5px;font-weight:650;letter-spacing:-.01em;line-height:1.3}.brand small{display:block;font-size:10.5px;color:var(--muted);letter-spacing:.03em}.rail .grp{font-size:10.5px;color:var(--muted);letter-spacing:.06em;padding:12px 10px 5px;text-transform:uppercase}.rail button.nav{appearance:none;border:0;background:none;color:var(--ink2);cursor:pointer;font-family:inherit;font-size:13px;text-align:left;padding:8px 10px;border-radius:8px;display:flex;align-items:center;gap:9px;width:100%;line-height:1.35}.rail button.nav .ix{width:18px;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}.rail button.nav:hover{background:var(--surface);color:var(--ink)}.rail button.nav.on{background:var(--s1);color:#fff;font-weight:600}.rail button.nav.on .ix{color:rgba(255,255,255,.75)}.rail .railfoot{margin-top:auto;padding:12px 10px 0;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:7px}.main{flex:1;min-width:0;padding:18px 22px 70px;max-width:1500px}.railtoggle{display:none}@media(max-width:900px){.rail{position:fixed;left:0;top:0;z-index:60;transform:translateX(-100%);transition:transform .18s;box-shadow:0 0 40px rgba(0,0,0,.2)}.rail.open{transform:translateX(0)}.main{padding:14px 14px 60px}.railtoggle{display:inline-flex}}.topbar{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:14px}.topbar h1{margin:0;font-size:19px;font-weight:660;letter-spacing:-.02em}.topbar .spacer{flex:1}.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:99px;border:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--ink2)}.chip .dot{width:7px;height:7px;border-radius:99px;background:var(--muted)}.chip.live .dot{background:var(--good)}.chip.stale .dot{background:var(--warn)}.chip.err .dot{background:var(--crit)}.btn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:8px;font-size:12.5px;cursor:pointer;font-family:inherit}.btn:hover{background:var(--plane)}.btn.primary{background:var(--s1);border-color:var(--s1);color:#fff}.btn.sm{padding:4px 9px;font-size:11.5px}.periodbar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:12px}.prow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.prow+.prow{margin-top:10px;padding-top:10px;border-top:1px solid var(--grid)}.plabel{font-size:11px;color:var(--muted);min-width:52px}.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}.seg button{appearance:none;border:0;background:var(--surface);color:var(--ink2);font-size:12.5px;padding:6px 13px;cursor:pointer;font-family:inherit}.seg button+button{border-left:1px solid var(--border)}.seg button.on{background:var(--s1);color:#fff;font-weight:600}.pills{display:flex;gap:6px;flex-wrap:wrap}.pill{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--ink2);font-family:inherit;font-size:12.5px;padding:5px 12px;border-radius:99px;cursor:pointer;font-variant-numeric:tabular-nums}.pill:hover{background:var(--plane);color:var(--ink)}.pill.on{background:var(--s1);border-color:var(--s1);color:#fff;font-weight:600}.pill.q.on{background:var(--s3);border-color:var(--s3)}.psum{font-size:12px;color:var(--ink2)}.psum b{color:var(--ink)}.filters{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end}.filters label{display:flex;flex-direction:column;gap:3px;font-size:10.5px;color:var(--muted)}.filters select{font-family:inherit;font-size:12.5px;padding:5px 8px;border-radius:7px;border:1px solid var(--border);background:var(--plane);color:var(--ink);min-width:96px}.filters .grow{flex:1;min-width:140px}.filters input[type=search]{font-family:inherit;font-size:12.5px;padding:5px 8px;border-radius:7px;border:1px solid var(--border);background:var(--plane);color:var(--ink);width:100%}.basis-note{font-size:var(--f-note);color:var(--muted);margin:0 0 14px;padding-left:2px;line-height:1.75}.basis-note.warn{color:var(--ink2);background:color-mix(in srgb,var(--warn) 14%,transparent);border-left:3px solid var(--warn);border-radius:0 7px 7px 0;padding:9px 12px}.basis-note.warn b{color:var(--ink)}.basis-note b{color:var(--ink)}.basis-note .tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.02em;padding:1px 6px;border-radius:99px;background:var(--s1);color:#fff;vertical-align:1.5px;margin-left:5px}.basis-note .alt{color:var(--muted)}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;margin-bottom:14px}.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;min-width:0}.kpi .lab{font-size:var(--f-kpi-lab);color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:5px}.kpi .lab i{width:8px;height:8px;border-radius:2px;display:inline-block;flex:none}.kpi .val{font-size:var(--f-kpi);font-weight:660;letter-spacing:-.025em;line-height:1.15;overflow-wrap:anywhere}.kpi .val small{font-size:13px;font-weight:500;color:var(--ink2);margin-left:3px}.kpi .sub{font-size:var(--f-kpi-sub);color:var(--ink2);margin-top:4px}.kpi.clk{cursor:pointer;transition:border-color .12s,box-shadow .12s}.kpi.clk:hover{border-color:var(--s1)}.kpi.clk .more{margin-top:7px;font-size:var(--f-th);color:var(--muted);font-weight:600}.kpi.clk.on{border-color:var(--s1);box-shadow:0 0 0 2px color-mix(in srgb,var(--s1) 22%,transparent)}.kpi.clk.on .more{color:var(--s1)}.cpbtn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-family:inherit;font-size:var(--f-th);font-weight:600;padding:6px 12px;border-radius:7px;cursor:pointer}.cpbtn:hover{border-color:var(--s1);color:var(--s1)}.cpbtn.done{background:var(--good);border-color:transparent;color:#fff}.kpi .delta{font-size:11.5px;margin-top:4px;display:flex;align-items:center;gap:4px}.kpi .delta.up{color:var(--pos)}.kpi .delta.down{color:var(--crit)}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:start}.grid2>*,.grid3>*{min-width:0}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;align-items:start}@media(max-width:1150px){.grid2,.grid3{grid-template-columns:1fr}}.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 16px 14px;margin-bottom:13px}.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}.panel-head h2{margin:0;font-size:14.5px;font-weight:640;letter-spacing:-.01em}.panel-head p{margin:2px 0 0;font-size:var(--f-sub);color:var(--muted)}.panel-head .note{font-size:11.5px;color:var(--muted)}.sect-title{display:flex;align-items:baseline;gap:10px;margin:4px 0 13px}.sect-title h2{margin:0;font-size:calc(var(--f-h2) * 1.18);font-weight:670;letter-spacing:-.02em}.sect-title span{font-size:var(--f-sub);color:var(--muted)}.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:var(--f-sub);color:var(--ink2)}.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}.legend i.ln{width:14px;height:3px;border-radius:2px}.chartbox{position:relative;width:100%}svg.chart{display:block;width:100%;overflow:visible}svg.chart text{font-family:inherit;fill:var(--muted);font-size:var(--f-axis)}svg.chart text.val{fill:var(--ink);font-size:var(--f-axis);font-weight:660;font-variant-numeric:tabular-nums;paint-order:stroke;stroke:var(--surface);stroke-width:3.2px;stroke-linejoin:round}svg.chart text.val.vs{font-size:calc(var(--f-axis)*.88);stroke-width:2.6px}svg.spark{display:block;overflow:visible}.pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}:root[data-present="1"] .pcards{grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}.pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px 12px;border-top:3px solid var(--pc,var(--s1))}.pcard .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px}.pcard .nm{font-size:calc(var(--f-h2) + 1px);font-weight:700;letter-spacing:-.02em;color:var(--pc,var(--ink))}.pcard .rk{font-size:var(--f-note);color:var(--muted);font-weight:600}.pcard .quad{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;margin-bottom:9px}.pcard .q{min-width:0}.pcard .q b{display:block;font-size:var(--f-kpi-lab);color:var(--muted);font-weight:600;margin-bottom:1px}.pcard .q span{font-size:calc(var(--f-kpi) * .58);font-weight:680;letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.15;overflow-wrap:anywhere}.pcard .q span em{font-style:normal;font-size:.62em;font-weight:600;color:var(--ink2);margin-left:2px}.pcard .rgs{border-top:1px solid var(--border);padding-top:8px;font-size:var(--f-note);color:var(--ink2)}.pcard .rgs div{display:flex;justify-content:space-between;gap:14px;padding:1.5px 0;align-items:baseline}.pcard .rgs div>i:first-child{white-space:nowrap;flex:none}.pcard .rgs div>*:last-child{text-align:right;min-width:0}.pcard .rgs i{font-style:normal;color:var(--muted)}.pcard .rgs b{font-weight:660;color:var(--ink)}.pcard .sp{border-top:1px solid var(--border);margin-top:8px;padding-top:7px;display:flex;align-items:center;justify-content:space-between;gap:8px}.pcard .sp i{font-style:normal;font-size:var(--f-note);color:var(--muted)}button.lnk{background:none;border:0;padding:0;font:inherit;font-weight:640;color:var(--s1);cursor:pointer;text-align:left;border-bottom:1px dashed currentColor}button.lnk:hover{color:var(--ink)}svg.chart .gl{stroke:var(--grid);stroke-width:1}svg.chart .ax{stroke:var(--axis);stroke-width:1}.tip{position:absolute;pointer-events:none;z-index:30;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11.5px;box-shadow:0 6px 20px rgba(0,0,0,.13);min-width:130px;opacity:0;transition:opacity .08s}.tip.on{opacity:1}.tip b{display:block;font-size:12px;margin-bottom:5px;color:var(--ink)}.tip .row{display:flex;align-items:center;gap:7px;justify-content:space-between;color:var(--ink2)}.tip .row i{width:8px;height:8px;border-radius:2px;flex:none}.tip .row .nm{display:flex;align-items:center;gap:6px;flex:1}.tip .row .nv{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:560}.tblwrap{overflow:auto;max-height:760px;border:1px solid var(--border);border-radius:9px}table{border-collapse:collapse;width:100%;font-size:var(--f-tbl)}th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--grid)}th:first-child,td:first-child{text-align:left}th{position:sticky;top:0;background:var(--surface);z-index:2;font-weight:600;color:var(--ink2);font-size:var(--f-th);border-bottom:1px solid var(--axis);box-shadow:0 1px 0 var(--axis)}tbody tr:hover{background:var(--plane)}td.num,th.num{font-variant-numeric:tabular-nums}td.left,th.left{text-align:left}td.hi{font-weight:640;color:var(--ink)}tfoot td{font-weight:640;border-top:1px solid var(--axis);background:var(--surface);position:sticky;bottom:0;z-index:2;box-shadow:0 -4px 8px -4px rgba(0,0,0,.14)}.tag{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;border:1px solid var(--border);color:var(--ink2)}.tag.ok{background:color-mix(in srgb,var(--s3) 15%,transparent);border-color:transparent;color:var(--ink)}.ellip{max-width:190px;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:bottom}.rank{display:flex;flex-direction:column;gap:7px}.rank .row{display:grid;grid-template-columns:22px minmax(96px,140px) 1fr auto;gap:10px;align-items:center;font-size:12.5px;padding:2px 0;border:0;background:none;width:100%;text-align:left;font-family:inherit;color:var(--ink);cursor:pointer;border-radius:6px}.rank .row:hover{background:var(--plane)}.rank .row.on{background:color-mix(in srgb,var(--s1) 10%,transparent)}.rank .row .i{color:var(--muted);font-size:var(--f-th);font-variant-numeric:tabular-nums}.rank .row .track{height:10px;background:var(--grid);border-radius:4px;overflow:hidden;display:flex;gap:2px}.rank .row .track em{display:block;height:100%;border-radius:4px}.rank .row .v{font-variant-numeric:tabular-nums;font-size:var(--f-tbl);color:var(--ink);text-align:right}.rank .row .v small{color:var(--muted);font-weight:400;margin-left:5px;font-size:var(--f-th)}.funnel{display:flex;flex-direction:column;gap:9px}.funnel .st{display:grid;grid-template-columns:158px 1fr 130px;gap:12px;align-items:center}@media(max-width:640px){.funnel .st{grid-template-columns:110px 1fr 92px}}.funnel .st .nm{font-size:var(--f-tbl);color:var(--ink2)}.funnel .st .nm b{color:var(--ink);font-weight:560}.funnel .st .bar{height:22px;background:var(--grid);border-radius:5px;overflow:hidden}.funnel .st .bar em{display:block;height:100%;border-radius:5px}.funnel .st .v{text-align:right;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600}.funnel .st .v small{display:block;font-size:11px;color:var(--muted);font-weight:400}.hm{overflow:auto}.hm table td{text-align:center;padding:0;border:0}.hm table th{text-align:center;border:0;font-size:11px;padding:4px 6px}.hm .cell{display:block;margin:2px;height:30px;line-height:30px;border-radius:5px;font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--ink)}.hm td:first-child{text-align:left;padding-left:2px;font-size:12.5px}.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.gauge{background:var(--plane);border:1px solid var(--border);border-radius:9px;padding:13px 14px}.gauge .g-lab{font-size:var(--f-gauge-lab);color:var(--muted);margin-bottom:6px}.gauge .g-val{font-size:var(--f-gauge);font-weight:650;letter-spacing:-.02em}.gauge .g-val small{font-size:12px;color:var(--ink2);font-weight:500;margin-left:4px}.gauge .g-bar{height:8px;background:var(--grid);border-radius:99px;overflow:hidden;margin:9px 0 6px}.gauge .g-bar em{display:block;height:100%;border-radius:99px}.gauge .g-sub{font-size:var(--f-gauge-lab);color:var(--ink2);display:flex;justify-content:space-between;gap:8px}.gauge .g-sub b{font-variant-numeric:tabular-nums}:root[data-present="1"] .rail{--rail-w:236px}:root[data-present="1"] .panel{padding:20px 22px}:root[data-present="1"] th,:root[data-present="1"] td{padding:11px 14px}:root[data-present="1"] svg.chart .gl{stroke-width:1.2}:root[data-present="1"] .legend i{width:14px;height:14px}:root[data-present="1"] .legend i.ln{width:20px;height:4px}:root[data-present="1"] .rank .row .track{height:16px}:root[data-present="1"] .gauge{padding:18px 20px}:root[data-present="1"] .gauge .g-bar{height:14px}:root[data-present="1"] .chart .rulelab{font-size:15px}:root[data-present="1"] .chart .rule{stroke-width:2.2;opacity:.7}:root[data-present="1"] .filters,:root[data-present="1"] #resetBtn,:root[data-present="1"] .foot,:root[data-present="1"] .sync{display:none !important}:root[data-present="1"] details{display:none}:root[data-present="1"] #basisNote{display:none}:root[data-present="1"] .kpis{grid-template-columns:repeat(auto-fit,minmax(212px,1fr))}:root[data-present="1"] .gauges,:root[data-present="1"] .blt.c2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}:root[data-present="1"] .sect-title{margin:2px 0 10px}:root[data-present="1"] .period{padding:10px 14px}.blt{display:grid;gap:var(--pad)}.blt.c2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.hero .blt.c2{grid-template-columns:repeat(2,minmax(0,1fr))}.bl{background:var(--plane);border:1px solid var(--border);border-radius:9px;padding:var(--pad) calc(var(--pad) + 2px)}.bl .h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px}.bl .h .lab{font-size:var(--f-gauge-lab);color:var(--ink2);font-weight:600}.bl .h .pc{font-size:var(--f-gauge);font-weight:680;letter-spacing:-.02em;line-height:1}.bl .track{position:relative;height:26px;border-radius:5px;overflow:hidden;background:var(--seq1)}:root[data-present="1"] .bl .track{height:34px}.bl .track .b2{position:absolute;left:0;top:0;bottom:0;background:var(--seq2)}.bl .track .b3{position:absolute;left:0;top:0;bottom:0;background:var(--seq3);opacity:.55}.bl .track .fill{position:absolute;left:0;top:25%;height:50%;border-radius:0 3px 3px 0;box-shadow:0 0 0 2px var(--plane)}.bl .track .tgt{position:absolute;top:6%;height:88%;width:3px;background:var(--ink);border-radius:2px}:root[data-present="1"] .bl .track .tgt{width:4px}.bl .foot2{display:flex;justify-content:space-between;gap:12px;margin-top:8px;font-size:var(--f-gauge-lab);color:var(--ink2);white-space:nowrap}.bl .foot2>span:first-child{overflow:hidden;text-overflow:ellipsis}.bl .foot2 b{font-variant-numeric:tabular-nums;color:var(--ink)}.bl .foot2 .gap.up{color:var(--pos)}.bl .foot2 .gap.dn{color:var(--crit)}.hero{display:grid;grid-template-columns:minmax(220px,1fr) 2fr;gap:var(--pad);align-items:stretch}.heroN{background:var(--plane);border:1px solid var(--border);border-radius:var(--r);padding:calc(var(--pad) + 4px);display:flex;flex-direction:column;justify-content:center}.heroN .lab{font-size:var(--f-kpi-lab);color:var(--muted);margin-bottom:6px}.heroN .big{font-size:calc(var(--f-kpi) * 1.55);font-weight:700;letter-spacing:-.03em;line-height:1}.heroN .big small{font-size:calc(var(--f-kpi) * .42);font-weight:500;color:var(--ink2);margin-left:5px}.heroN .sub{font-size:var(--f-kpi-sub);color:var(--ink2);margin-top:8px}.vtbl td.dv{font-variant-numeric:tabular-nums}table.grp th,table.grp td{text-align:center}table.grp th.left,table.grp td.left{text-align:center}table.grp .gL{border-left:2px solid var(--axis)}table.grp thead tr.tier1 th{font-size:var(--f-th);letter-spacing:.02em;border-bottom:1px solid var(--grid);padding-bottom:5px}table.grp tr.qsum td{background:color-mix(in srgb,var(--s1) 7%,transparent);font-weight:660}table.grp tr.qsum td.left{color:var(--s1)}.vbar{display:inline-block;height:11px;border-radius:2px;vertical-align:-1px}:root[data-present="1"] .vbar{height:15px}.ins{display:flex;flex-direction:column;gap:11px}.ins .card{background:var(--plane);border:1px solid var(--border);border-radius:9px;padding:13px 15px;border-left:3px solid var(--s1)}.ins .card.warnk{border-left-color:var(--warn)}.ins .card.critk{border-left-color:var(--crit)}.ins .card.goodk{border-left-color:var(--good)}.ins .card h3{margin:0 0 5px;font-size:13.5px;font-weight:640;display:flex;align-items:center;gap:7px}.ins .card h3 .kind{font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--ink2)}.ins .card p{margin:0;font-size:12.5px;color:var(--ink2);line-height:1.62}.ins .card p+p{margin-top:6px}.ins .card b{color:var(--ink)}.sync{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 16px;margin-bottom:14px}.sync h3{margin:0 0 4px;font-size:14px;font-weight:640}.sync p{margin:0 0 12px;font-size:12px;color:var(--muted);line-height:1.6}.sync .field{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}.sync .field span{font-size:11.5px;color:var(--ink2)}.sync input[type=url]{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--plane);color:var(--ink);width:100%}.sync .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}.sync .msg{font-size:12px;margin-top:9px;padding:8px 11px;border-radius:7px;display:none}.sync .msg.on{display:block}.sync .msg.ok{background:color-mix(in srgb,var(--good) 12%,transparent);color:var(--ink)}.sync .msg.bad{background:color-mix(in srgb,var(--crit) 12%,transparent);color:var(--ink)}.sched{margin-top:12px;border-top:1px solid var(--grid);padding-top:11px}.sched-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:7px;font-size:12.5px;color:var(--ink2)}.sched-row label{display:flex;align-items:center;gap:7px;cursor:pointer}.sched-row b{color:var(--ink);font-weight:560}.sched-row input[type=time],.sched-row input[type=number]{font-family:inherit;font-size:13px;padding:4px 8px;border-radius:7px;border:1px solid var(--border);background:var(--plane);color:var(--ink);font-variant-numeric:tabular-nums}.sched-row input[type=number]{width:66px}.next-run{margin:6px 0 0 !important;font-size:11.5px;color:var(--muted)}.drop{border:1.5px dashed var(--axis);border-radius:9px;padding:16px;text-align:center;font-size:12.5px;color:var(--muted);margin-top:11px;cursor:pointer}.drop.over{border-color:var(--s1);background:color-mix(in srgb,var(--s1) 7%,transparent);color:var(--ink)}details.help{margin-top:11px;font-size:12px;color:var(--ink2)}details.help summary{cursor:pointer;color:var(--s1);font-size:12px}details.help ol{margin:8px 0 0;padding-left:20px;line-height:1.85}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:var(--plane);padding:1px 5px;border-radius:4px;border:1px solid var(--border)}.foot{margin-top:26px;font-size:11.5px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border);padding-top:14px}.chart .rule{stroke:var(--ink2);stroke-width:1.5;opacity:.55}.chart .rulelab{fill:var(--muted);font-size:11px;font-weight:600}.hide{display:none !important}.src{font-size:11.5px;color:var(--muted);margin:10px 0 0}</style>
+</head>
+<body>
+<header class="business-header">
+<div class="business-brand"><span class="business-brand-mark" aria-hidden="true">G</span><div><small>에너지사업부</small><strong>통합 대시보드</strong></div></div>
+<nav class="business-tabs" id="businessTabs" role="tablist" aria-label="사업 파트 선택">
+<button type="button" id="part-tab-consulting" role="tab" aria-selected="true" aria-controls="part-panel-consulting" data-business-part="consulting">컨설팅</button>
+<button type="button" id="part-tab-field" role="tab" aria-selected="false" aria-controls="part-panel-field" tabindex="-1" data-business-part="field">필드</button>
+<button type="button" id="part-tab-outsourcing" role="tab" aria-selected="false" aria-controls="part-panel-outsourcing" tabindex="-1" data-business-part="outsourcing">외주</button>
+<button type="button" id="part-tab-bidding" role="tab" aria-selected="false" aria-controls="part-panel-bidding" tabindex="-1" data-business-part="bidding">입찰</button>
+</nav>
+<span class="business-wordmark">GRANDSUN</span>
+</header>
+<div class="shell business-panel" id="part-panel-consulting" role="tabpanel" aria-labelledby="part-tab-consulting">
+<aside class="rail" id="rail">
+<div class="brand">
+<div class="brand-mark">G</div>
+<div><b>컨설팅 성과<br>대시보드</b><small>GRANDSUN</small></div>
+</div>
+<div id="nav"></div>
+<div class="railfoot">
+<button class="btn sm" id="refreshBtn">새로고침</button>
+<button class="btn sm" id="syncToggle">데이터 연결</button>
+<button class="btn sm" id="themeBtn">다크</button>
+</div>
+</aside>
+<main class="main">
+<div class="topbar">
+<button class="btn railtoggle" id="railBtn">☰</button>
+<h1 id="sectTitle">전체 실적</h1>
+<div class="spacer"></div>
+<span class="chip" id="statusChip"><span class="dot"></span><span id="statusTxt">내장 데이터</span></span>
+</div>
+<section class="sync hide" id="syncPanel">
+<h3>구글 시트 연결</h3>
+<p>Apps Script 웹앱 주소로 열면 <b>열 때마다 시트를 새로 읽습니다.</b></p>
+<div class="field"><span><b>연결 주소 (Apps Script 웹앱)</b></span>
+<input type="url" id="urlScript" placeholder="https://script.google.com/macros/s/AKfycb...../exec">
+<span style="font-size:11.5px;color:var(--muted)">문제가 있으면
+<a id="openScript" href="#" target="_blank" rel="noopener" style="color:var(--s1)">이 주소를 브라우저에서 직접 열어</a>
+보세요.</span></div>
+<div class="field"><span>통계 시트 CSV 주소 (예비)</span>
+<input type="url" id="urlTongye" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?...output=csv"></div>
+<div class="field"><span>말 시트 CSV 주소 (예비)</span>
+<input type="url" id="urlMal" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?...output=csv"></div>
+<div class="actions">
+<button class="btn primary" id="connectBtn">연결하고 불러오기</button>
+<button class="btn" id="clearBtn">기본값으로</button>
+<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2)">
+<input type="checkbox" id="autoChk" checked> 열 때마다 자동으로 불러오기</label>
+</div>
+<div class="msg" id="syncMsg"></div>
+<div class="sched">
+<div class="sched-row">
+<label><input type="checkbox" id="dailyChk" checked> <b>매일 지정 시각에 자동 갱신</b></label>
+<input type="time" id="dailyTime" value="14:40" step="60">
+</div>
+<div class="sched-row">
+<label><input type="checkbox" id="everyChk"> 열려 있는 동안 주기적으로 갱신</label>
+<span><input type="number" id="everyMin" value="30" min="5" max="720" step="5"> 분마다</span>
+</div>
+<p id="nextRun" class="next-run"></p>
+</div>
+<div class="drop" id="dropZone">또는 <b>상담일지 엑셀(.xlsx)</b>을 여기로 끌어다 놓으세요 · 클릭해서 선택
+<input type="file" id="fileInput" accept=".xlsx,.xlsm,.csv" class="hide"></div>
+</section>
+<section class="periodbar" id="periodbar">
+<div class="prow">
+<span class="plabel">기간</span>
+<div class="seg" id="pmode">
+<button data-mode="all">전체</button>
+<button data-mode="quarter">분기</button>
+<button data-mode="month">월</button>
+<button data-mode="cumulative">누적</button>
+<button data-mode="year">년도</button>
+</div>
+<div class="pills" id="ppills"></div>
+<div class="spacer" style="flex:1"></div>
+<span class="psum" id="psum"></span>
+</div>
+<div class="prow">
+<span class="plabel" id="pbasisLab">기준</span>
+<div class="seg" id="pbasis">
+<button data-basis="cohort">문의 온 달</button>
+<button data-basis="exec">미팅 간 달</button>
+</div>
+<div class="filters" style="flex:1">
+<label>담당자<select id="fOwner"></select></label>
+<label>사업형태<select id="fType"></select></label>
+<label>유입<select id="fSrc"></select></label>
+<label>법인<select id="fCorp"></select></label>
+<label class="grow">검색<input type="search" id="fQuery" placeholder="상담번호 · 지역 · 담당자 · 사업형태"></label>
+</div>
+<button class="btn sm" id="resetBtn">초기화</button>
+</div>
+</section>
+<p class="basis-note" id="basisNote"></p>
+<div id="view"></div>
+<footer class="foot">
+<div><b>문의 온 달</b> — 상담번호 앞 두 자리(문의가 들어온 달)로 묶습니다. 8월에 온 문의는 미팅을 9·10·11월에 가도 <b>8월 실적</b>으로 남습니다. 매월 보고서가 쓰는 기준입니다.</div>
+<div><b>미팅 간 달</b> — 미팅날짜가 속한 달로 묶습니다. 8월에 다녀온 미팅이면 문의가 1·2·3월에 왔더라도 <b>8월</b>에 셉니다. 그 달에 실제로 얼마나 움직였는지 볼 때 씁니다.</div>
+<div style="margin-top:8px"><b>전체 문의</b>는 말 시트 <code>A:H</code>(발전사업·O&amp;M·정부사업 등 총칭),
+<b>발전사업 문의·미팅·계약</b>은 통계 시트 <code>BO:CH</code>(21개 사업형태 × 그랜드썬·SP·유지에스·소개),
+<b>미팅 간 달</b>은 말 시트 <code>AY:BK</code>, <b>권역별</b>은 통계 시트 <code>CU:IJ</code>,
+<b>용량·담당자·원장</b>은 통계 시트 미팅 원장 <code>C5:N</code>을 씁니다.</div>
+<div style="margin-top:8px"><b>목표</b> — 전체 문의 월 1,500건 · 발전사업 문의 월 787건(마케팅 700 + 소개 87) ·
+미팅 월 72건(주 17건) · 계약 용량 연 150MW(월 목표는 말 시트 <code>CE</code>열).</div>
+<div style="margin-top:8px">계약 건수는 통계 BO:CH 기준입니다. 미팅 원장 기준은 미팅을 거쳐 맺은 계약만이라 조금 적습니다.</div>
+<div id="footStamp" style="margin-top:8px"></div>
+</footer>
+</main>
+</div>
+<section class="business-panel business-placeholder" id="part-panel-field" role="tabpanel" aria-labelledby="part-tab-field" tabindex="0" hidden>
+<div class="business-empty"><span class="business-status">준비 중</span><h1>필드 대시보드</h1><p>필드 업무에 맞는 데이터와 화면을<br>추후 이곳에 구성할 예정입니다.</p><button type="button" class="business-return" data-business-return>컨설팅 대시보드로 돌아가기 <span aria-hidden="true">→</span></button></div>
+</section>
+<section class="business-panel business-placeholder" id="part-panel-outsourcing" role="tabpanel" aria-labelledby="part-tab-outsourcing" tabindex="0" hidden>
+<div class="business-empty"><span class="business-status">준비 중</span><h1>외주 대시보드</h1><p>외주 업무에 맞는 데이터와 화면을<br>추후 이곳에 구성할 예정입니다.</p><button type="button" class="business-return" data-business-return>컨설팅 대시보드로 돌아가기 <span aria-hidden="true">→</span></button></div>
+</section>
+<section class="business-panel business-placeholder" id="part-panel-bidding" role="tabpanel" aria-labelledby="part-tab-bidding" tabindex="0" hidden>
+<div class="business-empty"><span class="business-status">준비 중</span><h1>입찰 대시보드</h1><p>입찰 업무에 맞는 데이터와 화면을<br>추후 이곳에 구성할 예정입니다.</p><button type="button" class="business-return" data-business-return>컨설팅 대시보드로 돌아가기 <span aria-hidden="true">→</span></button></div>
+</section>
+<script>
+window.__INLINE_DATA__ = <?!= DATA ?>;
+const EMBEDDED = null;
+</script>
+<script>
+"use strict";
+const store = {
+get(k, d){ try{ const v = localStorage.getItem('gs_dash_'+k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
+set(k, v){ try{ localStorage.setItem('gs_dash_'+k, JSON.stringify(v)); }catch(e){} },
+del(k){ try{ localStorage.removeItem('gs_dash_'+k); }catch(e){} }
+};
+const NF = new Intl.NumberFormat('ko-KR');
+const NF1 = new Intl.NumberFormat('ko-KR',{maximumFractionDigits:1});
+const NF2 = new Intl.NumberFormat('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const i = n => NF.format(Math.round(n||0));
+const d1 = n => NF1.format(n||0);
+const pct = (a,b) => b ? (a/b*100) : 0;
+const pctS = (a,b) => d1(pct(a,b))+'%';
+function capS(kw){
+kw = kw||0;
+return kw>=10000 ? NF2.format(kw/1000)+' MW' : NF1.format(kw)+' kW';
+}
+function num(v){
+if(v===null||v===undefined) return 0;
+if(typeof v==='number') return v;
+const s=String(v).replace(/[^0-9.\-]/g,'');
+const n=parseFloat(s);
+return isNaN(n)?0:n;
+}
+function txt(v){ return v===null||v===undefined ? '' : String(v).trim(); }
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const REGIONS = ['수도권','충청권','강원권','영남권','호남권','제주','기타'];
+function regionOf(raw){
+const t = txt(raw).replace(/^[0-9]+[.\s]*/,'');
+if(!t) return '미분류';
+if(/서울|경기|인천/.test(t)) return '수도권';
+if(/충남|충북|충청|대전|세종/.test(t)) return '충청권';
+if(/강원/.test(t)) return '강원권';
+if(/부산|대구|울산|경북|경남|경상/.test(t)) return '영남권';
+if(/광주|전북|전남|전라/.test(t)) return '호남권';
+if(/제주/.test(t)) return '제주';
+return '기타';
+}
+function typeGroup(t){
+t = txt(t);
+if(!t) return '미분류';
+const m = t.match(/^([^(]+)/);
+return m ? m[1].trim() : t;
+}
+const isContract = r => r.ct.indexOf('계약') >= 0;
+function parseCSV(text){
+const rows=[]; let row=[], cell='', q=false;
+text = text.replace(/^﻿/,'');
+for(let p=0;p<text.length;p++){
+const c=text[p];
+if(q){
+if(c==='"'){ if(text[p+1]==='"'){cell+='"';p++;} else q=false; }
+else cell+=c;
+} else {
+if(c==='"') q=true;
+else if(c===','){ row.push(cell); cell=''; }
+else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+else if(c==='\r'){}
+else cell+=c;
+}
+}
+if(cell!==''||row.length){ row.push(cell); rows.push(row); }
+return rows;
+}
+const at = (rows,r,c) => (rows[r] && rows[r][c]!==undefined) ? rows[r][c] : '';
+function parseCapN(v){
+const t=txt(v);
+if(!t) return {cap:0,n:0};
+const mc=t.match(/([\d,]+(?:\.\d+)?)\s*kW/i);
+const mn=t.match(/([\d,]+)\s*건/);
+return { cap: mc?num(mc[1]):0, n: mn?num(mn[1]):0 };
+}
+function parseTongye(rows){
+const out=[];
+for(let r=4; r<rows.length; r++){
+const no = txt(at(rows,r,3));
+if(!no) continue;
+const dt = txt(at(rows,r,4));
+const m = dt.match(/(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/);
+const cm = no.match(/^(?:sp)?(\d{1,2})-/i);
+const cmo = cm ? parseInt(cm[1],10) : 0;
+out.push({
+no, seq: num(at(rows,r,2)),
+date: m ? `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}` : '',
+em: m ? parseInt(m[2],10) : 0,
+cmo: (cmo>=1&&cmo<=12) ? cmo : 0,
+src: txt(at(rows,r,5)),
+ct:  txt(at(rows,r,6)),
+cap: num(at(rows,r,7)),
+corp:txt(at(rows,r,8)),
+type:txt(at(rows,r,9)),
+prop:txt(at(rows,r,10)),
+cons:txt(at(rows,r,11)),
+own: txt(at(rows,r,12)) || '미지정',
+reg: txt(at(rows,r,13))
+});
+}
+return out;
+}
+function parseMal(rows){
+const months=[];
+for(let m=1;m<=12;m++){
+const b = 3 + (m-1)*47 - 1;              // 0-based 시작행
+const weeks=[];
+for(let k=2;k<=6;k++){
+const wk = txt(at(rows,b+k,3));
+if(!wk || wk==='합계') continue;
+weeks.push({ label:txt(at(rows,b+k,2)), wk,
+total:num(at(rows,b+k,4)), gs:num(at(rows,b+k,5)),
+sp:num(at(rows,b+k,6)), ug:num(at(rows,b+k,7)) });
+}
+const t=b+7;
+const inq={ total:num(at(rows,t,4)), gs:num(at(rows,t,5)), sp:num(at(rows,t,6)), ug:num(at(rows,t,7)) };
+const bt=[];
+for(let r=b+3;r<=b+24;r++){
+const nm=txt(at(rows,r,9));
+if(!nm||nm==='합계') continue;
+bt.push({ name:nm,
+iq:{gs:num(at(rows,r,10)),sp:num(at(rows,r,11)),ug:num(at(rows,r,12)),ref:num(at(rows,r,13)),tot:num(at(rows,r,14))},
+mt:{tot:num(at(rows,r,20))}, ctr:{tot:num(at(rows,r,26))} });
+}
+const C=(r,c)=>at(rows,r,c);
+const wmeet=[];
+for(let k=2;k<=6;k++){
+const wl=txt(C(b+k,51));
+if(!wl || wl==='합계') continue;
+wmeet.push({label:txt(C(b+k,50)), wk:wl,
+cap:num(C(b+k,52)), n:num(C(b+k,53)),
+mkCap:num(C(b+k,54)), mkN:num(C(b+k,55)),
+refCap:num(C(b+k,56)), refN:num(C(b+k,57))});
+}
+const mtTot={cap:num(C(b+7,52)), n:num(C(b+7,53)),
+mkCap:num(C(b+7,54)), mkN:num(C(b+7,55)),
+refCap:num(C(b+7,56)), refN:num(C(b+7,57))};
+const corpMt={gsCap:num(C(b+14,52)), gsN:num(C(b+14,53)),
+spCap:num(C(b+14,54)), spN:num(C(b+14,55)),
+ugCap:num(C(b+14,56)), ugN:num(C(b+14,57)),
+mkCtr:num(C(b+14,59)), refCtr:num(C(b+14,60)), totCtr:num(C(b+14,61))};
+const buckets=[];
+for(let c=51;c<=58;c++){
+const lab=txt(C(b+16,c));
+if(!lab) continue;
+buckets.push({label:lab, n:num(C(b+17,c))});
+}
+const bkTot=num(C(b+17,59)), bkAvg=num(C(b+17,60));
+const ownWk=[];
+for(let k=0;k<5;k++){
+const nm=txt(C(b+19,52+k*2));
+if(!nm) continue;
+ownWk.push({name:nm,
+mk:parseCapN(C(b+26,52+k*2)),
+ref:parseCapN(C(b+26,53+k*2))});
+}
+months.push({m,weeks,inq,bt,wmeet,mtTot,corpMt,buckets,bkTot,bkAvg,ownWk});
+}
+const msum=[];
+for(let r=3;r<20;r++){
+const mv=num(at(rows,r,70));
+if(!(mv>=1&&mv<=12)) continue;
+msum.push({ m:mv,
+inqTot:num(at(rows,r,71)), gs:num(at(rows,r,72)), sp:num(at(rows,r,73)), ug:num(at(rows,r,74)),
+mkInq:num(at(rows,r,75)), refInq:num(at(rows,r,76)),
+mkPwrInq:num(at(rows,r,77)), refPwrInq:num(at(rows,r,78)),
+mkMt:num(at(rows,r,79)), refMt:num(at(rows,r,80)), ctr:num(at(rows,r,81)),
+goalCtr:num(at(rows,r,82)), goalDirect:num(at(rows,r,83)), goalMt:num(at(rows,r,84)),
+achv:txt(at(rows,r,85)),
+mtCap:num(at(rows,r,86)), mtN:num(at(rows,r,87)), avgCap:num(at(rows,r,88)),
+achvCap:txt(at(rows,r,89)) });
+const last=msum[msum.length-1];
+const p=parseFloat(String(last.achvCap).replace(/[^0-9.]/g,''));
+last.goalMtN = (p>0 && last.mtN>0) ? Math.round(last.mtN/(p/100)) : 100;
+}
+const years=[];
+for(let r=2;r<24;r++){
+const y=num(at(rows,r,63));
+if(y>=2000&&y<=2100) years.push({y, inq:num(at(rows,r,64))});
+}
+const curSum = msum.reduce((a,x)=>a+x.inqTot,0);
+if(curSum>0){
+const lastY = years.length? Math.max(...years.map(x=>x.y)) : 0;
+years.push({y:lastY+1, inq:curSum, partial:true});
+}
+const ytdBt=[];
+let ytdTot=null;
+for(let r=4;r<32;r++){
+const nm=txt(at(rows,r,30));
+if(!nm) continue;
+const rec={name:nm, iq:num(at(rows,r,31)), mt:num(at(rows,r,33)), ctr:num(at(rows,r,35))};
+if(nm==='합계') ytdTot=rec; else ytdBt.push(rec);
+}
+return {months,msum,years,ytdBt,ytdTot};
+}
+let DB = null;
+const state = {
+sect:'overall',
+basis:'cohort',                 /* cohort=문의월 · exec=미팅월 */
+mode:'all',                     /* all | year | quarter | month | cumulative */
+quarters:[],                    /* 선택 분기 [1..4] */
+months:[],                      /* 선택 월 [1..12] */
+owner:'전체', cons:'전체', type:'전체', src:'전체', corp:'전체', query:'',
+kpiOpen:null                    /* 펼쳐 놓은 KPI 카드 */
+};
+const SECTIONS = [
+{k:'overall',    t:'전체',                g:'실적',   basis:'cohort'},
+{k:'inquiry',    t:'문의',                g:'실적',   basis:'cohort'},
+{k:'meetCoh',    t:'미팅 · 문의 온 달',   g:'실적',   basis:'cohort'},
+{k:'meetExe',    t:'미팅 · 미팅 간 달',   g:'실적',   basis:'exec'},
+{k:'contract',   t:'계약',                g:'실적',   basis:'cohort'},
+{k:'source',     t:'유입별',              g:'분석',   basis:'cohort'},
+{k:'region',     t:'지역별',              g:'분석',   basis:'cohort'},
+{k:'goal',       t:'목표 달성',           g:'분석',   basis:'cohort'},
+{k:'capacity',   t:'용량 분석',           g:'분석',   basis:'both'},
+{k:'owner',      t:'담당자 실적',         g:'분석',   basis:'both'},
+{k:'insight',    t:'종합 분석',           g:'리포트', basis:'cohort'},
+{k:'records',    t:'미팅 원장',           g:'리포트', basis:'both'}
+];
+const sectOf = k => SECTIONS.find(x=>x.k===k) || SECTIONS[0];
+const QMONTHS = {1:[1,2,3], 2:[4,5,6], 3:[7,8,9], 4:[10,11,12]};
+const qOf = m => Math.floor((m-1)/3)+1;
+const mOf = r => state.basis==='cohort' ? r.cmo : r.em;
+function dataMonths(){
+const s=new Set();
+if(!DB) return [1];
+(DB.ledger||[]).forEach(r=>{ const m=mOf(r); if(m>=1&&m<=12) s.add(m); });
+if(DB.sum) DB.sum.months.forEach(x=>{ if(x.inq>0||x.mt>0) s.add(x.m); });
+const arr=[...s].sort((a,b)=>a-b);
+return arr.length?arr:[1];
+}
+const activeMonths = dataMonths;      /* 하위 호환 */
+const lastDataMonth = () => dataMonths().slice(-1)[0];
+function selMonths(){
+const all=dataMonths();
+if(state.mode==='quarter'){
+if(!state.quarters.length) return all;
+const s=new Set();
+state.quarters.forEach(q=>QMONTHS[q].forEach(m=>{ if(all.includes(m)) s.add(m); }));
+return [...s].sort((a,b)=>a-b);
+}
+if(state.mode==='month'){
+if(!state.months.length) return all;
+return state.months.filter(m=>all.includes(m)).sort((a,b)=>a-b);
+}
+if(state.mode==='cumulative'){
+const end = state.months.length ? Math.max(...state.months) : all[all.length-1];
+return all.filter(m=>m<=end);
+}
+return all;
+}
+function compareGroups(){
+const all=dataMonths();
+if(state.mode==='quarter'){
+const qs = state.quarters.length ? state.quarters.slice().sort((a,b)=>a-b)
+: [...new Set(all.map(qOf))].sort((a,b)=>a-b);
+return qs.map(q=>({key:'Q'+q, label:q+'분기',
+months:QMONTHS[q].filter(m=>all.includes(m))})).filter(g=>g.months.length);
+}
+if(state.mode==='month'){
+const ms = state.months.length ? state.months.slice().sort((a,b)=>a-b) : all;
+return ms.filter(m=>all.includes(m)).map(m=>({key:'M'+m, label:m+'월', months:[m]}));
+}
+if(state.mode==='cumulative'){
+const ms=selMonths();
+return ms.map((m,ix)=>({key:'C'+m, label:'~'+m+'월', months:ms.slice(0,ix+1)}));
+}
+if(state.mode==='year'){
+return [{key:'Y', label:(DB.year||'')+'년', months:all}];
+}
+const qs=[...new Set(all.map(qOf))].sort((a,b)=>a-b);
+return qs.map(q=>({key:'Q'+q, label:q+'분기',
+months:QMONTHS[q].filter(m=>all.includes(m))})).filter(g=>g.months.length);
+}
+function periodLabel(){
+const ms=selMonths();
+if(!ms.length) return '기간 없음';
+if(state.mode==='quarter' && state.quarters.length)
+return state.quarters.slice().sort().map(q=>q+'분기').join(' · ');
+if(state.mode==='month' && state.months.length)
+return state.months.slice().sort((a,b)=>a-b).map(m=>m+'월').join(' · ');
+if(state.mode==='cumulative') return `1~${ms[ms.length-1]}월 누적`;
+if(state.mode==='year') return `${DB.year||''}년 전체`;
+return `${ms[0]}~${ms[ms.length-1]}월 전체`;
+}
+function dimOK(r){
+if(state.owner!=='전체' && r.own!==state.owner) return false;
+if(state.cons!=='전체' && (txt(r.cons)||'미지정')!==state.cons) return false;
+if(state.type!=='전체' && txt(r.type)!==state.type) return false;
+if(state.src!=='전체' && r.src!==state.src) return false;
+if(state.corp!=='전체' && r.corp!==state.corp) return false;
+return true;
+}
+function rowsSel(){
+const ms=selMonths();
+return DB.ledger.filter(r=>dimOK(r) && ms.includes(mOf(r)));
+}
+function rowsIn(months){
+return DB.ledger.filter(r=>dimOK(r) && months.includes(mOf(r)));
+}
+function rowsAll(){ return DB.ledger.filter(dimOK); }
+function rowsFiltered(opts){ return (opts&&opts.allMonths) ? rowsAll() : rowsSel(); }
+function sumRows(rows){
+const o={n:rows.length,cap:0,ctr:0,ctrCap:0,mk:0,ref:0,mkCap:0,refCap:0,
+mkCtr:0,refCtr:0,mkCtrCap:0,refCtrCap:0};
+rows.forEach(r=>{
+o.cap+=r.cap;
+const isMk = r.src==='마케팅';
+if(isMk){ o.mk++; o.mkCap+=r.cap; } else if(r.src==='소개'){ o.ref++; o.refCap+=r.cap; }
+if(isContract(r)){
+o.ctr++; o.ctrCap+=r.cap;
+if(isMk){ o.mkCtr++; o.mkCtrCap+=r.cap; } else if(r.src==='소개'){ o.refCtr++; o.refCtrCap+=r.cap; }
+}
+});
+o.avg = o.n ? o.cap/o.n : 0;
+o.ctrAvg = o.ctr ? o.ctrCap/o.ctr : 0;
+return o;
+}
+function byMonth(rows){
+const out={};
+for(let m=1;m<=12;m++) out[m]={m,n:0,cap:0,ctr:0,ctrCap:0,mk:0,ref:0,mkCtr:0,refCtr:0,mkCap:0,refCap:0};
+rows.forEach(r=>{
+const m=mOf(r); if(!(m>=1&&m<=12)) return;
+const o=out[m]; o.n++; o.cap+=r.cap;
+if(r.src==='마케팅'){ o.mk++; o.mkCap+=r.cap; }
+else if(r.src==='소개'){ o.ref++; o.refCap+=r.cap; }
+if(isContract(r)){ o.ctr++; o.ctrCap+=r.cap;
+if(r.src==='마케팅') o.mkCtr++; else if(r.src==='소개') o.refCtr++; }
+});
+return out;
+}
+const CAP_BANDS = [
+{label:'50kW 미만',      lo:0,    hi:50},
+{label:'100kW 미만',     lo:50,   hi:100},
+{label:'300kW 미만',     lo:100,  hi:300},
+{label:'500kW 미만',     lo:300,  hi:500},
+{label:'1,000kW 미만',   lo:500,  hi:1000},
+{label:'1,500kW 미만',   lo:1000, hi:1500},
+{label:'2,000kW 미만',   lo:1500, hi:2000},
+{label:'2,000kW 이상',   lo:2000, hi:Infinity}
+];
+function capBands(rows){
+return CAP_BANDS.map(b=>{
+const rs=rows.filter(r=>r.cap>=b.lo && r.cap<b.hi);
+const cs=rs.filter(isContract);
+return {label:b.label, n:rs.length, cap:rs.reduce((a,r)=>a+r.cap,0),
+ctr:cs.length, ctrCap:cs.reduce((a,r)=>a+r.cap,0)};
+});
+}
+function inqFor(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const pick=(DB.msum||[]).filter(x=>ms.includes(x.m));
+const o={total:0,gs:0,sp:0,ug:0,mk:0,ref:0,mkPwr:0,refPwr:0,
+goalCtr:0,goalDirect:0,goalMt:0,goalMtN:0,mtCap:0,mtN:0};
+pick.forEach(x=>{ o.total+=x.inqTot; o.gs+=x.gs; o.sp+=x.sp; o.ug+=x.ug;
+o.mk+=x.mkInq; o.ref+=x.refInq; o.mkPwr+=x.mkPwrInq; o.refPwr+=x.refPwrInq;
+o.goalCtr+=x.goalCtr; o.goalDirect+=x.goalDirect; o.goalMt+=x.goalMt;
+o.goalMtN+=(x.goalMtN||100); o.mtCap+=x.mtCap; o.mtN+=x.mtN; });
+o.pwr = o.mkPwr + o.refPwr;
+return o;
+}
+function malMeetFor(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const pick=(DB.months||[]).filter(x=>ms.includes(x.m));
+const o={cap:0,n:0,mkCap:0,mkN:0,refCap:0,refN:0,
+gsCap:0,gsN:0,spCap:0,spN:0,ugCap:0,ugN:0,mkCtr:0,refCtr:0,totCtr:0};
+pick.forEach(x=>{
+const t=x.mtTot||{}, c=x.corpMt||{};
+o.cap+=t.cap||0; o.n+=t.n||0; o.mkCap+=t.mkCap||0; o.mkN+=t.mkN||0;
+o.refCap+=t.refCap||0; o.refN+=t.refN||0;
+o.gsCap+=c.gsCap||0; o.gsN+=c.gsN||0; o.spCap+=c.spCap||0; o.spN+=c.spN||0;
+o.ugCap+=c.ugCap||0; o.ugN+=c.ugN||0;
+o.mkCtr+=c.mkCtr||0; o.refCtr+=c.refCtr||0; o.totCtr+=c.totCtr||0;
+});
+return o;
+}
+function malOwnersFor(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const map=new Map();
+(DB.months||[]).filter(x=>ms.includes(x.m)).forEach(x=>{
+(x.ownWk||[]).forEach(o=>{
+const cur=map.get(o.name)||{name:o.name,mkCap:0,mkN:0,refCap:0,refN:0};
+cur.mkCap+=o.mk.cap; cur.mkN+=o.mk.n;
+cur.refCap+=o.ref.cap; cur.refN+=o.ref.n;
+map.set(o.name,cur);
+});
+});
+return [...map.values()].map(o=>({...o, cap:o.mkCap+o.refCap, n:o.mkN+o.refN}))
+.sort((a,b)=>b.n-a.n);
+}
+const inquiryUsable = () =>
+state.owner==='전체' && state.cons==='전체' && state.type==='전체' &&
+state.corp==='전체' && state.src==='전체' && !state.query;
+const sheetSplitBlocked = () =>
+state.owner!=='전체' || state.cons!=='전체' || !!state.query;
+function dominantYear(ledger){
+const c={};
+ledger.forEach(r=>{ const y=r.date.slice(0,4); if(/^\d{4}$/.test(y)) c[y]=(c[y]||0)+1; });
+let best='', n=-1;
+Object.keys(c).forEach(y=>{ if(c[y]>n){ n=c[y]; best=y; } });
+return best;
+}
+function oddYearRows(ledger, year){
+return ledger.filter(r=>r.date && r.date.slice(0,4)!==year);
+}
+function parseTongyeSummary(rows){
+const LAB = 27;                    /* AB열 */
+const YEAR = 28;                   /* AC열 = 연간 합계 */
+const M0 = 29;                     /* AD열 = 01월 */
+let head = -1;
+for(let r=150; r<Math.min(rows.length, 400); r++){
+if(/01\s*월/.test(txt(at(rows,r,M0))) && /전체/.test(txt(at(rows,r,YEAR)))){ head=r; break; }
+}
+if(head<0) return null;
+const want = [
+['inq',   /^전체\s*문의$/],
+['pwr',   /^(?:발전사업|전체\s*사업)\s+문의$/],
+['pwrMk', /^마케팅$/],
+['pwrRef',/^소개$/],
+['prog',  /^총\s*진행건$/],
+['progMk',/^마케팅$/],
+['progRef',/^소개$/],
+['prop',  /^총\s*제안서$/],
+['propMk',/^마케팅$/],
+['propRef',/^소개$/],
+['mt',    /^총\s*미팅건$/],
+['mtMk',  /^마케팅$/],
+['mtRef', /^소개$/],
+['ctr',   /^총\s*계약$/],
+['ctrMk', /^마케팅$/],
+['ctrRef',/^소개$/]
+];
+const found = {};
+let wi = 0;
+for(let r=head+1; r<Math.min(rows.length, head+40) && wi<want.length; r++){
+const lab = txt(at(rows,r,LAB)).replace(/\s+/g,' ').trim();
+if(!lab) continue;
+if(want[wi][1].test(lab)){ found[want[wi][0]] = r; wi++; }
+}
+if(found.inq===undefined || found.mt===undefined) return null;
+const pick = (key, m) => found[key]===undefined ? 0 : num(at(rows, found[key], M0 + (m-1)));
+const pickYear = key => found[key]===undefined ? 0 : num(at(rows, found[key], YEAR));
+const months = [];
+for(let m=1;m<=12;m++){
+months.push({
+m,
+inq: pick('inq',m),
+pwr: pick('pwr',m), pwrMk: pick('pwrMk',m), pwrRef: pick('pwrRef',m),
+prog:pick('prog',m), progMk:pick('progMk',m), progRef:pick('progRef',m),
+prop:pick('prop',m), propMk:pick('propMk',m), propRef:pick('propRef',m),
+mt:  pick('mt',m),   mtMk:  pick('mtMk',m),   mtRef:  pick('mtRef',m),
+ctr: pick('ctr',m),  ctrMk: pick('ctrMk',m),  ctrRef: pick('ctrRef',m)
+});
+}
+const year = {};
+['inq','pwr','pwrMk','pwrRef','prog','progMk','progRef','prop','propMk','propRef',
+'mt','mtMk','mtRef','ctr','ctrMk','ctrRef'].forEach(k=>{ year[k]=pickYear(k); });
+return {months, year};
+}
+const SUMKEYS=['inq','pwr','pwrMk','pwrRef','prog','progMk','progRef',
+'prop','propMk','propRef','mt','mtMk','mtRef','ctr','ctrMk','ctrRef'];
+function sumFor(months){
+const S=DB.sum;
+if(!S) return null;
+const ms = Array.isArray(months) ? months : selMonths();
+const rows=S.months.filter(x=>ms.includes(x.m));
+const o={};
+SUMKEYS.forEach(k=>{ o[k]=rows.reduce((a,x)=>a+(x[k]||0),0); });
+return o;
+}
+const RG_ORDER = ['수도권','충청권','강원권','영남권','호남권','제주'];
+const REG_C0=98, REG_C1=243;
+const SIDO_SHORT = {
+'서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천',
+'광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종',
+'경기도':'경기','강원도':'강원','강원특별자치도':'강원',
+'충청북도':'충북','충청남도':'충남','전라북도':'전북','전북특별자치도':'전북',
+'전라남도':'전남','경상북도':'경북','경상남도':'경남',
+'제주도':'제주','제주특별자치도':'제주'
+};
+function regNorm(v){
+let t=txt(v).replace(/^[0-9]+\s*[.)]\s*/,'').replace(/\s+/g,' ').trim();
+if(!t) return '미기재';
+const p=t.split(' ');
+p[0]=SIDO_SHORT[p[0]]||p[0];
+if(p.length===1) return p[0];
+if(!/(시|군|구)$/.test(p[1])) return p[0];
+return p[0]+' '+p[1];
+}
+const RG_AREA_FALLBACK = {
+'수도권':'경기, 서울, 인천',
+'충청권':'충청남도, 충남, 충청북도, 충북, 대전, 세종',
+'강원권':'강원',
+'영남권':'경상남도, 경남, 경상북도, 경북, 부산, 대구, 울산',
+'호남권':'전라남도, 전남, 전라북도',
+'제주':'제주'
+};
+function parseRegionDefs(rows){
+const found={};
+for(let r=0;r<=40;r++){
+const nm=txt(at(rows,r,95));
+if(!RG_ORDER.includes(nm)) continue;
+if(!found[nm]) found[nm]=txt(at(rows,r,96));
+}
+return RG_ORDER.map(nm=>({name:nm, area:found[nm] || RG_AREA_FALLBACK[nm] || ''}));
+}
+function parseRegionTables(rows){
+const out=[];
+for(let m=1;m<=12;m++){
+const h=2+(m-1)*10, hd=h+1;
+const mm=String(m).padStart(2,'0')+'월';
+const groups=[];
+for(let c=REG_C0;c<=REG_C1;c++){
+if(txt(at(rows,hd,c))!==mm) continue;
+const cols=[];
+for(let cc=c+1;cc<=REG_C1;cc++){
+const lab=txt(at(rows,hd,cc));
+if(!lab) break;
+cols.push({c:cc,label:lab});
+}
+if(!cols.length) continue;
+let title=txt(at(rows,h,c)), detail='';
+for(let cc=c+1;cc<=c+cols.length;cc++){
+const t2=txt(at(rows,h,cc));
+if(t2){ detail=t2; break; }
+}
+const regions=[]; let tot=null;
+for(let k=2;k<=9;k++){
+const nm=txt(at(rows,h+k,c));
+if(!nm) continue;
+const vals=cols.map(x=>num(at(rows,h+k,x.c)));
+if(nm==='합계') tot={region:nm,vals};
+else regions.push({region:nm,vals});
+}
+if(cols.some(x=>/^\d{1,2}\s*월$/.test(x.label))) continue;
+if(regions.filter(r=>RG_ORDER.includes(r.region)).length < 4) continue;
+groups.push({c, title:title||'표', detail, cols, regions, tot});
+}
+out.push({m, groups});
+}
+return out;
+}
+function regionGrid(title){
+const AX=chartAxis();
+const val=(m,rg)=>{
+const b=(DB.regions||[]).find(x=>x.m===m); if(!b) return 0;
+const g=b.groups.find(x=>x.title===title); if(!g) return 0;
+const r=g.regions.find(x=>x.region===rg); if(!r) return 0;
+return r.vals.reduce((a,v)=>a+v,0);
+};
+const names=[...RG_ORDER];
+(DB.regions||[]).forEach(b=>b.groups.filter(g=>g.title===title)
+.forEach(g=>g.regions.forEach(r=>{ if(!names.includes(r.region)) names.push(r.region); })));
+const ms=selMonths();
+const rows=names.map(rg=>{
+const vals=AX.map(g=>g.months.reduce((a,m)=>a+val(m,rg),0));
+return {region:rg, vals, sum:ms.reduce((a,m)=>a+val(m,rg),0)};
+});
+const tot=AX.map((_,k)=>rows.reduce((a,r)=>a+r.vals[k],0));
+return {cols:AX.map(g=>g.label), rows, tot,
+totSum:rows.reduce((a,r)=>a+r.sum,0)};
+}
+function regionFor(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const blocks=(DB.regions||[]).filter(x=>ms.includes(x.m) && x.groups.length);
+if(!blocks.length) return [];
+const shape=blocks.find(b=>b.groups.length)||blocks[0];
+return shape.groups.map((g0,gi)=>{
+const map=new Map();
+RG_ORDER.forEach(rg=>map.set(rg, g0.cols.map(()=>0)));
+let tot=g0.cols.map(()=>0);
+blocks.forEach(b=>{
+const g=b.groups[gi]; if(!g) return;
+g.regions.forEach(r=>{
+if(!map.has(r.region)) map.set(r.region, g0.cols.map(()=>0));
+const a=map.get(r.region);
+r.vals.forEach((v,ix)=>{ if(ix<a.length) a[ix]+=v; });
+});
+});
+const regions=[...map.entries()].map(([region,vals])=>({region,vals,
+sum:vals.reduce((a,b)=>a+b,0)}));
+regions.forEach(r=>r.vals.forEach((v,ix)=>tot[ix]+=v));
+return {title:g0.title, detail:g0.detail, cols:g0.cols.map(x=>x.label),
+regions, tot, totSum:tot.reduce((a,b)=>a+b,0)};
+});
+}
+const RG_OWNERS = ['조성현','최창민','진으뜸','임준길'];
+const OW_C = {name:15, mtCap:16, mtN:17, mkN:18, refN:19,
+ctrCap:20, ctrN:21, mkCtrCap:22, mkCtrN:23, refCtrCap:24, refCtrN:25};
+function owRow(rows, r){
+const o={name:txt(at(rows,r,OW_C.name))};
+if(!o.name) return null;
+Object.keys(OW_C).forEach(k=>{ if(k!=='name') o[k]=num(at(rows,r,OW_C[k])); });
+return o;
+}
+function owBlock(rows, h){
+const list=[]; let tot=null;
+for(let k=2;k<=8;k++){
+const o=owRow(rows,h+k);
+if(!o) continue;
+if(o.name==='전체'){ tot=o; break; }
+list.push(o);
+}
+return {list, tot};
+}
+function parseOwnerStats(rows){
+if(txt(at(rows,3,OW_C.name))!=='담당자') return null;
+const year=owBlock(rows,2);
+const months={};
+for(let m=1;m<=12;m++){
+const h=12+(m-1)*10;
+if(txt(at(rows,h+1,OW_C.name))!=='담당자') continue;
+months[m]=owBlock(rows,h);
+}
+return {year, months};
+}
+const OW_KEYS=['mtCap','mtN','mkN','refN','ctrCap','ctrN','mkCtrCap','mkCtrN','refCtrCap','refCtrN'];
+function ownerStatFor(months, name){
+const ms = Array.isArray(months) ? months : selMonths();
+const OS = DB.owners;
+if(!OS) return null;
+const acc=new Map();
+ms.forEach(m=>{
+const b=OS.months[m]; if(!b) return;
+b.list.forEach(o=>{
+if(name && o.name!==name) return;
+if(!acc.has(o.name)){ const z={name:o.name}; OW_KEYS.forEach(k=>z[k]=0); acc.set(o.name,z); }
+const z=acc.get(o.name); OW_KEYS.forEach(k=>z[k]+=o[k]||0);
+});
+});
+const list=[...acc.values()].sort((a,b)=>b.mtN-a.mtN);
+const tot={name:'전체'}; OW_KEYS.forEach(k=>tot[k]=list.reduce((a,o)=>a+o[k],0));
+return {list, tot};
+}
+const CORP_KEY = {'그랜드썬':'gs','SP':'sp','유지에스':'ug','UGS':'ug'};
+const SEC_Z = () => ({gs:0,sp:0,ug:0,ref:0,tot:0});
+function grpFilt(g){
+if(!g) return SEC_Z();
+if(state.corp==='전체' && state.src==='전체') return g;
+const z=SEC_Z();
+if(state.corp!=='전체'){
+const k=CORP_KEY[state.corp];
+if(!k) return z;
+if(state.src==='소개') return z;              /* 소개는 법인으로 나뉘지 않는다 */
+z[k]=g[k]||0; z.tot=z[k]; return z;
+}
+if(state.src==='마케팅'){ z.gs=g.gs||0; z.sp=g.sp||0; z.ug=g.ug||0; z.tot=grpMk(g); return z; }
+if(state.src==='소개'){ z.ref=g.ref||0; z.tot=z.ref; return z; }
+return z;
+}
+function grpPick(g){
+if(state.corp!=='전체'){ const k=CORP_KEY[state.corp]; return k? (g[k]||0) : 0; }
+if(state.src==='마케팅') return grpMk(g);
+if(state.src==='소개')   return g.ref||0;
+return g.tot||0;
+}
+function meetCtrFor(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const noQuery = !state.query;
+const noOwner = state.owner==='전체' && state.cons==='전체';
+if(noQuery && noOwner){
+const SC=sectorFor(ms);
+let inqG, mtG, ctrG, note='통계 BO:CH';
+if(state.type==='전체'){ inqG=SC.tot.inq; mtG=SC.tot.mt; ctrG=SC.tot.ctr; }
+else{
+const row=SC.list.find(r=>r.sec===state.type);
+if(!row) return {ok:true, src:'통계 BO:CH', inq:0, mt:0, ctr:0,
+inqMk:0, inqRef:0, mtMk:0, mtRef:0, ctrMk:0, ctrRef:0, empty:true};
+inqG=row.inq; mtG=row.mt; ctrG=row.ctr; note=`통계 BO:CH · ${state.type}`;
+}
+if(state.corp!=='전체') note+=` · ${state.corp}`;
+else if(state.src!=='전체') note+=` · ${state.src}`;
+return {ok:true, src:note,
+inq:grpPick(inqG), inqMk:grpMk(inqG), inqRef:inqG.ref,
+mt: grpPick(mtG),  mtMk: grpMk(mtG),  mtRef: mtG.ref,
+ctr:grpPick(ctrG), ctrMk:grpMk(ctrG), ctrRef:ctrG.ref};
+}
+if(ownerOnlyFilter()){
+const O=ownerStatFor(ms, state.owner);
+if(O && O.list.length){
+const t=O.tot;
+return {ok:true, src:`통계 P:Z · ${state.owner}`, owner:state.owner, noInq:true,
+inq:null, inqMk:null, inqRef:null,
+mt:t.mtN,  mtMk:t.mkN,     mtRef:t.refN,
+ctr:t.ctrN, ctrMk:t.mkCtrN, ctrRef:t.refCtrN,
+mtCap:t.mtCap, ctrCap:t.ctrCap};
+}
+}
+return {ok:false, src:''};
+}
+function chartAxis(){
+const all=dataMonths();
+if(state.mode==='quarter'){
+const qs = state.quarters.length ? state.quarters.slice().sort((a,b)=>a-b)
+: [...new Set(all.map(qOf))].sort((a,b)=>a-b);
+return qs.map(q=>({label:q+'분기', months:QMONTHS[q].filter(m=>all.includes(m))}))
+.filter(g=>g.months.length);
+}
+if(state.mode==='cumulative'){
+const ms=selMonths();
+return ms.map((m,ix)=>({label:'~'+m+'월', months:ms.slice(0,ix+1)}));
+}
+if(state.mode==='month' && state.months.length){
+return state.months.slice().sort((a,b)=>a-b).filter(m=>all.includes(m))
+.map(m=>({label:m+'월', months:[m]}));
+}
+return all.map(m=>({label:m+'월', months:[m]}));
+}
+const axisWord = () => state.mode==='quarter' ? '분기별'
+: state.mode==='cumulative' ? '누적'
+: '월별';
+const axisGoal = (g, per) => per * g.months.length;
+function mcByMonth(){
+const o={};
+dataMonths().forEach(m=>{ o[m]=meetCtrFor([m]); });
+return o;
+}
+function malMeetFiltered(months){
+const ms = Array.isArray(months) ? months : selMonths();
+if(inquiryUsable()) return {ok:true, ...malMeetFor(ms)};
+if(ownerOnlyFilter()){
+const ow=(malOwnersFor(ms)||[]).find(o=>o.name===state.owner);
+if(ow) return {ok:true, owner:true, n:ow.mkN+ow.refN, cap:ow.mkCap+ow.refCap,
+mkN:ow.mkN, mkCap:ow.mkCap, refN:ow.refN, refCap:ow.refCap};
+}
+return {ok:false, n:0, cap:0, mkN:0, mkCap:0, refN:0, refCap:0};
+}
+const dash = () => '—';   /* KPI 값은 esc 를 거치므로 순수 문자로 둔다 */
+function sectorNames(){
+const s=new Set();
+(DB.sectors||[]).forEach(b=>b.rows.forEach(r=>s.add(r.sec)));
+return [...s];
+}
+const ownerOnlyFilter = () =>
+state.owner!=='전체' && state.cons==='전체' && state.type==='전체' &&
+state.src==='전체' && state.corp==='전체' && !state.query;
+const SEC_LAB=67, SEC_INQ=68, SEC_MT=74, SEC_CTR=80;
+const SEC_ZERO = () => ({gs:0,sp:0,ug:0,ref:0,tot:0});
+function secGrp(rows,r,c0){
+return {gs:num(at(rows,r,c0)), sp:num(at(rows,r,c0+1)), ug:num(at(rows,r,c0+2)),
+ref:num(at(rows,r,c0+3)), tot:num(at(rows,r,c0+4))};
+}
+function parseSectors(rows){
+const out=[];
+for(let m=1;m<=12;m++){
+const h=2+(m-1)*25;
+if(!/월\s*진행사항/.test(txt(at(rows,h,SEC_LAB)))){ out.push({m,rows:[],tot:null}); continue; }
+const list=[];
+for(let k=2;k<=22;k++){
+const nm=txt(at(rows,h+k,SEC_LAB));
+if(!nm || nm==='합계') continue;
+list.push({sec:nm, inq:secGrp(rows,h+k,SEC_INQ), mt:secGrp(rows,h+k,SEC_MT),
+ctr:secGrp(rows,h+k,SEC_CTR)});
+}
+const tr=h+23;
+const tot = txt(at(rows,tr,SEC_LAB))==='합계'
+? {inq:secGrp(rows,tr,SEC_INQ), mt:secGrp(rows,tr,SEC_MT), ctr:secGrp(rows,tr,SEC_CTR)}
+: null;
+out.push({m, rows:list, tot});
+}
+return out;
+}
+const addGrp=(a,b)=>({gs:a.gs+b.gs, sp:a.sp+b.sp, ug:a.ug+b.ug, ref:a.ref+b.ref, tot:a.tot+b.tot});
+function sectorFor(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const blocks=(DB.sectors||[]).filter(x=>ms.includes(x.m));
+const map=new Map();
+let tot={inq:SEC_ZERO(), mt:SEC_ZERO(), ctr:SEC_ZERO()};
+blocks.forEach(b=>{
+b.rows.forEach(r=>{
+if(!map.has(r.sec)) map.set(r.sec,{sec:r.sec, inq:SEC_ZERO(), mt:SEC_ZERO(), ctr:SEC_ZERO()});
+const o=map.get(r.sec);
+o.inq=addGrp(o.inq,r.inq); o.mt=addGrp(o.mt,r.mt); o.ctr=addGrp(o.ctr,r.ctr);
+});
+if(b.tot){ tot={inq:addGrp(tot.inq,b.tot.inq), mt:addGrp(tot.mt,b.tot.mt),
+ctr:addGrp(tot.ctr,b.tot.ctr)}; }
+});
+let list=[...map.values()];
+if(state.type!=='전체'){
+const row=map.get(state.type);
+list = row? [row] : [];
+tot = row? {inq:row.inq, mt:row.mt, ctr:row.ctr}
+: {inq:SEC_ZERO(), mt:SEC_ZERO(), ctr:SEC_ZERO()};
+}
+if(state.corp!=='전체' || state.src!=='전체'){
+list = list.map(r=>({sec:r.sec, inq:grpFilt(r.inq), mt:grpFilt(r.mt), ctr:grpFilt(r.ctr)}));
+tot  = {inq:grpFilt(tot.inq), mt:grpFilt(tot.mt), ctr:grpFilt(tot.ctr)};
+}
+list.sort((a,b)=>b.inq.tot-a.inq.tot);
+return {list, tot};
+}
+function lagProfile(){
+const rows=(DB.ledger||[]).filter(r=>r.cmo>=1&&r.cmo<=12&&r.em>=1&&r.em<=12);
+const c=[0,0,0,0];               /* 0개월 · 1개월 · 2개월 · 3개월+ */
+rows.forEach(r=>{
+const d=(r.em-r.cmo+12)%12;
+c[Math.min(d,3)]++;
+});
+const n=rows.length||1;
+return {n:rows.length, same:c[0], next:c[1], two:c[2], more:c[3],
+samePct:c[0]/n*100, nextPct:c[1]/n*100,
+cum1:(c[0]+c[1])/n*100,
+avg: rows.reduce((a,r)=>a+((r.em-r.cmo+12)%12),0)/n};
+}
+function fillingMonths(){
+const all=dataMonths();
+if(!all.length) return [];
+const last=Math.max(...all);
+return all.filter(m=>m>=last-1);
+}
+function sectorMonths(){
+return (DB.sectors||[]).filter(b=>b.tot && b.tot.inq.tot>0).map(b=>b.m);
+}
+function sectorPending(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const have = new Set(sectorMonths());
+return ms.filter(m=>!have.has(m));
+}
+function sectorByMonth(){
+const o={};
+const one=m=>{
+const b=(DB.sectors||[]).find(x=>x.m===m);
+let t = b && b.tot ? b.tot : {inq:SEC_ZERO(),mt:SEC_ZERO(),ctr:SEC_ZERO()};
+if(state.type!=='전체'){
+const r = b ? b.rows.find(x=>x.sec===state.type) : null;
+t = r ? {inq:r.inq, mt:r.mt, ctr:r.ctr} : {inq:SEC_ZERO(),mt:SEC_ZERO(),ctr:SEC_ZERO()};
+}
+if(state.corp!=='전체' || state.src!=='전체')
+t = {inq:grpFilt(t.inq), mt:grpFilt(t.mt), ctr:grpFilt(t.ctr)};
+return t;
+};
+for(let m=1;m<=12;m++) o[m]=one(m);
+return o;
+}
+const GOAL = {
+inqAll   : 1500,          /* 전체 문의 / 월 */
+inqPwrMk : 700,           /* 발전사업 마케팅 문의 / 월 */
+inqPwrRef:  87,           /* 발전사업 소개 문의 / 월 */
+get inqPwr(){ return this.inqPwrMk + this.inqPwrRef; },   /* 787 */
+mtN      :  72,           /* 미팅 건수 / 월 */
+mtWeekN  :  17,           /* 미팅 건수 / 주 */
+ctrCapYr : 150000         /* 계약 용량 / 년 (kW) */
+};
+function weeksOf(m){
+const blk=(DB.months||[]).find(b=>b.m===m);
+return (blk && blk.wmeet && blk.wmeet.length) ? blk.wmeet.length : 5;
+}
+function goalFor(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const o={ctrCap:0, directCap:0, mtCap:0, mtN:0, weeks:0,
+inqAll:0, inqPwr:0, inqPwrMk:0, inqPwrRef:0, weekN:0};
+ms.forEach(m=>{
+const x=(DB.msum||[]).find(y=>y.m===m);
+if(x){ o.ctrCap+=x.goalCtr; o.directCap+=x.goalDirect; o.mtCap+=x.goalMt; }
+const w=weeksOf(m);
+o.weeks+=w;
+o.mtN      += GOAL.mtN;
+o.weekN    += GOAL.mtWeekN*w;
+o.inqAll   += GOAL.inqAll;
+o.inqPwrMk += GOAL.inqPwrMk;
+o.inqPwrRef+= GOAL.inqPwrRef;
+o.inqPwr   += GOAL.inqPwr;
+});
+return o;
+}
+function weekGoalN(){ return GOAL.mtWeekN; }
+function ctrFor(months){
+const ms = Array.isArray(months) ? months : selMonths();
+const rep=(DB.msum||[]).filter(x=>ms.includes(x.m)).reduce((a,x)=>a+(x.ctr||0),0);
+const led=sumRows(rowsIn(ms)).ctr;
+return {rep, led, gap:rep-led};
+}
+const CH = {};                 /* 차트 설정 보관 */
+let chSeq = 0;
+const cid = () => 'ch'+(++chSeq);
+function roundTopPath(x,y,w,h,r){
+if(h<=0) return '';
+r = Math.max(0, Math.min(r, w/2, h));
+return `M${x},${y+h} L${x},${y+r} Q${x},${y} ${x+r},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r} L${x+w},${y+h} Z`;
+}
+function roundRightPath(x,y,w,h,r){
+if(w<=0) return '';
+r = Math.max(0, Math.min(r, h/2, w));
+return `M${x},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r} L${x+w},${y+h-r} Q${x+w},${y+h} ${x+w-r},${y+h} L${x},${y+h} Z`;
+}
+function niceMax(v){
+if(v<=0) return 1;
+const step = v<=10?2 : v<=30?5 : v<=60?10 : v<=150?25 : v<=400?50 : v<=1000?100 :
+v<=4000?500 : v<=10000?1000 : v<=40000?5000 : 10000;
+return Math.ceil(v/step)*step;
+}
+function ruleLayer(rule, W, P, Y, max){
+if(!rule || !(rule.value>0)) return {svg:'', pad:0};
+const y=Y(rule.value);
+if(!(y>P.t-4 && y<1e6)) return {svg:'', pad:0};
+const lab=rule.label||'목표';
+const pad=Math.max(46, lab.length*7.2+14);
+return {pad, svg:`<line class="rule" x1="${P.l}" y1="${y.toFixed(1)}"
+x2="${(W-P.r-pad+8).toFixed(1)}" y2="${y.toFixed(1)}"/>
+<text class="rulelab" x="${(W-P.r-pad+12).toFixed(1)}" y="${(y+3.8).toFixed(1)}">${esc(lab)}</text>`};
+}
+function chartLine(cfg){
+const id=cid(); CH[id]=cfg;
+const W=780, H=cfg.height||250;
+const showDL = cfg.series.length<=4 && cfg.labels.length>0 && !cfg.noLabels;
+const dlPad = showDL ? Math.min(140, 14 + Math.max(...cfg.series.map(s=>s.name.length))*11) : 16;
+const P={l:100,r:Math.max(dlPad,150),t:32,b:42};
+const n=cfg.labels.length;
+const all=cfg.series.flatMap(s=>s.values);
+const max=niceMax(Math.max(...all, (cfg.rule&&cfg.rule.value)||0, 0));
+const Y=v=> H-P.b-(H-P.b-P.t)*(v/max);
+const RL=ruleLayer(cfg.rule, W, P, Y, max);
+if(RL.pad>P.r) P.r = RL.pad;
+const X=k=> n<=1 ? (P.l+(W-P.l-P.r)/2) : P.l+(W-P.l-P.r)*k/(n-1);
+let g='';
+const selectedIndex=cfg.highlightLabel?cfg.labels.indexOf(cfg.highlightLabel):-1;
+for(let k=0;k<=4;k++){
+const v=max/4*k, y=Y(v);
+g+=`<line class="gl" x1="${P.l}" y1="${y.toFixed(1)}" x2="${W-P.r}" y2="${y.toFixed(1)}"/>`;
+g+=`<text x="${P.l-8}" y="${(y+3.5).toFixed(1)}" text-anchor="end">${esc((cfg.fmt||d1)(v))}${esc(cfg.unit||'')}</text>`;
+}
+let xl='';
+const step = Math.max(1, Math.ceil(n/13));
+const lastShown = Math.floor((n-1)/step)*step;
+cfg.labels.forEach((L,k)=>{
+const isTick = (k%step===0);
+const isLast = (k===n-1) && (n-1-lastShown >= step*0.7);
+if(!isTick && !isLast) return;
+xl+=`<text x="${X(k).toFixed(1)}" y="${H-P.b+24}" text-anchor="middle" ${k===selectedIndex?'style="fill:#2364d2;font-weight:800"':''}>${esc(L)}</text>`;
+});
+let paths='';
+cfg.series.forEach(s=>{
+const dpath = s.values.map((v,k)=>`${k?'L':'M'}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+paths+=`<path d="${dpath}" fill="none" stroke="${s.color}" stroke-width="2"
+stroke-linejoin="round" stroke-linecap="round"/>`;
+s.values.forEach((v,k)=>{
+paths+=`<circle cx="${X(k).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"
+fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`;
+});
+});
+let dl='';
+if(showDL){
+const MIN=24;
+const pts=cfg.series.map((s,si)=>({s,si,y:Y(s.values[n-1])}))
+.sort((a,b)=>a.y-b.y);
+for(let k=1;k<pts.length;k++)
+if(pts[k].y - pts[k-1].y < MIN) pts[k].y = pts[k-1].y + MIN;
+const over = pts.length ? pts[pts.length-1].y - (H-P.b) : 0;
+if(over>0) pts.forEach(p=>p.y-=over);
+pts.forEach(p=>{
+const yv=Y(p.s.values[n-1]), x=X(n-1);
+if(Math.abs(p.y-yv)>3)
+dl+=`<path d="M${(x+4).toFixed(1)},${yv.toFixed(1)} L${(x+9).toFixed(1)},${p.y.toFixed(1)}"
+stroke="${p.s.color}" stroke-width="1" fill="none" opacity=".5"/>`;
+dl+=`<text class="val" x="${(x+12).toFixed(1)}" y="${(p.y+3.5).toFixed(1)}"
+text-anchor="start" style="fill:${p.s.color};font-weight:600">${esc(p.s.name)}</text>`;
+});
+}
+if(!cfg.noVals && cfg.series.length<=2 && n<=13){
+cfg.series.forEach((sv,si)=>{
+const multi=cfg.series.length>1;
+sv.values.forEach((v,k)=>{
+if(!(v>0)) return;
+let ly = Y(v) + ((!multi || si===0) ? -10 : 17);
+if(multi && si>0 && ly > H-P.b-5) ly = Y(v)-10;
+dl+=`<text class="val${multi?' vs':''}" x="${X(k).toFixed(1)}" y="${ly.toFixed(1)}"
+text-anchor="middle"${multi?` style="fill:${sv.color}"`:''}>${esc((cfg.fmt||d1)(v))}${esc(cfg.unit||'')}</text>`;
+});
+});
+}
+let hit='';
+for(let k=0;k<n;k++){
+const w=(W-P.l-P.r)/Math.max(n-1,1);
+hit+=`<rect x="${(X(k)-w/2).toFixed(1)}" y="${P.t}" width="${w.toFixed(1)}" height="${H-P.t-P.b}"
+fill="transparent" data-k="${k}" class="hit" style="cursor:crosshair"/>`;
+}
+const cross=`<line class="ax" id="${id}-cx" x1="0" y1="${P.t}" x2="0" y2="${H-P.b}"
+stroke-dasharray="3 3" opacity="0" style="pointer-events:none"/>`;
+const svg=`<svg class="chart" viewBox="0 0 ${W} ${H}" data-line="${id}" role="img"
+aria-label="${esc(cfg.aria||'추세 그래프')}">
+${g}${cross}${paths}${dl}
+<line class="ax" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/>
+<line class="ax" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>
+${RL.svg}${xl}${hit}</svg>`;
+return `<div class="chartbox" data-box="${id}">${svg}<div class="tip" id="${id}-tip"></div></div>`
++ legendHTML(cfg.series,'ln') + valuesTable(cfg);
+}
+function chartBars(cfg){
+const id=cid(); CH[id]=cfg;
+const W=780, H=cfg.height||250;
+const n=cfg.labels.length, S=cfg.series.length;
+const vTot  = !cfg.noVals && n<=16 && (cfg.stacked || S===1);
+const vEach = !cfg.noVals && !cfg.stacked && S>1 && S<=3 && n<=13;
+const _f=cfg.fmt||d1;
+const _lw = vEach ? Math.max(...cfg.series.flatMap(s2=>s2.values.map(v=>String(_f(v)).length)))*10 : 0;
+const _iw0=(780-56-16)/Math.max(n,1);
+const _bw0=Math.min((_iw0*0.72)/Math.max(S,1), 26);
+const vRot = !cfg.horizontalValues && vEach && _lw > _bw0+2;
+const P={l:110,r:24,t: cfg.ghost?36 : vRot?Math.min(90,_lw+16) : 34, b:42};
+const totals = cfg.stacked
+? cfg.labels.map((_,k)=>cfg.series.reduce((a,s)=>a+(s.values[k]||0),0))
+: cfg.series.flatMap(s=>s.values);
+const ghost = cfg.ghost || null;
+const max=niceMax(Math.max(...totals, ...(ghost||[0]), (cfg.rule&&cfg.rule.value)||0, 0));
+const Y=v=> H-P.b-(H-P.b-P.t)*(v/max);
+const RL=ruleLayer(cfg.rule, W, P, Y, max);
+P.r += RL.pad;
+const iw=(W-P.l-P.r)/Math.max(n,1);
+const gw=ghost ? Math.min(iw*0.74,60) : 0;                 /* 목표 기둥 폭 */
+const bw=ghost ? Math.min(gw*0.54,32)
+: cfg.stacked ? Math.min(iw*0.56,44) : Math.min((iw*0.72)/S, 26);
+const barGap=cfg.horizontalValues?Math.max(8,_lw-bw+10):2;
+let g='';
+for(let k=0;k<=4;k++){
+const v=max/4*k,y=Y(v);
+g+=`<line class="gl" x1="${P.l}" y1="${y.toFixed(1)}" x2="${W-P.r}" y2="${y.toFixed(1)}"/>`;
+g+=`<text x="${P.l-8}" y="${(y+3.5).toFixed(1)}" text-anchor="end">${esc((cfg.fmt||d1)(v))}${esc(cfg.unit||'')}</text>`;
+}
+let bars='',xl='',hit='',dl='';
+const step = Math.max(1, Math.ceil(n/13));
+const lastShown = Math.floor((n-1)/step)*step;
+cfg.labels.forEach((L,k)=>{
+const cx=P.l+iw*k+iw/2;
+if(k%step===0 || (k===n-1 && n-1-lastShown >= step*0.7))
+xl+=`<text x="${cx.toFixed(1)}" y="${H-P.b+26}" text-anchor="middle">${esc(L)}</text>`;
+if(ghost){
+const gv=ghost[k]||0;
+if(gv>0){
+const gy=Y(gv), gh=Math.max(H-P.b-gy,0);
+bars+=`<path d="${roundTopPath(cx-gw/2, gy, gw, gh, 4)}" fill="var(--grid)"/>`;
+}
+}
+if(cfg.stacked){
+let acc=0;
+cfg.series.forEach(s=>{
+const v=s.values[k]||0; if(v<=0) return;
+const y0=Y(acc), y1=Y(acc+v);
+const h=Math.max(y0-y1-2,0);            /* 2px 표면 간격 */
+bars+=`<path d="${roundTopPath(cx-bw/2, y1, bw, h, 4)}" fill="${s.color}"/>`;
+acc+=v;
+});
+} else {
+cfg.series.forEach((s,si)=>{
+const v=s.values[k]||0;
+const x=cx-(bw*S+barGap*(S-1))/2 + si*(bw+barGap);
+const h=Math.max(H-P.b-Y(v),0);
+const col=(s.colors&&s.colors[k])?s.colors[k]:s.color;   /* 막대별 색 */
+if(h>0) bars+=`<path d="${roundTopPath(x, Y(v), bw, h, 4)}" fill="${col}"/>`;
+});
+}
+hit+=`<rect x="${(P.l+iw*k).toFixed(1)}" y="${P.t}" width="${iw.toFixed(1)}"
+height="${H-P.t-P.b}" fill="transparent" data-k="${k}" class="hit"/>`;
+if(vTot){
+const tot = cfg.series.reduce((a,s2)=>a+(s2.values[k]||0),0);
+if(tot>0){
+const gv = ghost ? (ghost[k]||0) : 0;
+const ly = gv>0 ? Y(gv)-9 : Y(tot)-7;
+dl+=`<text class="val" x="${cx.toFixed(1)}" y="${ly.toFixed(1)}"
+text-anchor="middle">${esc((cfg.fmt||d1)(tot))}${gv?`<tspan fill="var(--muted)" font-weight="500" font-size="0.82em"> ${d1(tot/gv*100)}%</tspan>`:''}</text>`;
+}
+} else if(vEach){
+cfg.series.forEach((s2,si)=>{
+const v=s2.values[k]||0; if(!(v>0)) return;
+const bx=cx-(bw*S+barGap*(S-1))/2 + si*(bw+barGap) + bw/2;
+const col=(s2.colors&&s2.colors[k])||s2.color;
+const lab=esc((cfg.fmt||d1)(v));
+if(!vRot){
+dl+=`<text class="val vs" x="${bx.toFixed(1)}" y="${(Y(v)-5).toFixed(1)}"
+text-anchor="middle" style="fill:${col}">${lab}</text>`;
+} else {
+const ty=Y(v)-5;
+dl+=`<text class="val vs" transform="translate(${bx.toFixed(1)},${ty.toFixed(1)}) rotate(-90)"
+text-anchor="start" dy="3.4" style="fill:${col}">${lab}</text>`;
+}
+});
+}
+});
+const svg=`<svg class="chart" viewBox="0 0 ${W} ${H}" data-line="${id}" role="img"
+aria-label="${esc(cfg.aria||'막대 그래프')}">${g}${bars}${dl}
+<line class="ax" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/>
+<line class="ax" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>
+${RL.svg}${xl}${hit}</svg>`;
+return `<div class="chartbox" data-box="${id}">${svg}<div class="tip" id="${id}-tip"></div></div>`
++ legendHTML(cfg.series,'sq') + valuesTable(cfg);
+}
+function sparkHTML(vals, color, opt){
+opt=opt||{};
+const W=opt.w||140, H=opt.h||30, P=3;
+const n=vals.length;
+if(!n) return '<span style="color:var(--muted)">–</span>';
+const max=Math.max(...vals,1);
+const X=k=> n<=1 ? W/2 : P+(W-P*2)*k/(n-1);
+const Y=v=> H-P-(H-P*2)*(v/max);
+let body='';
+if(opt.kind==='bar'){
+const bw=Math.max(2, Math.min((W-P*2)/n-2, 14));
+vals.forEach((v,k)=>{
+const x=P+((W-P*2)/n)*k+((W-P*2)/n-bw)/2, y=Y(v), h=Math.max(H-P-y,0);
+if(h>0) body+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}"
+height="${h.toFixed(1)}" rx="1.5" fill="${color}" opacity="${k===n-1?1:.55}"/>`;
+});
+} else {
+body+=`<path d="${vals.map((v,k)=>`${k?'L':'M'}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join(' ')}"
+fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+body+=`<circle cx="${X(n-1).toFixed(1)}" cy="${Y(vals[n-1]).toFixed(1)}" r="2.6" fill="${color}"/>`;
+}
+const t=(opt.title||'')+' '+vals.join(', ');
+return `<svg class="spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"
+role="img" aria-label="${esc(t)}" style="vertical-align:middle">${body}</svg>`;
+}
+function legendHTML(series, kind){
+if(series.length<2) return '';
+return `<div class="legend">`+series.map(s=>
+`<span><i class="${kind==='ln'?'ln':''}" style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')+`</div>`;
+}
+function valuesTable(cfg){
+if(cfg.noTable) return '';
+const f=cfg.fmt||d1, u=cfg.unit||'';
+const selected=k=>cfg.highlightLabel&&cfg.labels[k]===cfg.highlightLabel;
+return `${cfg.tableAlwaysOpen?'<div class="perf-values-always"><div class="v10-note">월별 수치</div>':'<details style="margin-top:9px"><summary style="font-size:11.5px;color:var(--muted);cursor:pointer">값 표로 보기</summary>'}
+<div class="tblwrap" style="max-height:none;margin-top:8px"><table><thead><tr><th class="left">구분</th>`
++ cfg.labels.map(l=>`<th class="num">${esc(l)}</th>`).join('')
++ `</tr></thead><tbody>`
++ cfg.series.map(s=>`<tr><td class="left"><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${s.color};margin-right:6px"></i>${esc(s.name)}</td>`
++ s.values.map((v,k)=>`<td class="num">${selected(k)?`<span class="perf-value-highlight">${esc(f(v))}</span>`:esc(f(v))}${esc(u)}</td>`).join('')+`</tr>`).join('')
++ `</tbody></table></div>${cfg.tableAlwaysOpen?'</div>':'</details>'}`;
+}
+let chartReadabilityObserver;
+function wireCharts(root){
+// Keep SVG text at the same visible size in narrow cards and full-width charts.
+chartReadabilityObserver?.disconnect();
+if(typeof ResizeObserver!=='undefined'){
+ chartReadabilityObserver=new ResizeObserver(entries=>entries.forEach(({target})=>{
+  const box=target.getBoundingClientRect(),vb=target.viewBox.baseVal;
+  const scale=Math.min(box.width/vb.width,box.height/vb.height);
+  if(scale>0)target.style.setProperty('--chart-readable-font',`${18/scale}px`);
+ }));
+ root.querySelectorAll('svg.chart').forEach(svg=>chartReadabilityObserver.observe(svg));
+}
+root.querySelectorAll('svg[data-line]').forEach(svg=>{
+const id=svg.getAttribute('data-line'), cfg=CH[id];
+const box=svg.closest('.chartbox'), tip=box.querySelector('.tip');
+const cx=svg.querySelector('#'+CSS.escape(id+'-cx'));
+svg.querySelectorAll('rect.hit').forEach(h=>{
+h.addEventListener('mouseenter',()=>{
+const k=+h.getAttribute('data-k');
+const f=cfg.fmt||d1, u=cfg.unit||'';
+tip.innerHTML=`<b>${esc(cfg.labels[k])}</b>`+cfg.series.map(s=>
+`<div class="row"><span class="nm"><i style="background:${s.color}"></i>${esc(s.name)}</span>
+<span class="nv">${esc(f(s.values[k]||0))}${esc(u)}</span></div>`).join('');
+tip.classList.add('on');
+if(cx){ const x=+h.getAttribute('x')+ +h.getAttribute('width')/2;
+cx.setAttribute('x1',x); cx.setAttribute('x2',x); cx.setAttribute('opacity','1'); }
+const br=box.getBoundingClientRect(), hr=h.getBoundingClientRect();
+const left=hr.left-br.left+hr.width/2;
+tip.style.left=Math.max(4,Math.min(left-tip.offsetWidth/2, br.width-tip.offsetWidth-4))+'px';
+tip.style.top='6px';
+});
+h.addEventListener('mouseleave',()=>{ tip.classList.remove('on'); if(cx) cx.setAttribute('opacity','0'); });
+});
+});
+}
+function funnelHTML(stages){
+const base = stages[0].v || 1;
+return `<div class="funnel">`+stages.map((s,k)=>{
+const prev = k? stages[k-1].v : null;
+const w = Math.max(pct(s.v, base), s.v?1.5:0);
+return `<div class="st">
+<div class="nm"><b>${esc(s.name)}</b>${s.hint?`<br><span style="font-size:11px;color:var(--muted)">${esc(s.hint)}</span>`:''}</div>
+<div class="bar"><em style="width:${w.toFixed(2)}%;background:${s.color}"></em></div>
+<div class="v">${s.v===null?'—':i(s.v)}<small>${k?`직전 대비 ${pctS(s.v,prev)}`:'기준'}</small></div>
+</div>`;
+}).join('')+`</div>`;
+}
+function rankHTML(items, opt){
+opt=opt||{};
+const max=Math.max(...items.map(x=>x.v),1);
+return `<div class="rank">`+items.map((x,k)=>{
+const segs = x.segs || [{v:x.v,color:opt.color||'var(--s1)'}];
+return `<button class="row${x.on?' on':''}" ${opt.action?`data-act="${opt.action}" data-val="${esc(x.key??x.name)}"`:''}>
+<span class="i">${String(k+1).padStart(2,'0')}</span>
+<span>${esc(x.name)}</span>
+<span class="track">`+segs.map(s=>
+`<em style="width:${(pct(s.v,max)).toFixed(2)}%;background:${s.color}"></em>`).join('')+`</span>
+<span class="v">${esc(x.disp!==undefined?x.disp:i(x.v))}${x.sub?`<small>${esc(x.sub)}</small>`:''}</span>
+</button>`;
+}).join('')+`</div>`;
+}
+const HEAT_RAMPS={
+blue:['var(--seq1)','var(--seq2)','var(--seq3)','var(--seq4)','var(--seq5)','var(--seq6)'],
+warm:['var(--wrm1)','var(--wrm2)','var(--wrm3)','var(--wrm4)','var(--wrm5)','var(--wrm6)'],
+green:['var(--grn1)','var(--grn2)','var(--grn3)','var(--grn4)','var(--grn5)','var(--grn6)']
+};
+function heatHTML(rowNames, colLabels, matrix, fmt, corner, ramp0){
+const flat=matrix.flat();
+const max=Math.max(...flat,1);
+const ramp=HEAT_RAMPS[ramp0]||HEAT_RAMPS.blue;
+const cell=v=>{
+if(!v) return `<span class="cell" style="background:var(--plane);color:var(--muted)">–</span>`;
+const q=Math.min(5,Math.floor(v/max*5.999));
+const dark=q>=3;
+return `<span class="cell" style="background:${ramp[q]};color:${dark?'#fff':'var(--ink)'}">${esc((fmt||i)(v))}</span>`;
+};
+return `<div class="hm"><table><thead><tr><th class="left">${esc(corner||'담당자')}</th>`
++ colLabels.map(c=>`<th>${esc(c)}</th>`).join('')+`<th>합계</th></tr></thead><tbody>`
++ rowNames.map((nm,r)=>`<tr><td>${esc(nm)}</td>`
++ matrix[r].map(v=>`<td>${cell(v)}</td>`).join('')
++ `<td style="font-variant-numeric:tabular-nums;font-weight:600">${i(matrix[r].reduce((a,b)=>a+b,0))}</td></tr>`).join('')
++ `</tbody></table></div>`;
+}
+function kpiHTML(list){
+return `<div class="kpis">`+list.map(k=>`<div class="kpi${k.key?' clk':''}${k.on?' on':''}"${k.key?` data-kpi="${esc(k.key)}" role="button" tabindex="0"`:''}>
+<div class="lab">${k.color?`<i style="background:${k.color}"></i>`:''}${esc(k.lab)}</div>
+<div class="val">${esc(k.val)}${k.unit?`<small>${esc(k.unit)}</small>`:''}</div>
+${k.sub?`<div class="sub">${k.sub}</div>`:''}
+${k.delta!==undefined&&k.delta!==null?`<div class="delta ${k.delta>=0?'up':'down'}">${k.delta>=0?'▲':'▼'} ${esc(k.deltaTxt)}</div>`:''}
+${k.key?`<div class="more">${k.on?'접기 ▲':'월별 보기 ▼'}</div>`:''}
+</div>`).join('')+`</div>`;
+}
+function panelSub(t){
+return `<div style="font-size:12.5px;font-weight:660;color:var(--ink2);margin:0 0 4px">${esc(t)}</div>`;
+}
+function panel(title, sub, body, note){
+return `<section class="panel"><div class="panel-head">
+<div><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div>
+${note?`<span class="note">${note}</span>`:''}</div>${body}</section>`;
+}
+const C1='var(--s1)', C2='var(--s2)', C3='var(--s3)', C4='var(--s4)', C5='var(--s5)', C6='var(--s6)';
+const OWNER_COLORS=[C1,C2,C3,C4,C5,C6];
+const mLab = m => m+'월';
+const MW = kw => d1((kw||0)/1000)+' MW';
+function ownerList(rows){
+const m=new Map();
+rows.forEach(r=>{
+const o=m.get(r.own)||{name:r.own,n:0,cap:0,ctr:0,ctrCap:0,mk:0,ref:0,mkCap:0,refCap:0,
+mtReg:new Map(), ctrReg:new Map()};
+o.n++; o.cap+=r.cap;
+if(r.src==='마케팅'){o.mk++;o.mkCap+=r.cap;} else if(r.src==='소개'){o.ref++;o.refCap+=r.cap;}
+const rg=regNorm(r.reg);
+const a=o.mtReg.get(rg)||{n:0,cap:0}; a.n++; a.cap+=r.cap; o.mtReg.set(rg,a);
+if(isContract(r)){
+o.ctr++; o.ctrCap+=r.cap;
+const b=o.ctrReg.get(rg)||{n:0,cap:0}; b.n++; b.cap+=r.cap; o.ctrReg.set(rg,b);
+}
+m.set(r.own,o);
+});
+const top=mp=>{
+const e=[...mp.entries()].sort((x,y)=>y[1].n-x[1].n || y[1].cap-x[1].cap)[0];
+return e? {name:e[0], n:e[1].n, cap:e[1].cap} : null;
+};
+return [...m.values()].map(o=>({...o, avg:o.n?o.cap/o.n:0,
+ctrAvg:o.ctr?o.ctrCap/o.ctr:0,
+topMt:top(o.mtReg), topCtr:top(o.ctrReg),
+regList:[...o.mtReg.entries()].map(([k,v])=>({region:k,...v})).sort((a,b)=>b.n-a.n)
+})).sort((a,b)=>b.n-a.n);
+}
+function groupCount(rows, keyFn){
+const m=new Map();
+rows.forEach(r=>{
+const k=keyFn(r);
+const o=m.get(k)||{name:k,n:0,cap:0,ctr:0,ctrCap:0};
+o.n++; o.cap+=r.cap; if(isContract(r)){o.ctr++;o.ctrCap+=r.cap;}
+m.set(k,o);
+});
+return [...m.values()].map(o=>({...o,avg:o.n?o.cap/o.n:0})).sort((a,b)=>b.n-a.n);
+}
+function pendingNote(ms){
+const p=sectorPending(ms||selMonths());
+if(!p.length) return '';
+return `<div class="basis-note" style="margin:0 0 12px;color:var(--warn)">
+ⓘ <b>${p.map(m=>m+'월').join(' · ')}</b>은 통계 시트의 사업형태별 표(BO:CH)가 아직 비어 있습니다 —
+월말에 집계하는 표라 진행 중인 달은 <b>0</b>으로 나옵니다.
+전체 문의(말 시트)와 미팅 원장은 그대로 반영되니, 두 숫자가 어긋나 보이면 이 때문입니다.</div>`;
+}
+function sectHead(title, sub){
+return `<div class="sect-title"><h2>${esc(title)}</h2><span>${esc(sub||periodLabel())}</span></div>`;
+}
+function markWhole(kpis, blocked){
+if(blocked===undefined) blocked=sheetSplitBlocked();
+if(!blocked) return kpis;
+return kpis.map(k=> (k.val==='—' || k.val==='–') ? k
+: {...k, sub:(k.sub? k.sub+' · ':'') + '전체 기준'});
+}
+function sheetWholeNote(where){
+if(!sheetSplitBlocked()) return '';
+const what=[];
+if(state.owner!=='전체') what.push(`필드 담당자 <b>${esc(state.owner)}</b>`);
+if(state.cons!=='전체')  what.push(`컨설팅 담당자 <b>${esc(state.cons)}</b>`);
+if(state.query)          what.push(`검색어 <b>${esc(state.query)}</b>`);
+return `<div class="basis-note warn" style="margin:0 0 12px">
+⚠ ${what.join(' · ')} 를 골라 두셨지만, <b>${esc(where)}</b>는 시트에 그 기준으로 쪼갠 집계가 없습니다 —
+<b>아래 숫자는 전체 기준</b>입니다. 사람별 실적은 <b>담당자 실적</b> 화면에서 보세요.</div>`;
+}
+function filterNote(){
+if(inquiryUsable()) return '';
+const F=meetCtrFor(selMonths());
+let msg;
+if(F.ok && F.owner)
+msg = `<b>${esc(F.owner)}</b> 기준입니다 — 미팅·계약은 통계 시트 <code>P:Z</code>(담당자별 표)에서 가져옵니다.
+문의는 담당자별로 나뉘어 있지 않아 <b>—</b>로 둡니다.`;
+else if(F.ok)
+msg = `<b>${esc(F.src)}</b> 기준입니다 — 문의·미팅·계약을 그 조건으로 잘라 냈습니다.
+전체 문의(말 시트)는 이 조건으로 나뉘어 있지 않아 <b>—</b>로 둡니다.`;
+else if(state.cons!=='전체')
+msg = `컨설팅 담당자 <b>${esc(state.cons)}</b> 기준입니다 — 시트에는 컨설팅 담당자별로 쪼갠
+문의·미팅·계약 집계가 없어 <b>—</b>로 둡니다.
+원장에서 센 건수·용량과 아래 <b>컨설팅 담당자별</b> 표는 그대로 반영됩니다.`;
+else
+msg = `이 필터 조합은 시트에 쪼갠 값이 없어 문의·미팅·계약을 <b>—</b>로 둡니다.
+용량·원장은 그대로 반영됩니다.`;
+let unk='';
+if(state.owner==='미지정' || state.cons==='미지정'){
+const who = state.cons==='미지정' ? '컨설팅 미지정' : '필드 담당자 미지정';
+const rs=rowsSel();
+unk = rs.length ? `<br><b>${esc(who)} ${i(rs.length)}건</b> — 상담번호 `
++ rs.map(r=>`${esc(r.no)}(${esc(r.date||'날짜없음')}${r.reg?' · '+esc(r.reg):''})`).join(', ')
+: `<br>해당 기간에 ${esc(who)} 건이 없습니다.`;
+}
+return `<div class="basis-note" style="margin:0 0 12px">${msg}${unk}</div>`;
+}
+function gauge(lab, actual, goal, fmt, color){
+const p = goal? (actual/goal*100) : 0;
+const col = color || (p>=100? 'var(--good)' : p>=40? 'var(--warn)' : 'var(--crit)');
+return `<div class="gauge">
+<div class="g-lab">${esc(lab)}</div>
+<div class="g-val">${d1(p)}<small>% 달성</small></div>
+<div class="g-bar"><em style="width:${Math.min(p,100).toFixed(1)}%;background:${col}"></em></div>
+<div class="g-sub"><span>실적 <b>${fmt(actual)}</b></span><span>목표 <b>${fmt(goal)}</b></span></div>
+</div>`;
+}
+let CPSEQ=0;
+function kpiDetail(key, defs){
+const d=defs.find(x=>x.key===key);
+if(!d) return '';
+const all=dataMonths();
+const MON=[1,2,3,4,5,6,7,8,9,10,11,12];
+const vals=MON.map(m=>all.includes(m)? d.at(m) : null);
+const have=vals.filter(v=>v!==null && v>0);
+const sum=have.reduce((a,b)=>a+b,0);
+const avg=have.length? sum/have.length : 0;
+const fmt=d.fmt||i;
+const id='cp'+(++CPSEQ);
+const tsv=[
+['구분',...MON.map(m=>m+'월'),'합계','평균'].join('\t'),
+[d.label,...vals.map(v=>v===null?'':(d.raw?d.raw(v):Math.round(v*10)/10)),
+d.raw?d.raw(sum):Math.round(sum*10)/10, Math.round(avg*10)/10].join('\t')
+].join('\n');
+return `<section class="panel" style="border-color:var(--s1)">
+<div class="panel-head">
+<div><h2>${esc(d.label)} — 월별 표 · ${esc(axisWord())} 그래프</h2>
+<p>${esc(d.note||'')}${d.note?' · ':''}값이 있는 달만 평균에 넣습니다</p></div>
+<button class="cpbtn" data-copy="${id}">표 복사</button>
+</div>
+<div class="tblwrap" style="max-height:none"><table><thead><tr>
+<th class="left">구분</th>${MON.map(m=>`<th class="num">${m}월</th>`).join('')}
+<th class="num">합계</th><th class="num">평균</th></tr></thead><tbody>
+<tr><td class="left hi">${esc(d.label)}</td>
+${vals.map(v=>`<td class="num">${v===null?'<span style="color:var(--muted)">–</span>':fmt(v)}</td>`).join('')}
+<td class="num hi">${fmt(sum)}</td><td class="num hi">${fmt(avg)}</td></tr>
+${d.goal? `<tr><td class="left" style="color:var(--ink2)">목표</td>
+${MON.map(m=>`<td class="num" style="color:var(--muted)">${fmt(d.goal)}</td>`).join('')}
+<td class="num" style="color:var(--muted)">${fmt(d.goal*have.length)}</td>
+<td class="num" style="color:var(--muted)">${fmt(d.goal)}</td></tr>
+<tr><td class="left" style="color:var(--ink2)">달성률</td>
+${vals.map(v=>`<td class="num">${v===null?'<span style="color:var(--muted)">–</span>':pctS(v,d.goal)}</td>`).join('')}
+<td class="num">${pctS(sum, d.goal*have.length)}</td>
+<td class="num">${pctS(avg, d.goal)}</td></tr>`:''}
+</tbody></table></div>
+<div style="margin-top:14px">${(()=>{const AX=chartAxis(); return chartBars({
+labels:AX.map(g=>g.label), unit:d.unit||'건', fmt:fmt, height:250, showVals:true,
+ghost: d.goal? AX.map(g=>axisGoal(g, d.goal)) : null,
+aria:d.label+' '+axisWord(),
+series:[{name:d.label, color:d.color||C1,
+values:AX.map(g=>g.months.reduce((a,m)=>a+(d.at(m)||0),0))}]});})()}</div>
+<p class="src">평균 <b>${fmt(avg)}</b>${d.unit||'건'} · 합계 <b>${fmt(sum)}</b>${d.unit||'건'}
+${d.goal?` · 목표 월 ${fmt(d.goal)}${d.unit||'건'} 대비 <b>${pctS(avg,d.goal)}</b>`:''}
+${have.length? ` · 가장 높은 달 ${MON[vals.indexOf(Math.max(...have))]}월(${fmt(Math.max(...have))})`:''}</p>
+<pre id="${id}" style="display:none">${esc(tsv)}</pre>
+</section>`;
+}
+function bullet(lab, actual, goal, fmt, opt){
+opt = opt || {};
+const p = goal ? actual/goal*100 : 0;
+const max = Math.max(actual, goal) * 1.15 || 1;
+const w = v => Math.min(v/max*100, 100).toFixed(1)+'%';
+const col = p>=100 ? 'var(--good)' : p>=80 ? 'var(--s1)' : p>=50 ? 'var(--warn)' : 'var(--crit)';
+const gap = actual - goal;
+return `<div class="bl">
+<div class="h"><span class="lab">${esc(lab)}</span>
+<span class="pc" style="color:${col}">${d1(p)}<small style="font-size:.5em;font-weight:600">%</small></span></div>
+<div class="track">
+<span class="b2" style="width:${w(goal*0.8)}"></span>
+<span class="b3" style="width:${w(goal*0.5)}"></span>
+<span class="fill" style="width:${w(actual)};background:${col}"></span>
+<span class="tgt" style="left:${w(goal)}"></span>
+</div>
+<div class="foot2">
+<span>실적 <b>${fmt(actual)}</b> · 목표 <b>${fmt(goal)}</b></span>
+<span class="gap ${gap>=0?'up':'dn'}">${gap>=0?'▲':'▼'} ${fmt(Math.abs(gap))}</span>
+</div></div>`;
+}
+function varCell(actual, goal){
+if(!goal) return '<td class="num" style="color:var(--muted)">–</td>';
+const d = actual - goal, p = d/goal*100;
+const w = Math.min(Math.abs(p), 100) * 0.55;
+const col = d>=0 ? 'var(--pos)' : 'var(--crit)';
+return `<td class="num dv" style="white-space:nowrap">
+<span class="vbar" style="width:${w.toFixed(0)}px;background:${col}"></span>
+<b style="color:${col};margin-left:6px">${d>=0?'+':''}${d1(p)}%</b></td>`;
+}
+const CORP_KEYS = [['gs','그랜드썬',C1],['sp','SP',C4],['ug','유지에스',C6],['ref','소개',C5]];
+const grpMk  = g => g.gs + g.sp + g.ug;               /* 마케팅 = 3개 법인 합 */
+const zeroG  = () => ({gs:0,sp:0,ug:0,ref:0,tot:0});
+function corpRow(g){
+return CORP_KEYS.map(([k])=>`<td class="num">${g[k]?i(g[k]):'<span style="color:var(--muted)">–</span>'}</td>`).join('');
+}
+function sectorTable(list, tot, kind, extra, opt){
+opt = opt || {};
+if(!list.length) return '<p style="color:var(--muted);font-size:13px;margin:0">해당 기간의 사업형태 데이터가 없습니다.</p>';
+let base = list.slice();
+if(opt.all && state.type==='전체'){
+const have=new Set(base.map(r=>r.sec));
+sectorNames().forEach(nm=>{ if(!have.has(nm))
+base.push({sec:nm, inq:zeroG(), mt:zeroG(), ctr:zeroG()}); });
+}
+const sk = opt.sort || kind;      /* 정렬 기준 (기본은 표시 지표) */
+const rows = base.sort((a,b)=> b[sk].tot-a[sk].tot || b[kind].tot-a[kind].tot)
+.filter(r=> opt.all ? true : r[kind].tot>0);
+if(!rows.length) return '<p style="color:var(--muted);font-size:13px;margin:0">해당 기간에 값이 없습니다.</p>';
+const T = tot ? tot[kind] : rows.reduce((a,r)=>({gs:a.gs+r[kind].gs,sp:a.sp+r[kind].sp,
+ug:a.ug+r[kind].ug,ref:a.ref+r[kind].ref,tot:a.tot+r[kind].tot}), zeroG());
+const ex = extra || (()=>'');
+return `<div class="tblwrap"><table><thead><tr>
+<th class="left">사업형태</th>
+${CORP_KEYS.map(([,nm])=>`<th class="num">${esc(nm)}</th>`).join('')}
+<th class="num">합계</th><th class="num">비중</th>${ex('head')}</tr></thead><tbody>`
++ rows.map(r=>`<tr><td class="left hi">${esc(r.sec)}</td>${corpRow(r[kind])}
+<td class="num hi">${i(r[kind].tot)}</td>
+<td class="num" style="color:var(--muted)">${pctS(r[kind].tot,T.tot)}</td>${ex('row',r)}</tr>`).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td>${corpRow(T)}
+<td class="num">${i(T.tot)}</td><td class="num">100%</td>${ex('foot',null,T)}</tr></tfoot></table></div>`;
+}
+function sectorRank(list, kind, color, n){
+const rows=list.slice().sort((a,b)=>b[kind].tot-a[kind].tot).filter(r=>r[kind].tot>0).slice(0,n||99);
+if(!rows.length) return '<p style="color:var(--muted);font-size:13px;margin:0">값이 없습니다.</p>';
+const T=rows.reduce((a,r)=>a+r[kind].tot,0);
+return rankHTML(rows.map(r=>({name:r.sec, v:r[kind].tot,
+segs:[{v:grpMk(r[kind]),color:color||C1},{v:r[kind].ref,color:C5}],
+disp:i(r[kind].tot),
+sub:`전체 ${i(r[kind].tot)} · 마케팅 ${i(grpMk(r[kind]))} · 소개 ${i(r[kind].ref)} · ${pctS(r[kind].tot,T)}`})))
++ `<div class="legend"><span><i style="background:${color||C1}"></i>마케팅</span>
+<span><i style="background:${C5}"></i>소개</span>
+<span style="color:var(--muted)">막대 전체 길이가 전체 건수입니다</span></div>`;
+}
+function corpStack(kind, height, rule){
+const bm=sectorByMonth(), all=dataMonths();
+return chartBars({labels:all.map(mLab),unit:'건',fmt:i,stacked:true,height:height||230,
+rule:rule, aria:'월별 법인·유입 구성',
+series:CORP_KEYS.map(([k,nm,col])=>({name:nm,color:col,values:all.map(m=>bm[m][kind][k])}))});
+}
+function viewOverall(){
+const ms=selMonths(), all=dataMonths();
+const ok=inquiryUsable();
+const Q  = ok? inqFor(ms) : null;          /* 말 A:H  전체 문의 */
+const O  = ok? sumFor(ms) : null;          /* 통계 집계표 진행·제안서 */
+const SC = sectorFor(ms);                  /* 통계 BO:CH 발전사업 문의·미팅·계약 */
+const F  = meetCtrFor(ms);                 /* 필터를 반영한 문의·미팅·계약 */
+const G  = ok? goalFor(ms) : null;
+const E  = malMeetFiltered(ms);            /* 말 AY:BK 미팅 간 달 (필터 반영) */
+const L  = sumRows(rowsIn(ms));            /* 원장 (용량) */
+const bm = sectorByMonth();
+const fm = mcByMonth();                    /* 달마다 필터 적용 */
+const AX = chartAxis();                    /* 기간 버튼을 따라가는 가로축 */
+const kdefs=[
+{key:'inqAll', label:'전체 문의', color:C1, goal:GOAL.inqAll, note:'말 시트 A:H',
+at:m=>{const x=(DB.msum||[]).find(y=>y.m===m); return x?x.inqTot:0;}},
+{key:'inqPwr', label:'발전사업 문의', color:C4, goal:GOAL.inqPwr, note:F.src||'통계 BO:CH',
+at:m=>{const f=fm[m]; return (f.ok&&f.inq!==null)?f.inq:0;}},
+{key:'mtCoh', label:'미팅 · 문의 온 달', color:C2, goal:GOAL.mtN, note:F.src||'통계 BO:CH',
+at:m=>fm[m].ok?fm[m].mt:0},
+{key:'mtExe', label:'미팅 · 미팅 간 달', color:C2, goal:GOAL.mtN, note:'말 시트 AY:BK',
+at:m=>{const e=malMeetFiltered([m]); return e.ok?e.n:0;}},
+{key:'ctr', label:'계약', color:C3, note:F.src||'통계 BO:CH',
+at:m=>fm[m].ok?fm[m].ctr:0},
+{key:'ctrCap', label:'계약 용량', color:C3, unit:' kW', fmt:d1, note:'통계 미팅 원장',
+at:m=>sumRows(rowsIn([m])).ctrCap,
+goal:0}
+];
+const kpis=[
+{key:'inqAll', on:state.kpiOpen==='inqAll', lab:'전체 문의', color:C1, val:Q?i(Q.total):'—', unit:Q?'건':'',
+sub:Q?`그랜드썬 ${i(Q.gs)} · SP ${i(Q.sp)} · 유지에스 ${i(Q.ug)}`:'필터 적용 중'},
+{key:'inqPwr', on:state.kpiOpen==='inqPwr', lab:'발전사업 문의', color:C4, val:(F.ok&&F.inq!==null)?i(F.inq):dash(), unit:(F.ok&&F.inq!==null)?'건':'',
+sub:(F.ok&&F.inq!==null)
+? (F.whole?`마케팅 ${i(F.inqMk)} · 소개 ${i(F.inqRef)}`:esc(F.src))
+: esc(F.src||'필터 적용 중')},
+{key:'mtCoh', on:state.kpiOpen==='mtCoh', lab:'미팅 · 문의 온 달', color:C2, val:F.ok?i(F.mt):dash(), unit:F.ok?'건':'',
+sub:F.ok?(F.inq?`문의 대비 ${pctS(F.mt, F.inq)}`
+:`마케팅 ${i(F.mtMk)} · 소개 ${i(F.mtRef)}`)
+:esc(F.src||'필터 적용 중')},
+{key:'mtExe', on:state.kpiOpen==='mtExe', lab:'미팅 · 미팅 간 달', color:C2, val:E.ok?i(E.n):dash(), unit:E.ok?'건':'',
+sub:E.ok?`용량 ${MW(E.cap)} · 평균 ${d1(E.n?E.cap/E.n:0)} kW`:'이 필터로는 나뉘지 않습니다'},
+{key:'ctr', on:state.kpiOpen==='ctr', lab:'계약', color:C3, val:F.ok?i(F.ctr):dash(), unit:F.ok?'건':'',
+sub:F.ok?`미팅 대비 ${pctS(F.ctr, F.mt)}`:esc(F.src||'필터 적용 중')},
+{key:'ctrCap', on:state.kpiOpen==='ctrCap', lab:'계약 용량', color:C3, val:d1(L.ctrCap/1000), unit:'MW',
+sub:G&&G.ctrCap?`목표 ${MW(G.ctrCap)} 대비 ${pctS(L.ctrCap,G.ctrCap)}`:`1건 평균 ${d1(L.ctrAvg)} kW`}
+];
+const stages = (Q&&O) ? [
+{name:'전체 문의', v:Q.total, color:C1, hint:'말 시트 A:H · 발전+O&M+정부 등'},
+{name:'발전사업 문의', v:SC.tot.inq.tot, color:C4, hint:'통계 BO:CH'},
+{name:'진행', v:O.prog, color:C1, hint:'통계 집계표'},
+{name:'제안서', v:O.prop, color:C4, hint:'통계 집계표'},
+{name:'미팅', v:SC.tot.mt.tot, color:C2, hint:'문의 온 달 기준'},
+{name:'계약', v:SC.tot.ctr.tot, color:C3, hint:'통계 BO:CH'}
+] : (F.ok ? [
+...(F.inq!==null?[{name:'발전사업 문의', v:F.inq, color:C4, hint:F.src}]:[]),
+{name:'미팅', v:F.mt, color:C2, hint:F.src},
+{name:'계약', v:F.ctr, color:C3, hint:F.src}
+] : []);
+const goalBox = G ? panel('목표 달성', periodLabel(),
+`<div class="gauges">
+${Q?gauge('전체 문의', Q.total, G.inqAll, v=>i(v)+'건'):''}
+${gauge('발전사업 문의', SC.tot.inq.tot, G.inqPwr, v=>i(v)+'건')}
+${gauge('미팅 건수', SC.tot.mt.tot, G.mtN, v=>i(v)+'건')}
+${gauge('계약 용량', L.ctrCap, G.ctrCap, MW)}
+</div>
+<p class="src">전체 문의 <b>월 1,500건</b> · 발전사업 문의 <b>월 787건</b>(마케팅 700 + 소개 87) ·
+미팅 <b>월 72건</b>(주 17건) · 계약 용량은 말 시트 <code>CE</code>열 월 목표(연 150MW)입니다.</p>`) : '';
+return filterNote() + pendingNote(ms)
++ sectHead('전체', periodLabel())
++ kpiHTML(kpis)
++ kpiDetail(state.kpiOpen, kdefs)
++ `<div class="grid2">`
++ (stages.length? panel('전환 퍼널', periodLabel(), funnelHTML(stages)) : '')
++ panel(`${axisWord()} 발전사업 문의`,
+`${F.src||'통계 BO:CH'} · 옅은 기둥이 목표(월 ${i(GOAL.inqPwr)}건)`,
+chartBars({labels:AX.map(g=>g.label),unit:'건',fmt:i,height:250,showVals:true,
+ghost:AX.map(g=>axisGoal(g, GOAL.inqPwr)),
+aria:axisWord()+' 발전사업 문의',
+series:[{name:'발전사업 문의',color:C4,
+values:AX.map(g=>g.months.reduce((a,m)=>
+a+((fm[m].ok&&fm[m].inq!==null)?fm[m].inq:0),0))}]}))
++ `</div>`
++ `<div class="grid2">`
++ panel(`${axisWord()} 미팅`, `문의 온 달 기준 · 옅은 기둥이 목표(월 ${GOAL.mtN}건)`,
+chartBars({labels:AX.map(g=>g.label),unit:'건',fmt:i,height:230,showVals:true,
+ghost:AX.map(g=>axisGoal(g, GOAL.mtN)),
+aria:axisWord()+' 미팅',
+series:[{name:'미팅',color:C2,
+values:AX.map(g=>g.months.reduce((a,m)=>a+(fm[m].ok?fm[m].mt:0),0))}]}))
++ panel(`${axisWord()} 계약`, F.src||'통계 BO:CH',
+chartBars({labels:AX.map(g=>g.label),unit:'건',fmt:i,height:230,showVals:true,
+aria:axisWord()+' 계약',
+series:[{name:'계약',color:C3,
+values:AX.map(g=>g.months.reduce((a,m)=>a+(fm[m].ok?fm[m].ctr:0),0))}]}))
++ `</div>`
++ goalBox
++ (()=>{
+const rowOf = (label, ms, cls) => {
+const q  = ms.reduce((a,m)=>{const x=(DB.msum||[]).find(y=>y.m===m); return a+(x?x.inqTot:0);},0);
+const pw = ms.reduce((a,m)=>a+((fm[m].ok&&fm[m].inq!==null)?fm[m].inq:0),0);
+const pk = ms.reduce((a,m)=>a+(fm[m].ok?fm[m].inqMk:0),0);
+const pr = ms.reduce((a,m)=>a+(fm[m].ok?fm[m].inqRef:0),0);
+const mt = ms.reduce((a,m)=>a+(fm[m].ok?fm[m].mt:0),0);
+const ct = ms.reduce((a,m)=>a+(fm[m].ok?fm[m].ctr:0),0);
+const ex = ms.reduce((a,m)=>{const e=malMeetFiltered([m]); return a+(e.ok?e.n:0);},0);
+const cap= ms.reduce((a,m)=>{const e=malMeetFiltered([m]); return a+(e.ok?e.cap:0);},0);
+const run = ms.includes(all[all.length-1]) && ms.length===1;
+return `<tr class="${cls||''}">
+<td class="left hi">${esc(label)}${run?' <span style="color:var(--warn);font-weight:400">진행중</span>':''}</td>
+<td>${q?i(q):'–'}</td>
+<td class="hi gL">${i(pw)}</td><td>${i(pk)}</td><td>${i(pr)}</td>
+<td class="hi gL">${i(mt)}</td>
+<td style="color:var(--muted)">${pctS(mt,pw)}</td>
+<td>${i(ex)}</td>
+<td>${d1(cap)} kW</td>
+<td>${ex?d1(cap/ex):'–'} kW</td>
+<td class="hi gL">${i(ct)}</td>
+<td style="color:var(--muted)">${pctS(ct,mt)}</td></tr>`;
+};
+let body='';
+const qs=[...new Set(all.map(qOf))].sort((a,b)=>a-b);
+qs.forEach(qn=>{
+const qm=QMONTHS[qn].filter(m=>all.includes(m));
+qm.forEach(m=>{ body+=rowOf(m+'월',[m]); });
+if(qm.length>1) body+=rowOf(qn+'분기 소계', qm, 'qsum');
+});
+return panel('월별 · 분기별 종합', '문의 → 미팅 → 계약을 한 줄로 · 분기 소계 포함',
+`<div class="tblwrap"><table class="grp"><thead>
+<tr class="tier1"><th class="left"></th><th>전체</th>
+<th class="gL" colspan="3">문 의</th>
+<th class="gL" colspan="5">미 팅</th>
+<th class="gL" colspan="2">계 약</th></tr>
+<tr><th class="left">구분</th><th>전체 문의</th>
+<th class="gL">발전사업</th><th>마케팅</th><th>소개</th>
+<th class="gL">문의 온 달</th><th>전환율</th><th>미팅 간 달</th>
+<th>미팅 용량</th><th>1건 평균</th>
+<th class="gL">건수</th><th>계약률</th></tr></thead><tbody>`
++ body
++ `</tbody><tfoot>` + rowOf('합계', all) + `</tfoot></table></div>
+<p class="src"><b>1건 평균</b>은 미팅 간 달 기준 용량 ÷ 건수입니다.
+<b>전환율</b>은 발전사업 문의 대비 미팅, <b>계약률</b>은 미팅 대비 계약입니다.
+<b>진행중</b>인 달은 달이 안 끝났고 그 달 문의의 약 3분의 1은 미팅이 다음 달에 잡히므로 낮게 나옵니다.</p>`,
+'통계 BO:CH · 말 A:H · 말 AY:BK');
+})();
+}
+function personTable(rows, keyFn, colName, act){
+const m=new Map();
+rows.forEach(r=>{
+const k=txt(keyFn(r))||'미지정';
+if(!m.has(k)) m.set(k,{name:k,n:0,mk:0,ref:0,cap:0,ctr:0,ctrCap:0});
+const o=m.get(k);
+o.n++; o.cap+=r.cap;
+if(r.src==='마케팅') o.mk++; else if(r.src==='소개') o.ref++;
+if(isContract(r)){ o.ctr++; o.ctrCap+=r.cap; }
+});
+const list=[...m.values()].sort((a,b)=>b.n-a.n);
+const T=list.reduce((a,o)=>({n:a.n+o.n,mk:a.mk+o.mk,ref:a.ref+o.ref,
+cap:a.cap+o.cap,ctr:a.ctr+o.ctr,ctrCap:a.ctrCap+o.ctrCap}),
+{n:0,mk:0,ref:0,cap:0,ctr:0,ctrCap:0});
+if(!list.length) return {html:'<p style="color:var(--muted);font-size:13px;margin:0">해당 기간에 값이 없습니다.</p>', list};
+const row=o=>`<tr><td class="left hi">${act
+? `<button class="lnk" data-act="${esc(act)}" data-val="${esc(o.name)}">${esc(o.name)}</button>`
+: esc(o.name)}</td>
+<td class="hi">${i(o.n)}</td>
+<td style="color:var(--muted)">${pctS(o.n,T.n)}</td>
+<td>${i(o.mk)}</td><td>${i(o.ref)}</td>
+<td>${d1(o.cap)} kW</td><td>${o.n?d1(o.cap/o.n):'–'} kW</td>
+<td class="hi">${i(o.ctr)}</td>
+<td style="color:var(--muted)">${pctS(o.ctr,o.n)}</td>
+<td>${d1(o.ctrCap)} kW</td></tr>`;
+const html=`<div class="tblwrap"><table class="grp"><thead><tr>
+<th class="left">${esc(colName)}</th><th>건수</th><th>비중</th>
+<th class="gL">마케팅</th><th>소개</th>
+<th class="gL">용량</th><th>1건 평균</th>
+<th class="gL">계약</th><th>계약률</th><th>계약 용량</th></tr></thead><tbody>`
++ list.map(row).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td><td>${i(T.n)}</td><td>100%</td>
+<td class="gL">${i(T.mk)}</td><td>${i(T.ref)}</td>
+<td class="gL">${d1(T.cap)} kW</td><td>${T.n?d1(T.cap/T.n):'–'} kW</td>
+<td class="gL">${i(T.ctr)}</td><td>${pctS(T.ctr,T.n)}</td>
+<td>${d1(T.ctrCap)} kW</td></tr></tfoot></table></div>`;
+return {html, list};
+}
+function viewInquiry(){
+const ms=selMonths(), all=dataMonths();
+const ok=inquiryUsable();
+const Q=ok? inqFor(ms):null;
+const SC=sectorFor(ms);
+const G=goalFor(ms);
+const bm=sectorByMonth();
+const I=SC.tot.inq;
+const kpis=[
+{lab:'전체 문의', color:C1, val:Q?i(Q.total):'—', unit:Q?'건':'',
+sub:Q?`목표 ${i(G.inqAll)}건 대비 ${pctS(Q.total,G.inqAll)}`:'필터 적용 중'},
+{lab:'그랜드썬', color:C1, val:Q?i(Q.gs):'—', unit:Q?'건':'', sub:Q?pctS(Q.gs,Q.total):''},
+{lab:'SP', color:C4, val:Q?i(Q.sp):'—', unit:Q?'건':'', sub:Q?pctS(Q.sp,Q.total):''},
+{lab:'발전사업 문의', color:C4, val:i(I.tot), unit:'건',
+sub:`목표 ${i(G.inqPwr)}건 대비 ${pctS(I.tot,G.inqPwr)}`},
+{lab:'마케팅', color:C2, val:i(grpMk(I)), unit:'건',
+sub:`목표 ${i(G.inqPwrMk)}건 · ${pctS(grpMk(I),G.inqPwrMk)}`},
+{lab:'소개', color:C5, val:i(I.ref), unit:'건',
+sub:`목표 ${i(G.inqPwrRef)}건 · ${pctS(I.ref,G.inqPwrRef)}`}
+];
+const weekRows=[];
+ms.forEach(m=>{
+const blk=(DB.months||[]).find(x=>x.m===m);
+if(blk) (blk.weeks||[]).forEach(w=>weekRows.push({m,...w}));
+});
+return filterNote() + pendingNote(ms)
++ sectHead('문의', periodLabel())
++ sheetWholeNote('전체 문의(말 A:H)와 사업형태별 집계(통계 BO:CH)')
++ `<div class="basis-note" style="margin:0 0 12px"><b>전체 문의</b>는 말 시트 A:H (발전사업·O&amp;M·정부사업 등 모두).
+<b>발전사업 문의</b>는 통계 시트 BO:CH — 이 중 발전사업만 21개 사업형태로 쪼갠 것입니다.</div>`
++ kpiHTML(markWhole(kpis))
++ `<div class="grid2">`
++ panel('월별 전체 문의', '법인별로 쌓았습니다 · 말 시트 A:H',
+chartBars({labels:all.map(mLab),unit:'건',fmt:i,stacked:true,height:250,
+aria:'월별 전체 문의',
+series:[
+{name:'그랜드썬',color:C1,values:all.map(m=>{const x=(DB.msum||[]).find(y=>y.m===m);return x?x.gs:0;})},
+{name:'SP',color:C4,values:all.map(m=>{const x=(DB.msum||[]).find(y=>y.m===m);return x?x.sp:0;})},
+{name:'유지에스',color:C6,values:all.map(m=>{const x=(DB.msum||[]).find(y=>y.m===m);return x?x.ug:0;})}
+]}))
++ panel('월별 발전사업 문의', '마케팅(법인별) · 소개 · 목표 월 787건',
+corpStack('inq',250,{value:GOAL.inqPwr, label:`목표 ${i(GOAL.inqPwr)}건`}))
++ `</div>`
++ panel('문의가 많은 사업형태', `${periodLabel()} · 21개 섹터 전부 · 막대는 마케팅 + 소개`,
+sectorRank(SC.list,'inq',C4,99))
++ (()=>{
+const ys=(DB.years||[]).filter(y=>y.inq>0);
+if(ys.length<2) return '';
+const vs=ys.map(y=>y.inq);
+const mx=Math.max(...vs), mn=Math.min(...vs);
+const cols=vs.map(v=> v===mx?'var(--good)' : v===mn?'var(--crit)' : C1);
+const yMax=ys[vs.indexOf(mx)], yMin=ys[vs.indexOf(mn)];
+return panel('연도별 전체 문의', '2018년 이후 · 마지막 해는 진행 중',
+chartBars({labels:ys.map(y=>y.y+''),unit:'건',fmt:i,height:250,showVals:true,
+aria:'연도별 문의',
+series:[{name:'전체 문의',color:C1,colors:cols,values:vs}]})
++ `<p class="src">가장 많은 해는 <b style="color:var(--good)">${esc(yMax.y)}년 ${i(mx)}건</b>,
+가장 적은 해는 <b style="color:var(--crit)">${esc(yMin.y)}년 ${i(mn)}건</b>입니다.
+${ys[ys.length-1].partial?`${esc(ys[ys.length-1].y)}년은 아직 진행 중입니다.`:''}</p>`);
+})()
++ (()=>{
+const top=SC.list.slice().sort((a,b)=>b.inq.tot-a.inq.tot).filter(r=>r.inq.tot>0).slice(0,3);
+if(!top.length) return '';
+const AX=chartAxis();
+const at=(sec,months)=>months.reduce((a,m)=>{
+const blk=(DB.sectors||[]).find(x=>x.m===m); if(!blk) return a;
+const r=blk.rows.find(x=>x.sec===sec);
+return a + (r ? grpFilt(r.inq).tot : 0);     /* 유입·법인 필터를 같이 탄다 */
+},0);
+const cols=[C4,C2,C5];
+const series=top.map((r,k)=>({name:r.sec,color:cols[k]||C1,
+values:AX.map(g=>at(r.sec,g.months))}));
+const note=series.map((sv,k)=>{
+const v=sv.values, first=v[0], last=v[v.length-1];
+const sum=at(top[k].sec, ms);          /* 축을 더하면 누적 모드에서 중복된다 */
+const dir = last>first?'▲ 오르는 중' : last<first?'▼ 내리는 중' : '– 비슷';
+return `<b style="color:${sv.color}">${esc(sv.name)}</b> 합계 ${i(sum)}건 ·
+${esc(AX[0].label)} ${i(first)}건 → ${esc(AX[AX.length-1].label)} ${i(last)}건
+<b>${dir}</b> · 전체 문의의 ${pctS(sum, SC.tot.inq.tot)}`;
+}).join('<br>');
+return panel(`${axisWord()} 상위 3개 사업형태 추이`,
+`문의가 가장 많은 ${top.map(r=>r.sec).join(' · ')} · 통계 BO:CH`,
+chartBars({labels:AX.map(g=>g.label),unit:'건',fmt:i,height:270,
+aria:'상위 3개 사업형태 문의 추이', series})
++ `<p class="src">${note}</p>`, '통계 BO:CH');
+})()
++ panel('사업형태별 문의', `${periodLabel()} · 21개 사업형태 전부 · 문의가 많은 순`,
+sectorTable(SC.list, SC.tot, 'inq', null, {all:true, sort:'inq'}), '통계 BO:CH')
++ (weekRows.length && weekRows.length<=16 ? panel('주차별 전체 문의', `${periodLabel()} · 말 시트 A:H`,
+chartBars({labels:weekRows.map(w=>`${w.m}/${w.wk}`),unit:'건',fmt:i,stacked:true,height:240,
+aria:'주차별 문의',
+series:[{name:'그랜드썬',color:C1,values:weekRows.map(w=>w.gs)},
+{name:'SP',color:C4,values:weekRows.map(w=>w.sp)},
+{name:'유지에스',color:C6,values:weekRows.map(w=>w.ug)}]}))
+: (weekRows.length? panel('주차별 전체 문의', `주차가 ${weekRows.length}개라 표로 · 최신 주차가 위`,
+`<div class="tblwrap" style="max-height:360px;overflow:auto"><table><thead><tr>
+<th class="left">주차</th><th class="num">전체</th><th class="num">그랜드썬</th>
+<th class="num">SP</th><th class="num">유지에스</th></tr></thead><tbody>`
++ weekRows.slice().reverse().map(w=>`<tr><td class="left hi">${w.m}월 ${esc(w.wk)}</td>
+<td class="num hi">${i(w.total)}</td><td class="num">${i(w.gs)}</td>
+<td class="num">${i(w.sp)}</td><td class="num">${i(w.ug)}</td></tr>`).join('')
++ `</tbody></table></div>`) : ''))
++ viewInquiryPeople(ms);
+}
+function viewInquiryPeople(ms){
+const rows=rowsIn(ms);
+const C=personTable(rows, r=>r.cons, '컨설팅 담당자', 'cons');
+const P=personTable(rows, r=>r.prop, '제안서 작성자');
+return panel('컨설팅 담당자별', `${periodLabel()} · 누가 몇 건을 맡았나 · 통계 미팅 원장 L열`,
+C.html
++ (C.list.length? `<div style="margin-top:12px">` + chartBars({
+labels:C.list.map(o=>o.name),unit:'건',fmt:i,stacked:true,height:240,showVals:true,
+aria:'컨설팅 담당자별 건수',
+series:[{name:'마케팅',color:C2,values:C.list.map(o=>o.mk)},
+{name:'소개',color:C5,values:C.list.map(o=>o.ref)}]}) + `</div>` : ''),
+'통계 미팅 원장')
++ panel('제안서 작성자별', `${periodLabel()} · 통계 미팅 원장 K열`, P.html, '통계 미팅 원장');
+}
+function viewMeetCoh(){
+const ms=selMonths(), all=dataMonths();
+const SC=sectorFor(ms), G=goalFor(ms), bm=sectorByMonth();
+const M=SC.tot.mt, I=SC.tot.inq;
+const L=sumRows(rowsIn(ms));
+const kpis=[
+{lab:'미팅', color:C2, val:i(M.tot), unit:'건',
+sub:`목표 ${i(G.mtN)}건 대비 ${pctS(M.tot,G.mtN)}`},
+{lab:'마케팅', color:C2, val:i(grpMk(M)), unit:'건', sub:pctS(grpMk(M),M.tot)},
+{lab:'소개', color:C5, val:i(M.ref), unit:'건', sub:pctS(M.ref,M.tot)},
+{lab:'문의 → 미팅', color:C1, val:pctS(M.tot,I.tot), unit:'',
+sub:`문의 ${i(I.tot)}건 → 미팅 ${i(M.tot)}건`},
+{lab:'미팅 용량', color:C2, val:d1(L.cap/1000), unit:'MW', sub:`원장 기준 ${i(L.n)}건`},
+{lab:'1건 평균', color:C2, val:d1(L.avg), unit:'kW', sub:'원장 기준'}
+];
+return filterNote() + pendingNote(ms)
++ sectHead('미팅 · 문의 온 달', periodLabel())
++ sheetWholeNote('통계 BO:CH 사업형태별 집계')
++ `<div class="basis-note" style="margin:0 0 12px">이 화면은 <b>그 달에 들어온 문의로 이뤄진 미팅</b>입니다.
+8월에 온 문의로 9·10·11월에 미팅을 가도 <b>8월</b>에 셉니다. 통계 시트 BO:CH 기준.</div>`
++ kpiHTML(markWhole(kpis))
++ `<div class="grid2">`
++ panel('월별 미팅 — 목표 대비', '옅은 기둥이 목표 72건, 그 안이 실적입니다',
+chartBars({labels:all.map(mLab),unit:'건',fmt:i,stacked:true,height:250,
+ghost:all.map(()=>GOAL.mtN),
+aria:'월별 미팅과 목표',
+series:[{name:'마케팅',color:C2,values:all.map(m=>grpMk(bm[m].mt))},
+{name:'소개',color:C5,values:all.map(m=>bm[m].mt.ref)}]}))
++ panel('월별 문의 → 미팅 전환율', '문의 대비 미팅이 얼마나 나왔나',
+chartLine({labels:all.map(mLab),unit:'%',fmt:d1,height:250,
+aria:'월별 전환율',
+series:[{name:'전환율',color:C2,values:all.map(m=>pct(bm[m].mt.tot,bm[m].inq.tot))}]}))
++ `</div>`
++ (()=>{
+const LP=lagProfile(), fill=fillingMonths();
+if(!LP.n) return '';
+const bm2=sectorByMonth();
+return panel('두 기준이 왜 다른가', '같은 미팅을 문의 온 달 / 미팅 간 달로 각각 세어 봤습니다',
+chartBars({labels:all.map(mLab),unit:'건',fmt:i,height:250,
+rule:{value:GOAL.mtN, label:`월 목표 ${GOAL.mtN}건`},
+aria:'두 기준 월별 미팅 비교',
+series:[{name:'문의 온 달',color:C2,values:all.map(m=>bm2[m].mt.tot)},
+{name:'미팅 간 달',color:C6,values:all.map(m=>malMeetFor([m]).n)}]})
++ (()=>{
+const gA=all.map(m=>bm2[m].mt.tot), gB=all.map(m=>malMeetFor([m]).n);
+const sA=gA.reduce((a,b)=>a+b,0), sB=gB.reduce((a,b)=>a+b,0);
+const gTot=GOAL.mtN*all.length;
+const hitA=all.filter((m,k)=>gA[k]>=GOAL.mtN), hitB=all.filter((m,k)=>gB[k]>=GOAL.mtN);
+const cell=(nm,col,sum,hit)=>`<b style="color:${col}">${esc(nm)}</b> ${i(sum)}건 /
+목표 ${i(gTot)}건 → <b>${d1(sum/gTot*100)}%</b>
+<span style="color:var(--muted)">(월 목표 ${GOAL.mtN}건 달성 ${hit.length}/${all.length}개월${
+hit.length?' — '+hit.map(m=>m+'월').join('·'):''})</span>`;
+return `<p class="src"><b>목표 대비 달성률</b> — ${cell('문의 온 달',C2,sA,hitA)}<br>
+<span style="visibility:hidden">목표 대비 달성률 — </span>${cell('미팅 간 달',C6,sB,hitB)}</p>`;
+})()
++ `<p class="src">문의가 들어온 뒤 미팅까지 걸린 시간을 원장 ${i(LP.n)}건으로 세어 보면 —
+<b>같은 달 ${d1(LP.samePct)}%</b>, <b>다음 달 ${d1(LP.nextPct)}%</b>
+(두 달 안에 ${d1(LP.cum1)}%), 평균 <b>${d1(LP.avg)}개월</b>입니다.</p>
+<p class="src">그래서 <b>문의 온 달</b>은 산이 앞으로, <b>미팅 간 달</b>은 산이 한 달 뒤로 밀립니다.
+2월에 온 문의가 많으면 그 미팅은 2·3월에 나뉘어 일어나기 때문입니다.
+${fill.length?`<br><b style="color:var(--warn)">${fill.map(m=>m+'월').join(' · ')}은 아직 채워지는 중입니다</b> —
+이 달에 온 문의의 약 ${d1(100-LP.samePct)}%는 미팅이 다음 달에 잡히므로,
+지금 낮게 보이는 게 정상이고 시간이 지나면 올라갑니다.`:''}</p>`,
+'통계 BO:CH · 말 AY:BK');
+})()
++ panel('사업형태별 미팅', `${periodLabel()} · 21개 사업형태 전부 · 문의가 많은 순`,
+sectorTable(SC.list, SC.tot, 'mt', (what,r,T)=>{
+if(what==='head') return '<th class="num">문의</th><th class="num">전환율</th>';
+if(what==='row')  return `<td class="num" style="color:var(--muted)">${i(r.inq.tot)}</td>
+<td class="num">${pctS(r.mt.tot,r.inq.tot)}</td>`;
+return `<td class="num">${i(SC.tot.inq.tot)}</td><td class="num">${pctS(SC.tot.mt.tot,SC.tot.inq.tot)}</td>`;
+}, {all:true, sort:'inq'}), '통계 BO:CH')
++ `<div class="grid2">`
++ panel('미팅이 많은 사업형태', '마케팅과 소개를 나눠 표시', sectorRank(SC.list,'mt',C2,99))
++ panel('법인·유입별 미팅', periodLabel(),
+chartBars({labels:CORP_KEYS.map(x=>x[1]),unit:'건',fmt:i,height:250,
+aria:'법인별 미팅',
+series:[{name:'미팅',color:C2,values:CORP_KEYS.map(([k])=>M[k])}]}))
++ `</div>`;
+}
+function viewMeetExe(){
+const ms=selMonths(), all=dataMonths();
+const Ef=malMeetFiltered(ms);
+const E = Ef.ok ? Ef : malMeetFor(ms);   /* 담당자만 걸렸으면 말 시트 담당자별 값을 그대로 쓴다 */
+const OW=malOwnersFor(ms);
+const G=goalFor(ms);
+const wk=[]; const corp={gsCap:0,gsN:0,spCap:0,spN:0,ugCap:0,ugN:0};
+ms.forEach(m=>{
+const blk=(DB.months||[]).find(x=>x.m===m); if(!blk) return;
+(blk.wmeet||[]).forEach(w=>wk.push({m,...w}));
+const c=blk.corpMt||{};
+['gsCap','gsN','spCap','spN','ugCap','ugN'].forEach(k=>corp[k]+=(c[k]||0));
+});
+const wkTot=wk.reduce((a,w)=>({cap:a.cap+w.cap,n:a.n+w.n,mkCap:a.mkCap+w.mkCap,
+mkN:a.mkN+w.mkN,refCap:a.refCap+w.refCap,refN:a.refN+w.refN}),
+{cap:0,n:0,mkCap:0,mkN:0,refCap:0,refN:0});
+const kpis=[
+{lab:'실제 미팅', color:C2, val:i(E.n), unit:'건',
+sub:`목표 ${i(G.mtN)}건 대비 ${pctS(E.n,G.mtN)}`},
+{lab:'미팅 용량', color:C2, val:d1(E.cap/1000), unit:'MW',
+sub:`1건 평균 ${d1(E.n?E.cap/E.n:0)} kW`},
+{lab:'마케팅', color:C2, val:i(E.mkN), unit:'건', sub:`${d1(E.mkCap)} kW · ${pctS(E.mkN,E.n)}`},
+{lab:'소개', color:C5, val:i(E.refN), unit:'건', sub:`${d1(E.refCap)} kW · ${pctS(E.refN,E.n)}`},
+{lab:'주 평균', color:C1, val:d1(wk.length?E.n/wk.length:0), unit:'건',
+sub:`주 목표 ${GOAL.mtWeekN}건 · ${wk.length}주`},
+{lab:'용량 목표', color:C3, val:pctS(E.cap,G.mtCap), unit:'',
+sub:`${MW(E.cap)} / ${MW(G.mtCap)}`}
+];
+return filterNote()
++ sectHead('미팅 · 미팅 간 달', periodLabel())
++ sheetWholeNote('말 시트 AY:BK 주차 집계')
++ `<div class="basis-note" style="margin:0 0 12px">이 화면은 <b>그 달에 실제로 다녀온 미팅</b>입니다.
+8월에 다녀온 미팅이면 문의가 1·2·3월에 왔더라도 <b>8월</b>에 셉니다. 말 시트 AY:BK 기준 —
+위쪽 기준 버튼과 무관하게 항상 미팅 간 달로만 묶습니다.</div>`
++ kpiHTML(markWhole(kpis, !Ef.ok && sheetSplitBlocked()))
++ (()=>{
+const LP=lagProfile();
+if(!LP.n) return '';
+return `<div class="basis-note" style="margin:0 0 12px">
+<b>03 미팅 · 문의 온 달</b>과 숫자가 다른 게 정상입니다 —
+문의의 <b>${d1(LP.samePct)}%</b>는 같은 달, <b>${d1(LP.nextPct)}%</b>는 다음 달에 미팅합니다.
+그래서 이 화면(미팅 간 달)은 03보다 산이 <b>한 달쯤 뒤로</b> 밀려 있습니다.
+03은 &ldquo;그 문의가 성과로 이어졌나&rdquo;, 이 화면은 &ldquo;그 달에 얼마나 움직였나&rdquo;를 봅니다.</div>`;
+})()
++ (wk.length>16
+? panel('월별 미팅 건수 — 목표 대비', '옅은 기둥이 목표 72건, 그 안이 실적입니다',
+chartBars({labels:ms.map(mLab),unit:'건',fmt:i,stacked:true,height:265,
+ghost:ms.map(()=>GOAL.mtN),
+aria:'월별 실제 미팅 건수와 목표',
+series:[{name:'마케팅',color:C2,values:ms.map(m=>malMeetFor([m]).mkN)},
+{name:'소개',color:C5,values:ms.map(m=>malMeetFor([m]).refN)}]}),
+`말 시트 AY:BK · 주차별은 아래 히트맵과 표에서`)
+: panel('주차별 미팅 건수 — 목표 대비', `옅은 기둥이 주 목표 ${GOAL.mtWeekN}건 · 말 시트 AY:BK`,
+(wk.length? chartBars({labels:wk.map(w=>`${w.m}/${w.wk}`),unit:'건',fmt:i,stacked:true,height:260,
+ghost:wk.map(()=>GOAL.mtWeekN),
+aria:'주차별 미팅 건수와 목표',
+series:[{name:'마케팅',color:C2,values:wk.map(w=>w.mkN)},
+{name:'소개',color:C5,values:wk.map(w=>w.refN)}]})
+: '<p style="color:var(--muted);font-size:13px;margin:0">해당 기간의 주차 데이터가 없습니다.</p>')))
++ (()=>{
+const mk=ms.map(m=>malMeetFor([m]).mkN), rf=ms.map(m=>malMeetFor([m]).refN);
+if(!ms.length) return '';
+const tMk=mk.reduce((a,b)=>a+b,0), tRf=rf.reduce((a,b)=>a+b,0), tAll=tMk+tRf;
+const gTot=GOAL.mtN*ms.length;
+const dir=v=>{ const f=v[0], l=v[v.length-1];
+return l>f?'<b style="color:var(--good)">▲ 오르는 중</b>'
+: l<f?'<b style="color:var(--crit)">▼ 내리는 중</b>' : '– 비슷'; };
+return panel('마케팅 · 소개 따로 보기', `${periodLabel()} · 두 유입을 겹치지 않게 떼어 놨습니다`,
+chartLine({labels:ms.map(mLab),unit:'건',fmt:i,height:265,noTable:true,
+aria:'월별 미팅 — 마케팅과 소개',
+series:[{name:'마케팅',color:C2,values:mk},{name:'소개',color:C5,values:rf}]})
++ `<div class="tblwrap" style="margin-top:12px"><table><thead><tr>
+<th class="left">월</th>
+<th class="num">마케팅</th><th class="num">소개</th>
+<th class="num">합계</th><th class="num">월 목표</th><th class="num">달성률</th>
+<th class="num">소개 비중</th></tr></thead><tbody>`
++ ms.map((m,k)=>{
+const t=mk[k]+rf[k];
+return `<tr><td class="left hi">${mLab(m)}</td>
+<td class="num" style="color:${C2}">${i(mk[k])}</td>
+<td class="num" style="color:${C5}">${i(rf[k])}</td>
+<td class="num hi">${i(t)}</td>
+<td class="num" style="color:var(--muted)">${i(GOAL.mtN)}</td>
+<td class="num"><b style="color:${t>=GOAL.mtN?'var(--good)':t>=GOAL.mtN*0.7?'var(--warn)':'var(--crit)'}">${pctS(t,GOAL.mtN)}</b></td>
+<td class="num" style="color:var(--muted)">${pctS(rf[k],t)}</td></tr>`;
+}).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td>
+<td class="num">${i(tMk)}</td><td class="num">${i(tRf)}</td>
+<td class="num">${i(tAll)}</td><td class="num">${i(gTot)}</td>
+<td class="num">${pctS(tAll,gTot)}</td>
+<td class="num">${pctS(tRf,tAll)}</td></tr></tfoot></table></div>`
++ `<p class="src"><b style="color:${C2}">마케팅</b> ${i(tMk)}건 (${pctS(tMk,tAll)}) ${dir(mk)} ·
+<b style="color:${C5}">소개</b> ${i(tRf)}건 (${pctS(tRf,tAll)}) ${dir(rf)} ·
+합계 ${i(tAll)}건 / 목표 ${i(gTot)}건 → <b>${d1(tAll/gTot*100)}%</b> 달성</p>`,
+'말 시트 AY:BK');
+})()
++ (()=>{
+if(wk.length<6) return '';
+const wks=[...new Set(wk.map(w=>w.wk))].sort();
+const mons=[...new Set(wk.map(w=>w.m))].sort((a,b)=>a-b);
+const mat=wks.map(wn=>mons.map(m=>{
+const f=wk.find(w=>w.m===m && w.wk===wn); return f? f.n : 0; }));
+const wkAvg=wks.map((wn,ri)=>{
+const v=mat[ri].filter(x=>x>0); return v.length? v.reduce((a,b)=>a+b,0)/v.length : 0; });
+const worst=wkAvg.indexOf(Math.min(...wkAvg.filter(x=>x>0)));
+return panel('주차 × 월 미팅 건수', `진할수록 많이 다녀왔습니다 · 주 목표 ${GOAL.mtWeekN}건`,
+heatHTML(wks, mons.map(mLab), mat, i, '주차', 'warm')
++ `<p class="src">주차별 평균은 ${wks.map((wn,ri)=>`${wn} <b>${d1(wkAvg[ri])}건</b>`).join(' · ')} 입니다.
+${worst>=0?`<b>${wks[worst]}</b>가 가장 낮습니다 — 월초·연휴가 겹치는 주차인지 보시면 원인이 잡힙니다.`:''}</p>`,
+'말 시트 AY:BK');
+})()
++ (wk.length? panel('주차별 상세', `${periodLabel()} · 말 시트 AY:BK · 최신 주차가 위`, ''
++ (wk.length? `<div class="tblwrap"><table><thead><tr>
+<th class="left">월</th><th class="left">주차</th><th class="left">날짜</th>
+<th class="num">미팅 건수</th><th class="num">주 목표 대비</th><th class="num">총 미팅용량</th>
+<th class="num">마케팅</th><th class="num">마케팅 용량</th>
+<th class="num">소개</th><th class="num">소개 용량</th></tr></thead><tbody>`
++ wk.slice().reverse().map(w=>`<tr><td class="left hi">${w.m}월</td><td class="left">${esc(w.wk)}</td>
+<td class="left" style="color:var(--muted)">${esc(w.label)}</td>
+<td class="num hi">${i(w.n)}</td>
+<td class="num" style="color:var(--muted)">${pctS(w.n,GOAL.mtWeekN)}</td>
+<td class="num">${d1(w.cap)} kW</td>
+<td class="num">${i(w.mkN)}</td><td class="num">${d1(w.mkCap)} kW</td>
+<td class="num">${i(w.refN)}</td><td class="num">${d1(w.refCap)} kW</td></tr>`).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td><td></td><td></td>
+<td class="num">${i(wkTot.n)}</td>
+<td class="num">${pctS(wkTot.n, GOAL.mtWeekN*wk.length)}</td>
+<td class="num">${d1(wkTot.cap)} kW</td>
+<td class="num">${i(wkTot.mkN)}</td><td class="num">${d1(wkTot.mkCap)} kW</td>
+<td class="num">${i(wkTot.refN)}</td><td class="num">${d1(wkTot.refCap)} kW</td>
+</tr></tfoot></table></div>` : '')) : '')
++ `<div class="grid2">`
++ panel('법인별 마케팅 미팅', `${periodLabel()} · 말 시트 AY:BK 두 번째 표`,
+`<div class="tblwrap"><table><thead><tr><th class="left">법인</th>
+<th class="num">미팅 용량</th><th class="num">건수</th><th class="num">1건 평균</th></tr></thead><tbody>`
++ [['그랜드썬',corp.gsCap,corp.gsN],['SP',corp.spCap,corp.spN],['유지에스',corp.ugCap,corp.ugN]]
+.map(([nm,c,n])=>`<tr><td class="left hi">${nm}</td>
+<td class="num">${d1(c)} kW</td><td class="num hi">${i(n)}</td>
+<td class="num">${d1(n?c/n:0)} kW</td></tr>`).join('')
++ `</tbody></table></div>`)
++ panel('월별 미팅 용량', '실제 다녀온 미팅의 용량',
+chartBars({labels:all.map(mLab),unit:'kW',fmt:d1,stacked:true,height:250,
+aria:'월별 미팅 용량',
+series:[{name:'마케팅',color:C2,values:all.map(m=>malMeetFor([m]).mkCap)},
+{name:'소개',color:C5,values:all.map(m=>malMeetFor([m]).refCap)}]}))
++ `</div>`
++ (OW.length? panel('담당자별 마케팅 · 소개', `${periodLabel()} · 말 시트 주차 집계`,
+`<div class="tblwrap"><table><thead><tr><th class="left">담당자</th>
+<th class="num">마케팅 용량</th><th class="num">마케팅 건수</th>
+<th class="num">소개 용량</th><th class="num">소개 건수</th>
+<th class="num">합계 용량</th><th class="num">합계 건수</th><th class="num">1건 평균</th></tr></thead><tbody>`
++ OW.map(o=>{const tc=o.mkCap+o.refCap, tn=o.mkN+o.refN;
+return `<tr><td class="left hi">${esc(o.name)}</td>
+<td class="num">${d1(o.mkCap)} kW</td><td class="num">${i(o.mkN)}</td>
+<td class="num">${d1(o.refCap)} kW</td><td class="num">${i(o.refN)}</td>
+<td class="num hi">${d1(tc)} kW</td><td class="num hi">${i(tn)}</td>
+<td class="num">${d1(tn?tc/tn:0)} kW</td></tr>`;}).join('')
++ `</tbody></table></div>`
++ chartBars({labels:OW.map(o=>o.name),unit:'건',fmt:i,stacked:true,height:230,
+aria:'담당자별 미팅 건수',
+series:[{name:'마케팅',color:C2,values:OW.map(o=>o.mkN)},
+{name:'소개',color:C5,values:OW.map(o=>o.refN)}]})) : '');
+}
+function viewContract(){
+const ms=selMonths(), all=dataMonths();
+const SC=sectorFor(ms), G=goalFor(ms), bm=sectorByMonth();
+const K=SC.tot.ctr, M=SC.tot.mt;
+const L=sumRows(rowsIn(ms));
+const wkC=[];
+ms.forEach(m=>{
+const blk=(DB.months||[]).find(x=>x.m===m); if(!blk) return;
+const c=blk.corpMt||{};
+wkC.push({m, mk:c.mkCtr||0, ref:c.refCtr||0, tot:c.totCtr||0});
+});
+const kpis=[
+{lab:'계약', color:C3, val:i(K.tot), unit:'건',
+sub:`미팅 대비 ${pctS(K.tot,M.tot)} · 미팅 원장 기준 ${i(L.ctr)}건`},
+{lab:'마케팅', color:C2, val:i(grpMk(K)), unit:'건', sub:pctS(grpMk(K),K.tot)},
+{lab:'소개', color:C5, val:i(K.ref), unit:'건', sub:pctS(K.ref,K.tot)},
+{lab:'계약 용량', color:C3, val:d1(L.ctrCap/1000), unit:'MW',
+sub:`1건 평균 ${d1(L.ctrAvg)} kW`},
+{lab:'용량 목표 대비', color:C3, val:pctS(L.ctrCap,G.ctrCap), unit:'',
+sub:`${MW(L.ctrCap)} / ${MW(G.ctrCap)}`},
+{lab:'연 목표', color:C1, val:d1(GOAL.ctrCapYr/1000), unit:'MW',
+sub:`연간 대비 ${pctS(L.ctrCap,GOAL.ctrCapYr)}`}
+];
+return filterNote() + pendingNote(ms)
++ sectHead('계약', periodLabel())
++ sheetWholeNote('통계 BO:CH 계약 집계')
++ `<div class="basis-note" style="margin:0 0 12px">계약 건수는 <b>통계 BO:CH</b>(말 시트 월별요약과 완전히 일치)를 씁니다.
+<b>미팅 원장 기준 ${i(L.ctr)}건</b>은 미팅을 거쳐 맺은 계약만이라 조금 적습니다.
+계약 <b>용량</b>은 원장에만 있으므로 원장 기준입니다.</div>`
++ kpiHTML(markWhole(kpis))
++ `<div class="grid2">`
++ panel('월별 계약 건수', '마케팅(법인별) · 소개 · 통계 BO:CH', corpStack('ctr',250))
++ panel('월별 계약 용량 vs 목표', '말 시트 CE열 월 목표 (연 150MW)',
+chartBars({labels:all.map(mLab),unit:'kW',fmt:d1,height:250,
+aria:'월별 계약 용량과 목표',
+series:[{name:'계약 용량',color:C3,values:all.map(m=>sumRows(rowsIn([m])).ctrCap)},
+{name:'월 목표',color:C1,values:all.map(m=>{const x=(DB.msum||[]).find(y=>y.m===m);return x?x.goalCtr:0;})}]}))
++ `</div>`
++ panel('사업형태별 계약', `${periodLabel()} · 미팅 대비 계약률까지`,
+sectorTable(SC.list, SC.tot, 'ctr', (what,r)=>{
+if(what==='head') return '<th class="num">미팅</th><th class="num">계약률</th>';
+if(what==='row')  return `<td class="num" style="color:var(--muted)">${i(r.mt.tot)}</td>
+<td class="num">${pctS(r.ctr.tot,r.mt.tot)}</td>`;
+return `<td class="num">${i(M.tot)}</td><td class="num">${pctS(K.tot,M.tot)}</td>`;
+}), '통계 BO:CH')
++ `<div class="grid2">`
++ panel('계약이 많은 사업형태', '마케팅과 소개를 나눠 표시', sectorRank(SC.list,'ctr',C3,99))
++ panel('월별 계약 (말 시트 주차 집계)', '말 시트 BH·BI·BJ 합계행 — 통계 BO:CH와 나란히 놓고 봅니다',
+`<div class="tblwrap"><table><thead><tr><th class="left">월</th>
+<th class="num">마케팅 계약</th><th class="num">소개 계약</th><th class="num">총 계약</th>
+<th class="num">통계 BO:CH</th></tr></thead><tbody>`
++ wkC.map(w=>`<tr><td class="left hi">${w.m}월</td>
+<td class="num">${i(w.mk)}</td><td class="num">${i(w.ref)}</td>
+<td class="num hi">${i(w.tot)}</td>
+<td class="num" style="color:var(--muted)">${i(bm[w.m].ctr.tot)}</td></tr>`).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td>
+<td class="num">${i(wkC.reduce((a,w)=>a+w.mk,0))}</td>
+<td class="num">${i(wkC.reduce((a,w)=>a+w.ref,0))}</td>
+<td class="num">${i(wkC.reduce((a,w)=>a+w.tot,0))}</td>
+<td class="num">${i(K.tot)}</td></tr></tfoot></table></div>`
++ (()=>{const w=wkC.reduce((a,x)=>a+x.tot,0);
+return w===K.tot ? '' : `<p class="src">주차별로 적어 넣은 계약은 <b>${i(w)}건</b>인데
+통계 BO:CH는 <b>${i(K.tot)}건</b>입니다. 주차 칸이 다 채워지지 않아 생기는 차이이므로,
+<b>보고에는 통계 BO:CH(${i(K.tot)}건)를 쓰십니다.</b></p>`;})())
++ `</div>`
++ panel('계약 원장', `${periodLabel()} · 계약으로 표시된 미팅 ${i(L.ctr)}건`,
+(()=>{const cs=rowsIn(ms).filter(isContract).sort((a,b)=>b.cap-a.cap);
+if(!cs.length) return '<p style="color:var(--muted);font-size:13px;margin:0">해당 기간에 계약이 없습니다.</p>';
+return `<div class="tblwrap" style="max-height:420px;overflow:auto"><table><thead><tr>
+<th class="left">상담번호</th><th class="left">미팅날짜</th><th class="left">유입</th>
+<th class="left">법인</th><th class="left">사업형태</th><th class="left">담당자</th>
+<th class="left">지역</th><th class="num">용량</th></tr></thead><tbody>`
++ cs.map(r=>`<tr><td class="left hi">${esc(r.no)}</td><td class="left">${esc(r.date)}</td>
+<td class="left">${esc(r.src)}</td><td class="left">${esc(r.corp)}</td>
+<td class="left">${esc(r.type)}</td><td class="left">${esc(r.own)}</td>
+<td class="left">${esc(r.reg)}</td><td class="num">${d1(r.cap)} kW</td></tr>`).join('')
++ `</tbody></table></div>`;})(), '통계 미팅 원장');
+}
+function viewSource(){
+const ms=selMonths(), all=dataMonths();
+const SC=sectorFor(ms), bm=sectorByMonth();
+const I=SC.tot.inq, M=SC.tot.mt, K=SC.tot.ctr;
+const E=malMeetFor(ms);
+const kpis=[
+{lab:'마케팅 문의', color:C2, val:i(grpMk(I)), unit:'건', sub:pctS(grpMk(I),I.tot)+' of 발전사업 문의'},
+{lab:'마케팅 미팅', color:C2, val:i(grpMk(M)), unit:'건', sub:`전환 ${pctS(grpMk(M),grpMk(I))}`},
+{lab:'마케팅 계약', color:C2, val:i(grpMk(K)), unit:'건', sub:`미팅 대비 ${pctS(grpMk(K),grpMk(M))}`},
+{lab:'소개 문의', color:C5, val:i(I.ref), unit:'건', sub:pctS(I.ref,I.tot)+' of 발전사업 문의'},
+{lab:'소개 미팅', color:C5, val:i(M.ref), unit:'건', sub:`전환 ${pctS(M.ref,I.ref)}`},
+{lab:'소개 계약', color:C5, val:i(K.ref), unit:'건', sub:`미팅 대비 ${pctS(K.ref,M.ref)}`}
+];
+const row=(nm,col,iq,mt,ct,sub)=>`<tr><td class="left${sub?'':' hi'}"${sub?' style="padding-left:26px;color:var(--ink2)"':''}>${esc(nm)}</td>
+<td class="num">${i(iq)}</td><td class="num">${i(mt)}</td>
+<td class="num" style="color:var(--muted)">${pctS(mt,iq)}</td>
+<td class="num">${i(ct)}</td>
+<td class="num" style="color:var(--muted)">${pctS(ct,mt)}</td>
+<td class="num">${pctS(ct,iq)}</td></tr>`;
+return filterNote() + pendingNote(ms)
++ sectHead('유입별', periodLabel())
++ sheetWholeNote('통계 BO:CH 유입별 집계')
++ `<div class="basis-note" style="margin:0 0 12px"><b>마케팅</b>은 그랜드썬 · SP · 유지에스 세 법인의 광고·검색 유입,
+<b>소개</b>는 기존 고객·파트너 소개입니다. 통계 BO:CH 기준.</div>`
++ kpiHTML(markWhole(kpis))
++ `<div class="grid2">`
++ panel('단계별 구성비', '문의 → 미팅 → 계약으로 갈수록 소개 비중이 어떻게 바뀌나',
+chartBars({labels:['문의','미팅','계약'],unit:'%',fmt:d1,stacked:true,height:250,
+aria:'단계별 마케팅·소개 구성비',
+series:[{name:'마케팅',color:C2,values:[pct(grpMk(I),I.tot),pct(grpMk(M),M.tot),pct(grpMk(K),K.tot)]},
+{name:'소개',color:C5,values:[pct(I.ref,I.tot),pct(M.ref,M.tot),pct(K.ref,K.tot)]}]})
++ `<p class="src">문의에서는 소개가 <b>${pctS(I.ref,I.tot)}</b>인데,
+미팅에서 <b>${pctS(M.ref,M.tot)}</b>, 계약에서 <b>${pctS(K.ref,K.tot)}</b>로 커집니다.
+건수는 아래 <b>유입별 요약</b> 표에 있습니다.</p>`)
++ panel('전환율 비교', '문의→미팅, 미팅→계약',
+chartBars({labels:['문의 → 미팅','미팅 → 계약','문의 → 계약'],unit:'%',fmt:d1,height:250,
+aria:'유입별 전환율',
+series:[{name:'마케팅',color:C2,values:[pct(grpMk(M),grpMk(I)),pct(grpMk(K),grpMk(M)),pct(grpMk(K),grpMk(I))]},
+{name:'소개',color:C5,values:[pct(M.ref,I.ref),pct(K.ref,M.ref),pct(K.ref,I.ref)]}]}))
++ `</div>`
++ panel('유입별 요약', `${periodLabel()} · 마케팅은 법인별로 한 번 더 나눔`,
+`<div class="tblwrap"><table><thead><tr><th class="left">유입</th>
+<th class="num">문의</th><th class="num">미팅</th><th class="num">문의→미팅</th>
+<th class="num">계약</th><th class="num">미팅→계약</th><th class="num">문의→계약</th></tr></thead><tbody>`
++ row('마케팅 합계',C2,grpMk(I),grpMk(M),grpMk(K))
++ row('그랜드썬',C1,I.gs,M.gs,K.gs,1)
++ row('SP',C4,I.sp,M.sp,K.sp,1)
++ row('유지에스',C6,I.ug,M.ug,K.ug,1)
++ row('소개',C5,I.ref,M.ref,K.ref)
++ `</tbody><tfoot>` + row('전체',C1,I.tot,M.tot,K.tot) + `</tfoot></table></div>`,
+'통계 BO:CH')
++ (()=>{
+const AX=chartAxis();
+const sum=(g,key,pick)=>g.months.reduce((a,m)=>a+pick(bm[m][key]),0);
+const mkI=AX.map(g=>sum(g,'inq',grpMk)), rfI=AX.map(g=>sum(g,'inq',x=>x.ref));
+const mkM=AX.map(g=>sum(g,'mt', grpMk)), rfM=AX.map(g=>sum(g,'mt', x=>x.ref));
+const mkK=AX.map(g=>sum(g,'ctr',grpMk)), rfK=AX.map(g=>sum(g,'ctr',x=>x.ref));
+const tot=(key,pick)=>ms.reduce((a,m)=>a+pick(bm[m][key]),0);
+const TT={mkI:tot('inq',grpMk), rfI:tot('inq',x=>x.ref),
+mkM:tot('mt', grpMk), rfM:tot('mt', x=>x.ref),
+mkK:tot('ctr',grpMk), rfK:tot('ctr',x=>x.ref)};
+const T=a=> a===mkI?TT.mkI : a===rfI?TT.rfI : a===mkM?TT.mkM
+: a===rfM?TT.rfM : a===mkK?TT.mkK : a===rfK?TT.rfK
+: a.reduce((x,y)=>x+y,0);
+return panel(`${axisWord()} 유입 흐름`,
+`${periodLabel()} · 마케팅과 소개를 따로 · 통계 BO:CH`,
+`<div class="grid2">`
++ `<div>` + panelSub('문의') + chartLine({labels:AX.map(g=>g.label),unit:'건',fmt:i,height:235,noTable:true,
+aria:'유입별 문의 흐름',
+series:[{name:'마케팅',color:C2,values:mkI},{name:'소개',color:C5,values:rfI}]}) + `</div>`
++ `<div>` + panelSub('미팅') + chartLine({labels:AX.map(g=>g.label),unit:'건',fmt:i,height:235,noTable:true,
+aria:'유입별 미팅 흐름',
+series:[{name:'마케팅',color:C2,values:mkM},{name:'소개',color:C5,values:rfM}]}) + `</div>`
++ `</div>`
++ `<div class="tblwrap" style="max-height:none;margin-top:12px"><table><thead>
+<tr><th class="left" rowspan="2">${esc(axisWord().replace('별',''))}</th>
+<th class="num" colspan="3">문의</th><th class="num" colspan="3">미팅</th>
+<th class="num" colspan="3">계약</th><th class="num" rowspan="2">문의→미팅</th></tr>
+<tr><th class="num">마케팅</th><th class="num">소개</th><th class="num">소개 비중</th>
+<th class="num">마케팅</th><th class="num">소개</th><th class="num">소개 비중</th>
+<th class="num">마케팅</th><th class="num">소개</th><th class="num">소개 비중</th></tr></thead><tbody>`
++ AX.map((g,k)=>{
+const ti=mkI[k]+rfI[k], tm=mkM[k]+rfM[k], tk=mkK[k]+rfK[k];
+return `<tr><td class="left hi">${esc(g.label)}</td>
+<td class="num" style="color:${C2}">${i(mkI[k])}</td>
+<td class="num" style="color:${C5}">${i(rfI[k])}</td>
+<td class="num" style="color:var(--muted)">${pctS(rfI[k],ti)}</td>
+<td class="num" style="color:${C2}">${i(mkM[k])}</td>
+<td class="num" style="color:${C5}">${i(rfM[k])}</td>
+<td class="num" style="color:var(--muted)">${pctS(rfM[k],tm)}</td>
+<td class="num" style="color:${C2}">${i(mkK[k])}</td>
+<td class="num" style="color:${C5}">${i(rfK[k])}</td>
+<td class="num" style="color:var(--muted)">${pctS(rfK[k],tk)}</td>
+<td class="num hi">${pctS(tm,ti)}</td></tr>`;
+}).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td>
+<td class="num">${i(T(mkI))}</td><td class="num">${i(T(rfI))}</td>
+<td class="num">${pctS(T(rfI),T(mkI)+T(rfI))}</td>
+<td class="num">${i(T(mkM))}</td><td class="num">${i(T(rfM))}</td>
+<td class="num">${pctS(T(rfM),T(mkM)+T(rfM))}</td>
+<td class="num">${i(T(mkK))}</td><td class="num">${i(T(rfK))}</td>
+<td class="num">${pctS(T(rfK),T(mkK)+T(rfK))}</td>
+<td class="num">${pctS(T(mkM)+T(rfM),T(mkI)+T(rfI))}</td></tr></tfoot></table></div>`
++ `<p class="src"><b style="color:${C2}">마케팅</b>은 문의 ${i(T(mkI))}건 → 미팅 ${i(T(mkM))}건
+(<b>${pctS(T(mkM),T(mkI))}</b>) → 계약 ${i(T(mkK))}건,
+<b style="color:${C5}">소개</b>는 문의 ${i(T(rfI))}건 → 미팅 ${i(T(rfM))}건
+(<b>${pctS(T(rfM),T(rfI))}</b>) → 계약 ${i(T(rfK))}건입니다.
+소개가 문의 대비 미팅 전환에서 <b>${d1(pct(T(rfM),T(rfI))-pct(T(mkM),T(mkI)))}%p</b> 앞섭니다.</p>`,
+'통계 BO:CH');
+})()
++ `<div class="grid2">`
++ panel('월별 마케팅 문의 (법인별)', '통계 BO:CH',
+chartBars({labels:all.map(mLab),unit:'건',fmt:i,stacked:true,height:240,
+aria:'월별 마케팅 문의',
+series:[{name:'그랜드썬',color:C1,values:all.map(m=>bm[m].inq.gs)},
+{name:'SP',color:C4,values:all.map(m=>bm[m].inq.sp)},
+{name:'유지에스',color:C6,values:all.map(m=>bm[m].inq.ug)}]}))
++ panel('월별 소개 — 문의 · 미팅 · 계약', '통계 BO:CH',
+chartLine({labels:all.map(mLab),unit:'건',fmt:i,height:240,
+aria:'월별 소개',
+series:[{name:'소개 문의',color:C5,values:all.map(m=>bm[m].inq.ref)},
+{name:'소개 미팅',color:C2,values:all.map(m=>bm[m].mt.ref)},
+{name:'소개 계약',color:C3,values:all.map(m=>bm[m].ctr.ref)}]}))
++ `</div>`
++ panel('미팅 간 달 기준 유입', `${periodLabel()} · 말 시트 AY:BK`,
+`<div class="tblwrap"><table><thead><tr><th class="left">유입</th>
+<th class="num">미팅 건수</th><th class="num">미팅 용량</th><th class="num">1건 평균</th>
+<th class="num">건수 비중</th></tr></thead><tbody>
+<tr><td class="left hi">마케팅</td><td class="num hi">${i(E.mkN)}</td>
+<td class="num">${d1(E.mkCap)} kW</td><td class="num">${d1(E.mkN?E.mkCap/E.mkN:0)} kW</td>
+<td class="num">${pctS(E.mkN,E.n)}</td></tr>
+<tr><td class="left hi">소개</td><td class="num hi">${i(E.refN)}</td>
+<td class="num">${d1(E.refCap)} kW</td><td class="num">${d1(E.refN?E.refCap/E.refN:0)} kW</td>
+<td class="num">${pctS(E.refN,E.n)}</td></tr>
+</tbody><tfoot><tr><td class="left">합계</td><td class="num">${i(E.n)}</td>
+<td class="num">${d1(E.cap)} kW</td><td class="num">${d1(E.n?E.cap/E.n:0)} kW</td>
+<td class="num">100%</td></tr></tfoot></table></div>`);
+}
+function viewRegion(){
+const ms=selMonths();
+const G=regionFor(ms);
+if(!G.length) return sectHead('지역별', periodLabel())
++ panel('지역별','', '<p style="color:var(--muted);font-size:13px;margin:0">해당 기간의 지역별 표를 찾지 못했습니다.</p>');
+const COLS=[C1,C2,C3,C4,C5,C6];
+const RG_TINT={'수도권':'#f4d7dd','충청권':'#fbdfcc','강원권':'#fcefcd',
+'영남권':'#dae9d9','호남권':'#d5e4e3','제주':'#dcd7eb'};
+const rgCell=nm=>`<td class="left hi" style="background:${RG_TINT[nm]||'var(--plane)'};color:#1b1b1b">${esc(nm)}</td>`;
+const SUB={'자가':'자가소비','자가소비':'자가소비','발전사업':'발전사업','임대':'임대'};
+const byTitle=t=>G.find(g=>g.title===t);
+const gInq=byTitle('문의'), gMt=byTitle('미팅');
+const ownGroups=G.filter(g=>/담당자/.test(g.title));
+const gOwn=ownGroups[0];
+const names = (gInq||gMt||G[0]).regions.map(r=>r.region);
+const pick=(g,nm)=>{
+if(!g) return null;
+return g.regions.find(x=>x.region===nm) || {vals:g.cols.map(()=>0), sum:0};
+};
+const slideMain = (gInq||gMt) ? `<div class="tblwrap" style="max-height:none"><table class="grp">
+<thead>
+<tr><th class="left" rowspan="2"></th>
+${gInq?`<th class="num gL" colspan="${gInq.cols.length}">문의</th>`:''}
+${gMt ?`<th class="num gL" colspan="${gMt.cols.length}">미팅</th>`:''}
+<th class="num gL">문의 계</th><th class="num">미팅 계</th><th class="num">전환율</th></tr>
+<tr>
+${gInq?gInq.cols.map((c,k)=>`<th class="num${k===0?' gL':''}">${esc(SUB[c]||c)}</th>`).join(''):''}
+${gMt ?gMt.cols.map((c,k)=>`<th class="num${k===0?' gL':''}">${esc(SUB[c]||c)}</th>`).join(''):''}
+<th class="num gL"></th><th class="num"></th><th class="num"></th></tr>
+</thead><tbody>`
++ names.map(nm=>{
+const a=pick(gInq,nm), b=pick(gMt,nm);
+return `<tr>${rgCell(nm)}`
++ (a? a.vals.map((v,k)=>`<td class="num${k===0?' gL':''}">${v?i(v):'<span style="color:var(--muted)">0</span>'}</td>`).join(''):'')
++ (b? b.vals.map((v,k)=>`<td class="num${k===0?' gL':''}">${v?i(v):'<span style="color:var(--muted)">0</span>'}</td>`).join(''):'')
++ `<td class="num hi gL">${a?i(a.sum):'–'}</td>
+<td class="num hi">${b?i(b.sum):'–'}</td>
+<td class="num" style="color:var(--muted)">${(a&&b)?pctS(b.sum,a.sum):'–'}</td></tr>`;
+}).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td>`
++ (gInq? gInq.tot.map((v,k)=>`<td class="num${k===0?' gL':''}">${i(v)}</td>`).join(''):'')
++ (gMt ? gMt.tot.map((v,k)=>`<td class="num${k===0?' gL':''}">${i(v)}</td>`).join(''):'')
++ `<td class="num gL">${gInq?i(gInq.totSum):'–'}</td>
+<td class="num">${gMt?i(gMt.totSum):'–'}</td>
+<td class="num">${(gInq&&gMt)?pctS(gMt.totSum,gInq.totSum):'–'}</td>
+</tr></tfoot></table></div>` : '';
+const oKeep = gOwn ? gOwn.cols.map((c,k)=>k).filter(k=>gOwn.tot[k]>0) : [];
+const slideOwn = (gOwn && oKeep.length) ? `<div class="tblwrap" style="max-height:none"><table>
+<thead><tr><th class="left"></th>
+${oKeep.map(k=>`<th class="num">${esc(gOwn.cols[k])}</th>`).join('')}
+<th class="num">합계</th></tr></thead><tbody>`
++ gOwn.regions.map(r=>`<tr>${rgCell(r.region)}`
++ oKeep.map(k=>`<td class="num">${r.vals[k]?i(r.vals[k]):'<span style="color:var(--muted)">·</span>'}</td>`).join('')
++ `<td class="num hi">${r.sum?i(r.sum):'<span style="color:var(--muted)">·</span>'}</td></tr>`).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td>`
++ oKeep.map(k=>`<td class="num">${i(gOwn.tot[k])}</td>`).join('')
++ `<td class="num">${i(gOwn.totSum)}</td></tr></tfoot></table></div>` : '';
+const defs=(DB.regionDefs||[]);
+const defNote = defs.length
+? `<p class="src" style="margin-top:10px">`
++ defs.map(d=>`<b style="background:${RG_TINT[d.name]||'transparent'};color:#1b1b1b;
+padding:1px 6px;border-radius:4px">${esc(d.name)}</b> ${esc(d.area||'')}`).join(' &nbsp;·&nbsp; ')
++ `</p>` : '';
+const slide = panel(`${periodLabel()} 신규 문의 · 미팅 — 지역별`,
+'발표자료와 같은 모양입니다 · 통계 CU:IJ',
+`<div class="grid2">`
++ `<div>` + panelSub('문의 · 미팅') + slideMain + `</div>`
++ `<div>` + panelSub('지역별 미팅 현황 (신규 + 소개)') + slideOwn + `</div>`
++ `</div>`
++ ((gOwn && gMt && gOwn.totSum!==gMt.totSum)
+? `<p class="src">담당자별 표의 합계 <b>${i(gOwn.totSum)}건</b>은 왼쪽 미팅 합계
+<b>${i(gMt.totSum)}건</b>과 <b>${i(Math.abs(gMt.totSum-gOwn.totSum))}건</b> 차이가 납니다 —
+시트에서 담당자가 적히지 않은 미팅이 그만큼 있다는 뜻입니다.</p>` : '')
++ defNote, '통계 CU:IJ');
+const gridTbl=(g, color)=>`<div class="tblwrap" style="max-height:none"><table><thead><tr>
+<th class="left">권역</th>`
++ g.cols.map(c=>`<th class="num">${esc(c)}</th>`).join('')
++ `<th class="num">합계</th><th class="num">비중</th><th class="left">추세</th></tr></thead><tbody>`
++ g.rows.slice().sort((a,b)=>b.sum-a.sum).map(r=>`<tr>${rgCell(r.region)}`
++ r.vals.map(v=>`<td class="num">${v?i(v):'<span style="color:var(--muted)">–</span>'}</td>`).join('')
++ `<td class="num hi">${i(r.sum)}</td>
+<td class="num" style="color:var(--muted)">${pctS(r.sum,g.totSum)}</td>
+<td class="left">${sparkHTML(r.vals, color, {kind:'bar', w:110, h:26, title:r.region})}</td></tr>`).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td>`
++ g.tot.map(v=>`<td class="num">${i(v)}</td>`).join('')
++ `<td class="num">${i(g.totSum)}</td><td class="num">100%</td><td></td></tr></tfoot></table></div>`;
+const gi=regionGrid('문의'), gm=regionGrid('미팅');
+const top=a=>a.rows.slice().sort((x,y)=>y.sum-x.sum)[0]||{region:'–',sum:0};
+const monthly = panel(`${axisWord()} 권역별 문의 · 미팅`,
+`${periodLabel()} · 세로는 권역, 가로는 ${axisWord().replace('별','')} · 통계 CU:IJ`,
+panelSub('문의 (발전사업 + 자가소비 + 임대)') + gridTbl(gi, C1)
++ `<div style="height:14px"></div>`
++ panelSub('미팅 (발전사업 + 자가소비 + 임대)') + gridTbl(gm, C2)
++ `<div style="margin-top:14px">`
++ chartBars({labels:gi.cols,unit:'건',fmt:i,stacked:true,height:265,
+aria:'월별 권역별 문의',
+series:gi.rows.map((r,k)=>({name:r.region,color:COLS[k%COLS.length],values:r.vals}))})
++ `</div>`
++ `<p class="src">문의가 가장 많은 권역은 <b>${esc(top(gi).region)}</b> ${i(top(gi).sum)}건
+(${pctS(top(gi).sum, gi.totSum)}), 미팅이 가장 많은 권역은
+<b>${esc(top(gm).region)}</b> ${i(top(gm).sum)}건입니다.
+전체 전환율은 <b>${pctS(gm.totSum, gi.totSum)}</b>입니다.</p>`,
+'통계 CU:IJ');
+const kpis = (gInq&&gMt) ? kpiHTML(markWhole([
+{lab:'권역 문의', color:C1, val:i(gInq.totSum), unit:'건',
+sub:gInq.cols.map((c,k)=>`${SUB[c]||c} ${i(gInq.tot[k])}`).join(' · ')},
+{lab:'권역 미팅', color:C2, val:i(gMt.totSum), unit:'건',
+sub:gMt.cols.map((c,k)=>`${SUB[c]||c} ${i(gMt.tot[k])}`).join(' · ')},
+{lab:'문의 → 미팅', color:C3, val:pctS(gMt.totSum,gInq.totSum), unit:'', sub:'권역 표 기준'},
+{lab:'1위 권역', color:C4, val:top(gi).region, unit:'', sub:`문의 ${i(top(gi).sum)}건`}
+])) : '';
+const conv = (gInq&&gMt) ? panel('권역별 문의 → 미팅 전환율', `${periodLabel()} · 사업 종류별로도`,
+`<div class="tblwrap" style="max-height:none"><table><thead><tr><th class="left">권역</th>
+<th class="num">문의</th><th class="num">미팅</th><th class="num">전환율</th>`
++ gInq.cols.map(c=>`<th class="num">${esc(SUB[c]||c)} 전환</th>`).join('')
++ `</tr></thead><tbody>`
++ gInq.regions.map(r=>{
+const m2=pick(gMt,r.region);
+return `<tr>${rgCell(r.region)}
+<td class="num">${i(r.sum)}</td><td class="num hi">${i(m2.sum)}</td>
+<td class="num"><b>${pctS(m2.sum,r.sum)}</b></td>`
++ r.vals.map((v,k)=>`<td class="num" style="color:var(--muted)">${pctS(m2.vals[k]||0,v)}</td>`).join('')
++ `</tr>`;
+}).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td>
+<td class="num">${i(gInq.totSum)}</td><td class="num">${i(gMt.totSum)}</td>
+<td class="num">${pctS(gMt.totSum,gInq.totSum)}</td>`
++ gInq.tot.map((v,k)=>`<td class="num">${pctS(gMt.tot[k]||0,v)}</td>`).join('')
++ `</tr></tfoot></table></div>`, '통계 CU:IJ') : '';
+const ownDetail = ownGroups.slice(1).map(g=>panel(
+`담당자 × 권역 — ${g.detail||g.title}`,
+`${periodLabel()} · 누가 어디로 미팅을 갔나`,
+heatHTML(g.cols, g.regions.map(r=>r.region),
+g.cols.map((c,k)=>g.regions.map(r=>r.vals[k])), i, '담당자', 'warm'),
+'통계 CU:IJ')).join('');
+return filterNote()
++ sectHead('지역별', periodLabel())
++ sheetWholeNote('통계 CU:IJ 권역별 표')
++ (()=>{
+const SCq=sectorFor(ms).tot.inq.tot;
+if(!(SCq>0) || !(gInq&&gInq.totSum>0) || SCq===gInq.totSum) return '';
+return `<div class="basis-note" style="margin:0 0 12px">
+이 화면의 <b>권역 문의 ${i(gInq.totSum)}건</b>은 <b>문의</b> 화면의
+<b>${i(SCq)}건</b>과 다릅니다 — 권역 표(CU:IJ)는 <b>발전사업 · 자가소비 · 임대</b> 셋만 세고,
+문의 화면(BO:CH)은 <b>방수 · 팩토링 · 분양 · 기타 · 무응답</b>까지 21개 사업형태를 모두 세기 때문입니다.
+차이 <b>${i(SCq-gInq.totSum)}건</b>이 그 나머지입니다. <b>미팅은 두 표가 정확히 일치</b>합니다.</div>`;
+})()
++ `<div class="basis-note" style="margin:0 0 12px">발표자료(<b>컨설팅_신규 문의, 미팅_지역별</b>)와 같은 모양으로 맞췄습니다 —
+왼쪽은 <b>문의 · 미팅</b>을 발전사업 · 자가소비 · 임대로, 오른쪽은 <b>담당자별 미팅(신규+소개)</b>입니다.
+기간 버튼을 바꾸면 그 기간으로 다시 셉니다. 통계 시트 CU:IJ 기준.</div>`
++ kpis
++ slide
++ monthly
++ conv
++ ownDetail;
+}
+function viewGoal(){
+const ms=selMonths(), all=dataMonths();
+const ok=inquiryUsable();
+const Q=ok?inqFor(ms):null, SC=sectorFor(ms), G=goalFor(ms);
+const L=sumRows(rowsIn(ms)), E=malMeetFor(ms);
+const bm=sectorByMonth();
+return filterNote()
++ sectHead('목표 달성', periodLabel())
++ sheetWholeNote('시트 집계로 계산하는 목표 대비')
++ panel('종합 달성률', periodLabel(),
+`<div class="blt c2">
+${Q?bullet('전체 문의', Q.total, G.inqAll, v=>i(v)+'건'):''}
+${bullet('발전사업 문의', SC.tot.inq.tot, G.inqPwr, v=>i(v)+'건')}
+${bullet('마케팅 문의', grpMk(SC.tot.inq), G.inqPwrMk, v=>i(v)+'건')}
+${bullet('소개 문의', SC.tot.inq.ref, G.inqPwrRef, v=>i(v)+'건')}
+${bullet('미팅 건수', SC.tot.mt.tot, G.mtN, v=>i(v)+'건')}
+${bullet('계약 용량', L.ctrCap, G.ctrCap, MW)}
+</div>
+<p class="src">막대가 <b>실적</b>, 검은 세로선이 <b>목표</b>입니다. 배경 띠는 목표의 50% · 80% 지점입니다.</p>
+<p class="src"><b>문의</b> 전체 월 1,500건 (발전사업 · O&amp;M · 정부사업 등 총칭) ·
+발전사업 월 787건 = 마케팅 700 + 소개 87.<br>
+<b>미팅</b> 월 72건 (주 17건). <b>계약 용량</b> 연 150MW, 월 목표는 말 시트 <code>CE</code>열
+(12,100 · 12,600 · 14,600 … 10,600 kW, 열두 달 합 150,000 kW).</p>`)
++ `<div class="grid2">`
++ panel('월별 문의 목표 대비', '전체 문의 1,500건 · 발전사업 787건',
+chartBars({labels:all.map(mLab),unit:'건',fmt:i,height:250,
+rule:{value:GOAL.inqAll, label:`전체 목표 ${i(GOAL.inqAll)}건`},
+aria:'월별 문의와 목표',
+series:[{name:'전체 문의',color:C1,values:all.map(m=>{const x=(DB.msum||[]).find(y=>y.m===m);return x?x.inqTot:0;})},
+{name:'발전사업 문의',color:C4,values:all.map(m=>bm[m].inq.tot)}]}))
++ panel('월별 미팅 목표 대비', '월 72건 (주 17건)',
+chartBars({labels:all.map(mLab),unit:'건',fmt:i,height:250,
+rule:{value:GOAL.mtN, label:`월 목표 ${GOAL.mtN}건`},
+aria:'월별 미팅과 목표',
+series:[{name:'문의 온 달',color:C2,values:all.map(m=>bm[m].mt.tot)},
+{name:'미팅 간 달',color:C6,values:all.map(m=>malMeetFor([m]).n)}]}))
++ `</div>`
++ panel('월별 계약 용량 목표 대비', '옅은 기둥이 그 달 목표, 그 안이 실적입니다 · 말 시트 CE열 · 연 150MW',
+chartBars({labels:all.map(mLab),unit:'MW',fmt:d1,height:265,
+aria:'월별 계약 용량 목표 대비',
+ghost:all.map(m=>{const x=(DB.msum||[]).find(y=>y.m===m);return (x?x.goalCtr:0)/1000;}),
+series:[{name:'계약 용량',color:C3,values:all.map(m=>sumRows(rowsIn([m])).ctrCap/1000)}]})
++ (()=>{
+const act=all.map(m=>sumRows(rowsIn([m])).ctrCap);
+const gl =all.map(m=>{const x=(DB.msum||[]).find(y=>y.m===m);return x?x.goalCtr:0;});
+const sa=act.reduce((a,b)=>a+b,0), sg=gl.reduce((a,b)=>a+b,0);
+const hit=all.filter((m,k)=>act[k]>=gl[k] && gl[k]>0);
+return `<p class="src">누계 <b>${MW(sa)}</b> / 목표 <b>${MW(sg)}</b> →
+<b style="color:${sa>=sg?'var(--good)':sa>=sg*0.7?'var(--warn)':'var(--crit)'}">${d1(sg?sa/sg*100:0)}%</b> ·
+월 목표를 채운 달 <b>${hit.length}/${all.length}개월</b>${hit.length?` — ${hit.map(m=>m+'월').join(' · ')}`:''} ·
+연 목표 150MW 대비 <b>${d1(sa/150000*100)}%</b></p>`;
+})())
++ panel('월별 달성률 표', '문의 · 미팅 · 계약 한눈에',
+`<div class="tblwrap"><table><thead><tr><th class="left">월</th>
+<th class="num">전체 문의</th><th class="num">목표</th><th class="num">달성</th>
+<th class="num">발전 문의</th><th class="num">목표</th><th class="num">달성</th>
+<th class="num">미팅</th><th class="num">목표</th><th class="num">달성</th>
+<th class="num">계약용량 (kW)</th><th class="num">목표 (kW)</th><th class="num">달성</th></tr></thead><tbody>`
++ all.map(m=>{
+const q=(DB.msum||[]).find(x=>x.m===m)||{}, s=bm[m], c=sumRows(rowsIn([m]));
+const gc=q.goalCtr||0;
+return `<tr><td class="left hi">${m}월</td>
+<td class="num">${i(q.inqTot||0)}</td><td class="num" style="color:var(--muted)">${i(GOAL.inqAll)}</td>
+<td class="num">${pctS(q.inqTot||0,GOAL.inqAll)}</td>
+<td class="num">${i(s.inq.tot)}</td><td class="num" style="color:var(--muted)">${i(GOAL.inqPwr)}</td>
+<td class="num">${pctS(s.inq.tot,GOAL.inqPwr)}</td>
+<td class="num">${i(s.mt.tot)}</td><td class="num" style="color:var(--muted)">${i(GOAL.mtN)}</td>
+<td class="num">${pctS(s.mt.tot,GOAL.mtN)}</td>
+<td class="num">${d1(c.ctrCap)}</td><td class="num" style="color:var(--muted)">${i(gc)}</td>
+<td class="num">${pctS(c.ctrCap,gc)}</td></tr>`;
+}).join('')
++ `</tbody></table></div>`);
+}
+function viewCapacity(){
+const ms=selMonths(), all=dataMonths();
+const rows=rowsIn(ms), S=sumRows(rows);
+const B=capBands(rows);
+const E=malMeetFor(ms);
+const bkN=CAP_BANDS.map(()=>0);
+ms.forEach(m=>{
+const blk=(DB.months||[]).find(x=>x.m===m); if(!blk) return;
+(blk.buckets||[]).forEach((b,ix)=>{ if(ix<bkN.length) bkN[ix]+=b.n; });
+});
+const bkList=CAP_BANDS.map((b,ix)=>({label:b.label, n:bkN[ix]}));
+const bkSum=bkList.reduce((a,b)=>a+b.n,0);
+const kpis=[
+{lab:'미팅 용량', color:C2, val:d1(S.cap/1000), unit:'MW', sub:`${i(S.n)}건`},
+{lab:'1건 평균', color:C2, val:d1(S.avg), unit:'kW', sub:'미팅 원장 기준'},
+{lab:'계약 용량', color:C3, val:d1(S.ctrCap/1000), unit:'MW', sub:`${i(S.ctr)}건`},
+{lab:'계약 1건 평균', color:C3, val:d1(S.ctrAvg), unit:'kW', sub:''},
+{lab:'마케팅 평균', color:C1, val:d1(S.mk?S.mkCap/S.mk:0), unit:'kW', sub:`${i(S.mk)}건`},
+{lab:'소개 평균', color:C5, val:d1(S.ref?S.refCap/S.ref:0), unit:'kW', sub:`${i(S.ref)}건`}
+];
+return filterNote()
++ sectHead('용량 분석', periodLabel())
++ kpiHTML(kpis)
++ panel('매월 평균 용량과 미팅 횟수', '막대는 미팅 건수, 선은 1건 평균 용량',
+chartBars({labels:all.map(mLab),unit:'건',fmt:i,height:210,noTable:true,
+aria:'월별 미팅 건수',
+series:[{name:'미팅 건수',color:C2,values:all.map(m=>sumRows(rowsIn([m])).n)}]})
++ chartLine({labels:all.map(mLab),unit:'kW',fmt:d1,height:190,noTable:true,
+aria:'월별 평균 용량',
+series:[{name:'1건 평균 용량',color:C3,values:all.map(m=>{const s=sumRows(rowsIn([m]));return s.avg;})}]}),
+'통계 미팅 원장')
++ `<div class="grid2">`
++ panel('용량 구간별 미팅', `${periodLabel()} · 미만 기준 (원장 계산)`,
+chartBars({labels:B.map(b=>b.label),unit:'건',fmt:i,height:250,
+aria:'용량 구간별 미팅 건수',
+series:[{name:'미팅 건수',color:C2,values:B.map(b=>b.n)}]})
++ `<div class="tblwrap" style="margin-top:12px"><table><thead><tr>
+<th class="left">구간</th><th class="num">건수</th><th class="num">비중</th>
+<th class="num">용량</th><th class="num">평균</th></tr></thead><tbody>`
++ B.map(b=>`<tr><td class="left hi">${esc(b.label)}</td><td class="num hi">${i(b.n)}</td>
+<td class="num">${pctS(b.n,S.n)}</td><td class="num">${d1(b.cap)} kW</td>
+<td class="num">${d1(b.n?b.cap/b.n:0)} kW</td></tr>`).join('')
++ `</tbody></table></div>`)
++ panel('용량 구간 (말 시트 집계)', `${periodLabel()} · 말 시트 AY:BK`,
+(bkList.length? chartBars({labels:bkList.map(b=>b.label),unit:'건',fmt:i,height:250,
+aria:'말 시트 용량 구간',
+series:[{name:'미팅 건수',color:C2,values:bkList.map(b=>b.n)}]})
++ `<div class="tblwrap" style="margin-top:12px"><table><thead><tr>
+<th class="left">구간</th><th class="num">건수</th><th class="num">비중</th></tr></thead><tbody>`
++ bkList.map(b=>`<tr><td class="left hi">${esc(b.label)}</td>
+<td class="num hi">${i(b.n)}</td><td class="num">${pctS(b.n,bkSum)}</td></tr>`).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td><td class="num">${i(bkSum)}</td>
+<td class="num">100%</td></tr></tfoot></table></div>`
+: '<p style="color:var(--muted);font-size:13px;margin:0">해당 기간 데이터가 없습니다.</p>'))
++ `</div>`
++ panel('월별 용량 요약', '미팅 간 달 기준 용량도 함께',
+`<div class="tblwrap"><table><thead><tr><th class="left">월</th>
+<th class="num">미팅 건수</th><th class="num">미팅 용량</th><th class="num">1건 평균</th>
+<th class="num">계약 건수</th><th class="num">계약 용량</th>
+<th class="num">미팅 간 달 건수</th><th class="num">미팅 간 달 용량</th>
+<th class="num">평균</th></tr></thead><tbody>`
++ all.map(m=>{const s=sumRows(rowsIn([m])), e=malMeetFor([m]);
+return `<tr><td class="left hi">${m}월</td>
+<td class="num">${i(s.n)}</td><td class="num">${d1(s.cap)} kW</td>
+<td class="num hi">${d1(s.avg)} kW</td>
+<td class="num">${i(s.ctr)}</td><td class="num">${d1(s.ctrCap)} kW</td>
+<td class="num">${i(e.n)}</td><td class="num">${d1(e.cap)} kW</td>
+<td class="num">${d1(e.n?e.cap/e.n:0)} kW</td></tr>`;}).join('')
++ `</tbody></table></div>`);
+}
+function viewOwner(){
+const ms=selMonths(), all=dataMonths();
+const rows=rowsIn(ms), S=sumRows(rows);
+const OL=ownerList(rows);
+const OW=malOwnersFor(ms);
+const RG=regionFor(ms);
+const top=OL[0]||{name:'–',n:0};
+const kpis=[
+{lab:'미팅 담당자', color:C1, val:i(OL.length), unit:'명', sub:`원장 ${i(S.n)}건 기준`},
+{lab:'1위', color:C2, val:top.name, unit:'', sub:`${i(top.n)}건 · ${d1(top.cap/1000)} MW`},
+{lab:'1인 평균 미팅', color:C2, val:d1(OL.length?S.n/OL.length:0), unit:'건', sub:''},
+{lab:'계약', color:C3, val:i(S.ctr), unit:'건', sub:`용량 ${d1(S.ctrCap/1000)} MW · 원장 기준`},
+{lab:'마케팅', color:C2, val:i(S.mk), unit:'건', sub:`${d1(S.mkCap/1000)} MW`},
+{lab:'소개', color:C5, val:i(S.ref), unit:'건', sub:`${d1(S.refCap/1000)} MW`}
+];
+const ownerTbl = `<div class="tblwrap"><table><thead><tr><th class="left">담당자</th>
+<th class="num">미팅</th><th class="num">마케팅</th><th class="num">소개</th>
+<th class="num">미팅 용량</th><th class="num">1건 평균</th>
+<th class="num">계약</th><th class="num">계약률</th><th class="num">계약 용량</th></tr></thead><tbody>`
++ OL.map(o=>`<tr><td class="left hi">${esc(o.name)}</td>
+<td class="num hi">${i(o.n)}</td><td class="num">${i(o.mk)}</td><td class="num">${i(o.ref)}</td>
+<td class="num">${d1(o.cap)} kW</td><td class="num">${d1(o.avg)} kW</td>
+<td class="num hi">${i(o.ctr)}</td>
+<td class="num" style="color:var(--muted)">${pctS(o.ctr,o.n)}</td>
+<td class="num">${d1(o.ctrCap)} kW</td></tr>`).join('')
++ `</tbody><tfoot><tr><td class="left">합계</td><td class="num">${i(S.n)}</td>
+<td class="num">${i(S.mk)}</td><td class="num">${i(S.ref)}</td>
+<td class="num">${d1(S.cap)} kW</td><td class="num">${d1(S.avg)} kW</td>
+<td class="num">${i(S.ctr)}</td><td class="num">${pctS(S.ctr,S.n)}</td>
+<td class="num">${d1(S.ctrCap)} kW</td></tr></tfoot></table></div>`;
+const names=OL.map(o=>o.name);
+const matrix=names.map(nm=>all.map(m=>rowsIn([m]).filter(r=>r.own===nm).length));
+const ownGroups=RG.filter(g=>/담당자/.test(g.title));
+const AXo=chartAxis();
+const cmp=OL.map(o=>{
+const per=AXo.map(g=>{
+const rr=rowsIn(g.months).filter(r=>r.own===o.name);
+const cap=rr.reduce((a,r)=>a+(r.cap||0),0);
+return {n:rr.length, cap, avg: rr.length? cap/rr.length : 0};
+});
+return {...o, per, nTrend:trendOf(per.map(x=>x.n)), aTrend:trendOf(per.map(x=>x.avg))};
+}).sort((a,b)=>b.n-a.n);
+const maxN=Math.max(...cmp.map(o=>o.n),1);
+const maxCap=Math.max(...cmp.map(o=>o.cap),1);
+const maxCtr=Math.max(...cmp.map(o=>o.ctr),1);
+const maxCtrCap=Math.max(...cmp.map(o=>o.ctrCap),1);
+const arrow=t=> t>5?`<b style="color:var(--good)">▲ ${d1(t)}%</b>`
+: t<-5?`<b style="color:var(--crit)">▼ ${d1(Math.abs(t))}%</b>`
+: `<span style="color:var(--muted)">– 보합</span>`;
+const rg = o => o
+? `<b>${esc(o.name)}</b> <i>${i(o.n)}건 · ${MW(o.cap)}</i>`
+: `<i>없음</i>`;
+const cards = `<div class="pcards">` + cmp.map((o,ix)=>{
+const col=OWNER_COLORS[ix%OWNER_COLORS.length];
+return `<div class="pcard" style="--pc:${col}">
+<div class="hd">
+<span class="nm"><button class="lnk" data-act="owner" data-val="${esc(o.name)}"
+style="color:inherit;border-bottom-color:transparent">${esc(o.name)}</button></span>
+<span class="rk">${ix+1}위 · 미팅 ${pctS(o.n,S.n)}</span></div>
+<div class="quad">
+<div class="q"><b>미팅</b><span>${i(o.n)}<em>건</em></span></div>
+<div class="q"><b>미팅 용량</b><span>${d1(o.cap/1000)}<em>MW</em></span></div>
+<div class="q"><b>계약 <span style="color:var(--ink2)">${pctS(o.ctr,o.n)}</span></b><span style="color:${o.ctr?'var(--s3)':'var(--muted)'}">${i(o.ctr)}<em>건</em></span></div>
+<div class="q"><b>계약 용량</b><span style="color:${o.ctrCap?'var(--s3)':'var(--muted)'}">${d1(o.ctrCap/1000)}<em>MW</em></span></div>
+</div>
+<div class="rgs">
+<div><i>미팅 1건 평균</i><b>${d1(o.avg)} kW</b></div>
+<div><i>계약 1건 평균</i><b>${o.ctr? d1(o.ctrAvg)+' kW' : '–'}</b></div>
+<div><i>많이 간 지역</i><span>${rg(o.topMt)}</span></div>
+<div><i>많이 계약한 지역</i><span>${rg(o.topCtr)}</span></div>
+</div>
+<div class="sp"><i>${esc(axisWord())} 미팅</i>
+${sparkHTML(o.per.map(x=>x.n), col, {kind:'bar', w:96, h:24, title:o.name})}
+${arrow(o.nTrend)}</div>
+</div>`;
+}).join('') + `</div>`;
+const cmpTbl = `<div class="tblwrap" style="max-height:none"><table><thead><tr>
+<th class="left">필드 미팅자</th>
+<th class="num">미팅</th><th class="num">미팅 용량</th><th class="num">미팅 1건 평균</th>
+<th class="num">계약</th><th class="num">계약률</th>
+<th class="num">계약 용량</th><th class="num">계약 1건 평균</th>
+<th class="left">가장 많이 간 미팅 지역</th><th class="left">가장 많이 계약한 지역</th>
+<th class="left">미팅 추세</th></tr></thead><tbody>`
++ cmp.map(o=>`<tr>
+<td class="left hi"><button class="lnk" data-act="owner" data-val="${esc(o.name)}">${esc(o.name)}</button></td>
+<td class="num hi">${i(o.n)}</td>
+<td class="num">${d1(o.cap)} kW</td>
+<td class="num">${d1(o.avg)} kW</td>
+<td class="num hi" style="color:${o.ctr?'var(--s3)':'var(--muted)'}">${i(o.ctr)}</td>
+<td class="num" style="color:var(--muted)">${pctS(o.ctr,o.n)}</td>
+<td class="num" style="color:${o.ctrCap?'var(--s3)':'var(--muted)'}">${d1(o.ctrCap)} kW</td>
+<td class="num">${o.ctr? d1(o.ctrAvg)+' kW' : '–'}</td>
+<td class="left">${o.topMt? `<b>${esc(o.topMt.name)}</b> <span style="color:var(--muted)">${i(o.topMt.n)}건</span>`:'<span style="color:var(--muted)">–</span>'}</td>
+<td class="left">${o.topCtr? `<b style="color:var(--s3)">${esc(o.topCtr.name)}</b> <span style="color:var(--muted)">${i(o.topCtr.n)}건 · ${MW(o.topCtr.cap)}</span>`:'<span style="color:var(--muted)">–</span>'}</td>
+<td class="left">${sparkHTML(o.per.map(x=>x.n), C2, {kind:'bar', w:96, h:24, title:o.name})} ${arrow(o.nTrend)}</td>
+</tr>`).join('')
++ `</tbody><tfoot><tr><td class="left">전체</td>
+<td class="num">${i(S.n)}</td><td class="num">${d1(S.cap)} kW</td><td class="num">${d1(S.avg)} kW</td>
+<td class="num">${i(S.ctr)}</td><td class="num">${pctS(S.ctr,S.n)}</td>
+<td class="num">${d1(S.ctrCap)} kW</td><td class="num">${d1(S.ctr?S.ctrCap/S.ctr:0)} kW</td>
+<td colspan="3" class="left" style="color:var(--muted)">지역은 통계 미팅 원장 N열(지역) 기준</td>
+</tr></tfoot></table></div>`;
+const cmpPanel = panel('필드 미팅자 한눈에 비교',
+`${periodLabel()} · 미팅이 많은 순 · 이름을 누르면 그 사람만 봅니다 · 통계 미팅 원장`,
+cards
++ `<div style="height:16px"></div>` + cmpTbl
++ `<div class="grid2" style="margin-top:14px">`
++ `<div>` + panelSub('미팅 건수 · 계약 건수')
++ chartBars({labels:cmp.map(o=>o.name),unit:'건',fmt:i,height:240,
+aria:'필드 미팅자별 미팅·계약 건수',
+series:[{name:'미팅',color:C2,colors:cmp.map(o=> o.n===maxN?'var(--good)':C2),values:cmp.map(o=>o.n)},
+{name:'계약',color:C3,colors:cmp.map(o=> o.ctr===maxCtr&&maxCtr>0?'var(--good)':C3),values:cmp.map(o=>o.ctr)}]}) + `</div>`
++ `<div>` + panelSub('미팅 용량 · 계약 용량 (MW)')
++ chartBars({labels:cmp.map(o=>o.name),unit:'MW',fmt:d1,height:240,
+aria:'필드 미팅자별 용량',
+series:[{name:'미팅 용량',color:C2,colors:cmp.map(o=> o.cap===maxCap?'var(--good)':C2),values:cmp.map(o=>o.cap/1000)},
+{name:'계약 용량',color:C3,colors:cmp.map(o=> o.ctrCap===maxCtrCap&&maxCtrCap>0?'var(--good)':C3),values:cmp.map(o=>o.ctrCap/1000)}]}) + `</div>`
++ `</div>`, '통계 미팅 원장');
+return filterNote()
++ sectHead('담당자 실적', periodLabel())
++ `<div class="basis-note" style="margin:0 0 12px">이 화면은 <b>통계 미팅 원장</b>에서 한 줄씩 직접 센 값입니다 —
+미팅 ${i(S.n)}건 · 계약 ${i(S.ctr)}건. 보고 기준인 <b>통계 BO:CH</b>(미팅 ${i(sectorFor(ms).tot.mt.tot)} ·
+계약 ${i(sectorFor(ms).tot.ctr.tot)})와는 집계 시점이 달라 조금 차이가 납니다. <b>사람별 배분은 원장에만 있으므로</b> 이 화면은 원장을 씁니다.</div>`
++ kpiHTML(kpis)
++ cmpPanel
++ panel('담당자별 미팅과 계약', `${periodLabel()} · 통계 미팅 원장 기준`,
+ownerTbl
++ `<div class="grid2" style="margin-top:12px">`
++ `<div>` + chartBars({labels:OL.map(o=>o.name),unit:'건',fmt:i,stacked:true,height:240,
+aria:'담당자별 미팅 건수',
+series:[{name:'마케팅',color:C2,values:OL.map(o=>o.mk)},
+{name:'소개',color:C5,values:OL.map(o=>o.ref)}]}) + `</div>`
++ `<div>` + chartBars({labels:OL.map(o=>o.name),unit:'kW',fmt:d1,height:240,
+aria:'담당자별 용량',
+series:[{name:'미팅 용량',color:C2,values:OL.map(o=>o.cap)},
+{name:'계약 용량',color:C3,values:OL.map(o=>o.ctrCap)}]}) + `</div>`
++ `</div>`)
++ (names.length? panel('담당자 × 월 미팅 건수', '진할수록 많이 갔습니다',
+heatHTML(names, all.map(mLab), matrix, i, '담당자', 'warm')) : '')
++ (OW.length? panel('담당자별 마케팅 · 소개 (말 시트)', `${periodLabel()} · 말 시트 주차 집계`,
+`<div class="tblwrap"><table><thead><tr><th class="left">담당자</th>
+<th class="num">마케팅 용량</th><th class="num">마케팅 건수</th>
+<th class="num">소개 용량</th><th class="num">소개 건수</th>
+<th class="num">합계 용량</th><th class="num">합계 건수</th></tr></thead><tbody>`
++ OW.map(o=>`<tr><td class="left hi">${esc(o.name)}</td>
+<td class="num">${d1(o.mkCap)} kW</td><td class="num">${i(o.mkN)}</td>
+<td class="num">${d1(o.refCap)} kW</td><td class="num">${i(o.refN)}</td>
+<td class="num hi">${d1(o.mkCap+o.refCap)} kW</td>
+<td class="num hi">${i(o.mkN+o.refN)}</td></tr>`).join('')
++ `</tbody></table></div>`, '말 시트 AY:BK') : '')
++ ownGroups.map(g=>panel(`권역별 — ${g.title}${g.detail?' · '+g.detail:''}`,
+`${periodLabel()} · 누가 어디로 미팅을 갔나`,
+heatHTML(g.cols, g.regions.map(r=>r.region),
+g.cols.map((c,k)=>g.regions.map(r=>r.vals[k])))
+, '통계 CU:IJ')).join('');
+}
+function trendOf(vals){
+const v=vals.filter(x=>x>0);
+if(v.length<3) return 0;
+const h=Math.floor(v.length/2);
+const a=v.slice(0,h).reduce((x,y)=>x+y,0)/h;
+const b=v.slice(-h).reduce((x,y)=>x+y,0)/h;
+return a? (b-a)/a*100 : 0;
+}
+function insightCard(kind, title, body){
+const cls = kind==='good'?'goodk' : kind==='warn'?'warnk' : kind==='crit'?'critk' : '';
+const lab = kind==='good'?'양호' : kind==='warn'?'주의' : kind==='crit'?'경고' : '관찰';
+return `<div class="card ${cls}"><h3>${esc(title)}<span class="kind">${lab}</span></h3>${body}</div>`;
+}
+function viewInsight(){
+const ms=selMonths();
+const all=dataMonths();
+const ok=inquiryUsable();
+const S=sumRows(rowsIn(ms));
+const bm=byMonth(rowsAll());
+const M=m=>(DB.msum||[]).find(x=>x.m===m)||{};
+const G=ok?goalFor(ms):null;
+const Q=ok?inqFor(ms):null;
+const cards=[];
+if(G){
+const capP=pct(S.cap,G.mtCap), ctrP=pct(S.ctrCap,G.ctrCap), nP=pct(S.n,G.mtN);
+cards.push(insightCard(capP>=90?'good':capP>=60?'warn':'crit','목표 대비 실적',
+`<p>선택 기간 미팅용량은 <b>${MW(S.cap)}</b>로 목표 <b>${MW(G.mtCap)}</b>의 <b>${d1(capP)}%</b>입니다.
+계약용량은 <b>${MW(S.ctrCap)}</b>로 목표 대비 <b>${d1(ctrP)}%</b>,
+미팅 건수는 <b>${i(S.n)}건</b>으로 목표 ${i(G.mtN)}건 대비 <b>${d1(nP)}%</b>입니다.</p>
+<p>${capP>=90?'용량 목표는 거의 채웠습니다. 남은 과제는 계약 전환입니다.'
+: nP<capP-10 ? '건수는 부족한데 용량 달성률이 더 높습니다. <b>건당 규모가 큰 건</b>으로 메우고 있다는 뜻입니다.'
+: '건수와 용량이 함께 부족합니다. 미팅 파이프라인 자체를 늘려야 합니다.'}</p>`));
+}
+if(ok){
+const inqTrend=trendOf(all.map(m=>M(m).inqTot||0));
+const refTrend=trendOf(all.map(m=>M(m).refInq||0));
+cards.push(insightCard(inqTrend<-10?'crit':inqTrend<0?'warn':'good','신규 문의 추세',
+`<p>전체 문의는 기간 전반부 대비 후반부가 <b>${inqTrend>=0?'+':''}${d1(inqTrend)}%</b>,
+소개 문의는 <b>${refTrend>=0?'+':''}${d1(refTrend)}%</b> 변했습니다.</p>
+<p>${inqTrend<-10?'문의가 뚜렷하게 줄고 있습니다. 광고 채널·홈페이지 유입을 점검할 시점입니다.'
+: inqTrend<0?'문의가 소폭 감소했습니다. 계절 요인인지 채널 문제인지 구분이 필요합니다.'
+: '문의량은 유지되거나 늘고 있습니다.'}
+${refTrend<-15?' 특히 <b>소개 문의 감소</b>가 큽니다 — 소개는 전환율이 가장 높은 경로라 타격이 큽니다.':''}</p>`));
+}
+if(ok){
+const mkConv=pct(S.mk, Q.mkPwr), refConv=pct(S.ref, Q.ref);
+cards.push(insightCard('info','유입 경로별 전환율',
+`<p>마케팅은 발전사업 문의 ${i(Q.mkPwr)}건 중 ${i(S.mk)}건이 미팅으로 이어져 <b>${d1(mkConv)}%</b>,
+소개는 ${i(Q.ref)}건 중 ${i(S.ref)}건으로 <b>${d1(refConv)}%</b>입니다.</p>
+<p>소개가 마케팅보다 <b>${d1(refConv/(mkConv||1))}배</b> 잘 붙습니다.
+${refConv>mkConv*2?'소개 채널을 늘리는 것이 마케팅 예산을 늘리는 것보다 효율이 높다는 뜻입니다.':''}
+다만 소개 문의는 절대량이 적어 발전사업 문의의 ${pctS(Q.ref,Q.mkPwr+Q.ref)}뿐입니다 — 물량 확보가 관건입니다.</p>`));
+}
+{
+const mkC=pct(S.mkCtr,S.mk), refC=pct(S.refCtr,S.ref);
+cards.push(insightCard(S.ctr? (pct(S.ctr,S.n)>=20?'good':'warn') : 'crit','미팅 → 계약 전환',
+`<p>미팅 ${i(S.n)}건 중 ${i(S.ctr)}건이 계약으로 이어져 전환율 <b>${pctS(S.ctr,S.n)}</b>입니다.
+마케팅 미팅은 <b>${d1(mkC)}%</b>, 소개 미팅은 <b>${d1(refC)}%</b>입니다.</p>
+<p>${refC>mkC?`소개 미팅의 계약 전환이 마케팅보다 <b>${d1(refC-mkC)}%p</b> 높습니다. 소개 건에 우선 자원을 배치할 근거가 됩니다.`
+:`마케팅 미팅의 계약 전환이 더 높습니다. 소개 건의 후속 관리가 느슨하지 않은지 볼 필요가 있습니다.`}</p>`));
+}
+{
+const bands=capBands(rowsIn(ms));
+const totalN=bands.reduce((a,b)=>a+b.n,0);
+const small=bands[0].n+bands[1].n+bands[2].n;
+const avgTrend=trendOf(all.map(m=>bm[m].n?bm[m].cap/bm[m].n:0));
+cards.push(insightCard(avgTrend<-15?'warn':'info','미팅 규모 구조',
+`<p>건당 평균 미팅용량은 <b>${d1(S.avg)} kW</b>이고, 300kW 미만 소형 건이
+<b>${i(small)}건 (${pctS(small,totalN)})</b>을 차지합니다.
+평균 용량은 기간 전반부 대비 <b>${avgTrend>=0?'+':''}${d1(avgTrend)}%</b> 변했습니다.</p>
+<p>${avgTrend<-15?'건당 규모가 뚜렷하게 작아지고 있습니다. 같은 건수를 해도 용량 목표를 채우기 어려워집니다. <b>300~500kW급 이상</b> 건을 늘릴 유입 전략이 필요합니다.'
+:'건당 규모는 대체로 유지되고 있습니다.'}</p>`));
+}
+{
+const RG=regionFor(ms);
+const iq=RG[0], mt=RG[1];
+if(iq && iq.totSum){
+const top=iq.regions.slice().sort((a,b)=>b.sum-a.sum)[0];
+let conv=[];
+if(mt){
+conv=iq.regions.map(r=>{
+const m2=mt.regions.find(x=>x.region===r.region)||{sum:0};
+return {region:r.region, iq:r.sum, mt:m2.sum, cv:pct(m2.sum,r.sum)};
+}).filter(x=>x.iq>=20).sort((a,b)=>b.cv-a.cv);
+}
+cards.push(insightCard('info','지역 분포',
+`<p>문의는 <b>${esc(top.region)}</b>에 가장 몰려 있습니다 —
+${i(top.sum)}건으로 전체의 <b>${pctS(top.sum,iq.totSum)}</b>입니다.</p>
+${conv.length>=2?`<p>문의 대비 미팅 전환이 가장 높은 권역은 <b>${esc(conv[0].region)}</b>(${d1(conv[0].cv)}%),
+가장 낮은 곳은 <b>${esc(conv[conv.length-1].region)}</b>(${d1(conv[conv.length-1].cv)}%)입니다.
+문의량은 많은데 전환이 낮은 권역이 있다면 담당 배치나 이동 거리 문제일 수 있습니다.</p>`:''}`));
+}
+}
+{
+const people=ownerList(rowsIn(ms)).filter(p=>p.name!=='미지정');
+if(people.length>=2){
+const top=people[0], bot=people[people.length-1];
+const avgCv=pct(people.reduce((a,p)=>a+p.ctr,0), people.reduce((a,p)=>a+p.n,0));
+const best=people.slice().sort((a,b)=>pct(b.ctr,b.n)-pct(a.ctr,a.n))[0];
+cards.push(insightCard('info','담당자 편차',
+`<p>미팅 건수는 <b>${esc(top.name)} ${i(top.n)}건</b>부터
+<b>${esc(bot.name)} ${i(bot.n)}건</b>까지 벌어져 있습니다.
+계약 전환율이 가장 높은 사람은 <b>${esc(best.name)}(${pctS(best.ctr,best.n)})</b>로 전체 평균 ${d1(avgCv)}%를 웃돕니다.</p>
+<p>건수가 많은 사람과 전환율이 높은 사람이 다르다면, 배분 방식을 손볼 여지가 있습니다.</p>`));
+}
+}
+const actions=[];
+if(ok && trendOf(all.map(m=>M(m).inqTot||0))<-5)
+actions.push('<b>유입 회복</b> — 문의가 줄고 있습니다. 홈페이지·배너 광고 갱신 주기를 점검하고, 오프광고 탭의 채널별 성과(현수막·산단우편·전기안전관리자)를 비교해 예산을 재배분하세요.');
+if(ok && Q && pct(S.ref,Q.ref) > pct(S.mk,Q.mkPwr)*1.5)
+actions.push('<b>소개 채널 확대</b> — 소개는 전환율이 마케팅의 여러 배입니다. 기존 계약 고객 대상 소개 요청을 정례화하면 같은 노력으로 미팅이 더 나옵니다.');
+if(S.avg < 400)
+actions.push('<b>규모 있는 건 확보</b> — 건당 평균 용량이 낮습니다. 300kW 이상 사업장을 겨냥한 키워드·타깃을 별도로 운영하는 편이 용량 목표 달성에 직접적입니다.');
+if(G && pct(S.n,G.mtN) < 80)
+actions.push(`<b>미팅 건수 확보</b> — 월 72건(주 17건) 목표 대비 ${pctS(S.n,G.mtN)} 수준입니다. 주차별 표에서 미달 주차를 짚어 원인(휴일·인력·문의량)을 구분하세요.`);
+if(S.ctr && pct(S.ctr,S.n) < 20)
+actions.push('<b>제안 이후 관리</b> — 미팅은 하는데 계약이 붙지 않습니다. 제안서 제출 후 후속 접촉 시점을 규칙으로 정해두면 전환이 올라갑니다.');
+actions.push('<b>데이터 정합</b> — 통계 시트 집계표와 말 시트 주차 집계가 서로 다른 값을 냅니다. 보고용 기준을 하나로 확정해두면 매달 숫자 다툼이 사라집니다.');
+return filterNote()
++ sectHead('종합 분석 및 개선방안', periodLabel())
++ `<div class="grid2">`
++ panel('종합 분석','선택한 기간의 수치에서 자동으로 뽑아낸 관찰',
+`<div class="ins">${cards.join('')}</div>`)
++ panel('개선 방안','위 수치가 가리키는 실행 항목',
+`<div class="ins">` + actions.map((a,ix)=>
+`<div class="card"><h3>${ix+1}</h3><p>${a}</p></div>`).join('') + `</div>
+<p class="src">숫자에서 곧바로 도출되는 항목만 적었습니다. 시장·정책 판단이 필요한 항목은 사람이 채워야 합니다.</p>`)
++ `</div>`;
+}
+function viewRecords(){
+const ms=selMonths();
+const q=state.query.trim().toLowerCase();
+let rows=rowsIn(ms);
+if(q) rows=rows.filter(r=>
+(r.no+' '+r.type+' '+r.own+' '+r.reg+' '+r.corp+' '+r.prop+' '+r.cons).toLowerCase().includes(q));
+rows=rows.slice().sort((a,b)=>b.seq-a.seq);
+const S=sumRows(rows);
+const show=rows.slice(0,400);
+return sectHead('미팅 원장', periodLabel())
++ kpiHTML([
+{lab:'조회된 미팅',color:C2,val:i(rows.length),unit:'건',sub:'현재 필터 기준'},
+{lab:'계약',color:C3,val:i(S.ctr),unit:'건',sub:`전환율 ${pctS(S.ctr,rows.length)}`},
+{lab:'미팅 용량',color:C2,val:d1(S.cap/1000),unit:'MW',sub:`평균 ${d1(S.avg)} kW`},
+{lab:'담당자',color:C1,val:i(new Set(rows.map(r=>r.own)).size),unit:'명',sub:'조회 결과 내'}
+])
++ panel('원장 목록', `총 ${i(rows.length)}건 중 ${i(show.length)}건 표시`,
+`<div class="tblwrap"><table><thead><tr>
+<th class="left">상담번호</th><th class="left">미팅날짜</th><th class="left">유입</th>
+<th class="left">법인</th><th class="left">사업형태</th><th class="left">담당자</th>
+<th class="num">용량</th><th class="left">계약</th><th class="left">권역</th>
+</tr></thead><tbody>`
++ show.map(r=>`<tr>
+<td class="left" style="font-family:ui-monospace,monospace">${esc(r.no)}</td>
+<td class="left">${esc(r.date.replace(/-/g,'.'))}</td>
+<td class="left">${esc(r.src)}</td><td class="left">${esc(r.corp)}</td>
+<td class="left"><span class="ellip">${esc(r.type)}</span></td>
+<td class="left">${esc(r.own)}</td><td class="num">${d1(r.cap)}</td>
+<td class="left">${isContract(r)?`<span class="tag ok">${esc(r.ct)}</span>`:'<span class="tag">진행</span>'}</td>
+<td class="left">${esc(regionOf(r.reg))}</td></tr>`).join('')
++ `</tbody></table></div>`,
+'고객 이름·연락처·상세 주소는 표시하지 않습니다');
+}
+const VIEWS={
+overall:viewOverall, inquiry:viewInquiry, meetCoh:viewMeetCoh, meetExe:viewMeetExe,
+contract:viewContract, source:viewSource, region:viewRegion, goal:viewGoal,
+capacity:viewCapacity, owner:viewOwner, insight:viewInsight, records:viewRecords
+};
+const PUB_KEY='2PACX-1vQad4w-xhWVvj4Y3Y6zYivm--VY0W0ze-ZT5wDnzF_6MWRf906hQGyVWTEwKn6-kqYqEYzurLE2iNOB';
+const DEFAULT_URLS={
+script:'https://script.google.com/macros/s/AKfycby7LAZQTCtyReniF7IJtEkXo7LvSVRtvKzAJ4tvUKy5y_pFfNmJcw6UktI1trYFIuS9/exec',
+tongye:`https://docs.google.com/spreadsheets/d/e/${PUB_KEY}/pub?gid=488428713&single=true&output=csv`,
+mal:   `https://docs.google.com/spreadsheets/d/e/${PUB_KEY}/pub?gid=161324712&single=true&output=csv`
+};
+const $ = s => document.querySelector(s);
+const view=$('#view');
+const INLINE_MODE = !!(window.__INLINE_DATA__ && window.__INLINE_DATA__.tongye);
+const RUN_MODE = !!(window.google && google.script && google.script.run);
+const WEBAPP = INLINE_MODE || RUN_MODE;
+function skeleton(msg){
+view.innerHTML = `<section class="panel" style="text-align:center;padding:56px 20px">
+<div style="font-size:15px;font-weight:620;margin-bottom:8px">${esc(msg||'구글 시트를 읽는 중입니다')}</div>
+<div style="font-size:12.5px;color:var(--muted)">처음 열 때는 몇 초 걸립니다. 이후에는 훨씬 빠릅니다.</div>
+<div style="height:6px;background:var(--grid);border-radius:99px;max-width:280px;margin:18px auto 0;overflow:hidden">
+<div style="height:100%;width:40%;background:var(--s1);border-radius:99px;animation:sk 1.1s ease-in-out infinite"></div>
+</div></section>
+<style>@keyframes sk{0%{margin-left:-40%}100%{margin-left:100%}}</style>`;
+}
+function runGet(fresh){
+return new Promise((res,rej)=>{
+google.script.run
+.withSuccessHandler(t=>{ try{ res(JSON.parse(t)); }catch(e){ rej(new Error('응답을 해석하지 못했습니다')); } })
+.withFailureHandler(err=>rej(new Error(err && err.message ? err.message : String(err))))
+.getDashboardData(!!fresh);
+});
+}
+async function loadViaRun(fresh){
+setStatus('','시트를 읽는 중…');
+const d=await runGet(fresh);
+if(d && d.error) throw new Error(d.error);
+if(!d || !d.tongye || !d.mal) throw new Error('응답에 통계·말 데이터가 없습니다.');
+rebuild(d.tongye, d.mal, '구글 시트 (웹주소 · 실시간)');
+refreshFilters(); render();
+setStatus('live','시트 실시간');
+}
+function setStatus(kind, text){
+const c=$('#statusChip');
+c.className='chip'+(kind?' '+kind:'');
+$('#statusTxt').textContent=text;
+}
+function stampFoot(){
+const src = DB.source||'내장 데이터';
+const t = DB.stamp ? new Date(DB.stamp) : null;
+$('#footStamp').textContent = `데이터 출처: ${src}` + (t?` · 불러온 시각 ${t.toLocaleString('ko-KR')}`:'');
+}
+function renderNav(){
+let html='', lastG='';
+SECTIONS.forEach((s,ix)=>{
+if(s.g!==lastG){ html+=`<div class="grp">${esc(s.g)}</div>`; lastG=s.g; }
+html+=`<button class="nav${state.sect===s.k?' on':''}" data-sect="${s.k}">
+<span class="ix">${String(ix+1).padStart(2,'0')}</span><span>${esc(s.t)}</span></button>`;
+});
+$('#nav').innerHTML=html;
+$('#sectTitle').textContent = sectOf(state.sect).t;
+}
+function renderPeriod(){
+document.querySelectorAll('#pmode button').forEach(b=>
+b.classList.toggle('on', b.dataset.mode===state.mode));
+document.querySelectorAll('#pbasis button').forEach(b=>
+b.classList.toggle('on', b.dataset.basis===state.basis));
+const fixed = sectOf(state.sect).basis !== 'both';
+['#pbasis','#pbasisLab'].forEach(sel=>{
+const el=document.querySelector(sel); if(el) el.classList.toggle('hide', fixed);
+});
+const all=dataMonths();
+const box=$('#ppills');
+if(state.mode==='quarter'){
+const qs=[...new Set(all.map(qOf))].sort((a,b)=>a-b);
+box.innerHTML = qs.map(q=>`<button class="pill q${state.quarters.includes(q)?' on':''}"
+data-q="${q}">${q}분기</button>`).join('')
++ `<button class="pill" data-q="all">전체</button>`;
+} else if(state.mode==='month' || state.mode==='cumulative'){
+box.innerHTML = all.map(m=>`<button class="pill${state.months.includes(m)?' on':''}"
+data-m="${m}">${m}월</button>`).join('')
++ (state.mode==='month'?`<button class="pill" data-m="all">전체</button>`:'');
+} else {
+box.innerHTML = '';
+}
+const hint = state.mode==='quarter' ? '분기를 여러 개 골라 나란히 비교합니다'
+: state.mode==='month'   ? '월을 여러 개 골라 나란히 비교합니다'
+: state.mode==='cumulative' ? '고른 달까지 쌓아서 봅니다 (하나만 고르세요)'
+: '전체 기간을 분기 단위로 비교합니다';
+$('#psum').innerHTML = `<b>${esc(periodLabel())}</b> · ${esc(hint)}`;
+}
+function refreshFilters(){
+const L=DB.ledger;
+const f=(sel,vals,keep)=>{
+const cur=keep??sel.value;
+sel.innerHTML=vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+sel.value = vals.includes(cur)?cur:vals[0];
+};
+const FIELD_ORDER=['조성현','최창민','임준길','진으뜸','김종식','정규진'];
+const CONS_ORDER =['김동호','용현무','김세종','배승환','김용희'];
+const order=(fixed,found)=>[
+...fixed.filter(n=>found.includes(n)),
+...found.filter(n=>!fixed.includes(n) && n!=='미지정').sort(),
+...(found.includes('미지정')?['미지정']:[])];
+const fieldNames = order(FIELD_ORDER,
+[...new Set(L.map(r=>txt(r.own)||'미지정'))].filter(Boolean));
+const consNames  = order(CONS_ORDER,
+[...new Set(L.map(r=>txt(r.cons)||'미지정'))].filter(Boolean));
+const sel=$('#fOwner');
+const grp=(lab,pre,names)=>`<optgroup label="${esc(lab)}">`
++ names.map(n=>`<option value="${esc(pre+n)}">${esc(n)}</option>`).join('') + `</optgroup>`;
+sel.innerHTML = `<option value="전체">전체</option>`
++ grp('필드 담당자 (미팅)','F:',fieldNames)
++ grp('컨설팅 담당자','C:',consNames);
+const want = state.cons!=='전체' ? 'C:'+state.cons
+: state.owner!=='전체' ? 'F:'+state.owner : '전체';
+sel.value = want;
+if(sel.value!==want){ sel.value='전체'; state.owner='전체'; state.cons='전체'; }
+const secs = sectorNames();
+const types = secs.length ? secs
+: [...new Set(L.map(r=>txt(r.type)))].filter(Boolean).sort();
+f($('#fType'),  ['전체',...types], state.type);
+const srcs = ['마케팅','소개',...[...new Set(L.map(r=>r.src))].filter(x=>x&&x!=='마케팅'&&x!=='소개').sort()];
+const corps = ['그랜드썬','SP','유지에스',
+...[...new Set(L.map(r=>r.corp))].filter(x=>x&&!['그랜드썬','SP','유지에스'].includes(x)).sort()];
+f($('#fSrc'),   ['전체',...srcs], state.src);
+f($('#fCorp'),  ['전체',...corps], state.corp);
+$('#fQuery').value=state.query;
+state.type=$('#fType').value;
+state.src=$('#fSrc').value; state.corp=$('#fCorp').value;
+}
+function basisNote(){
+let warn='';
+if(DB.odd && DB.odd.length){
+const list=DB.odd.slice(0,4).map(r=>`${esc(r.no)}(${esc(r.date)})`).join(', ');
+warn = `<span style="color:var(--crit)">⚠ 통계 시트에 기준연도(${esc(DB.year)})와 다른
+미팅날짜가 <b>${DB.odd.length}건</b> 있습니다 — ${list}${DB.odd.length>4?' 외':''}. 오타일 수 있습니다.</span>`;
+}
+if(sectOf(state.sect).basis!=='both'){
+$('#basisNote').innerHTML = warn;
+$('#basisNote').classList.toggle('hide', !warn);
+return;
+}
+$('#basisNote').classList.remove('hide');
+const ms=selMonths();
+const lab = ms.length===1 ? `${ms[0]}월` : periodLabel();
+const base = rowsAll();
+const nCoh = base.filter(r=>ms.includes(r.cmo)).length;
+const nExe = base.filter(r=>ms.includes(r.em)).length;
+const head = state.basis==='cohort'
+? `<b>문의 온 달</b><span class="tag">보고 기준</span> — ${esc(lab)}에 <b>들어온 문의</b>로 이뤄진 건입니다.
+미팅은 그 다음 달에 갔을 수도 있습니다.`
+: `<b>미팅 간 달</b> — ${esc(lab)}에 <b>실제로 다녀온 미팅</b>입니다.
+문의는 몇 달 전에 왔을 수도 있습니다.`;
+const cmp = (nCoh===nExe) ? '' :
+`<br><span class="alt">같은 ${esc(lab)}을 두 기준으로 세면 —
+문의 온 달 <b>${i(nCoh)}건</b>, 미팅 간 달 <b>${i(nExe)}건</b>. 이만큼 다릅니다.</span>`;
+$('#basisNote').innerHTML = `${head}${cmp}${warn?'<br>'+warn:''}`;
+}
+function render(){
+const sc=sectOf(state.sect);
+if(sc.basis!=='both') state.basis = sc.basis;
+renderNav(); renderPeriod(); basisNote();
+try{
+view.innerHTML = (VIEWS[state.sect]||viewOverall)();
+}catch(err){
+view.innerHTML = `<section class="panel"><h2 style="margin:0 0 8px;font-size:15px">화면을 그리지 못했습니다</h2>
+<p style="margin:0;font-size:13px;color:var(--ink2)">${esc(err.message)}</p></section>`;
+}
+wireCharts(view);
+stampFoot();
+window.scrollTo({top:0,behavior:'instant'});
+}
+$('#nav').addEventListener('click',e=>{
+const b=e.target.closest('button[data-sect]'); if(!b) return;
+state.sect=b.dataset.sect;
+$('#rail').classList.remove('open');
+render();
+});
+$('#railBtn').addEventListener('click',()=>$('#rail').classList.toggle('open'));
+view.addEventListener('click',e=>{
+const cp=e.target.closest('[data-copy]');
+if(cp){
+const tsv=document.getElementById(cp.dataset.copy);
+if(tsv){
+navigator.clipboard.writeText(tsv.textContent).then(()=>{
+const o=cp.textContent; cp.textContent='복사했습니다 ✓'; cp.classList.add('done');
+setTimeout(()=>{cp.textContent=o; cp.classList.remove('done');},1800);
+});
+}
+return;
+}
+const k=e.target.closest('[data-kpi]');
+if(!k) return;
+state.kpiOpen = (state.kpiOpen===k.dataset.kpi) ? null : k.dataset.kpi;
+render();
+});
+view.addEventListener('keydown',e=>{
+if(e.key!=='Enter' && e.key!==' ') return;
+const k=e.target.closest('[data-kpi]'); if(!k) return;
+e.preventDefault();
+state.kpiOpen = (state.kpiOpen===k.dataset.kpi) ? null : k.dataset.kpi;
+render();
+});
+document.addEventListener('keydown', e=>{
+const t=e.target;
+if(t && (t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA')) return;
+if(e.ctrlKey||e.altKey||e.metaKey) return;
+const ix=SECTIONS.findIndex(x=>x.k===state.sect);
+let to=null;
+if(e.key==='ArrowRight'||e.key==='PageDown') to=Math.min(ix+1, SECTIONS.length-1);
+if(e.key==='ArrowLeft' ||e.key==='PageUp')   to=Math.max(ix-1, 0);
+if(e.key==='Home') to=0;
+if(to!==null && to!==ix){ e.preventDefault(); state.sect=SECTIONS[to].k; render(); return; }
+});
+$('#pmode').addEventListener('click',e=>{
+const b=e.target.closest('button[data-mode]'); if(!b) return;
+state.mode=b.dataset.mode;
+if(state.mode==='cumulative' && state.months.length>1)
+state.months=[Math.max(...state.months)];
+render();
+});
+$('#pbasis').addEventListener('click',e=>{
+const b=e.target.closest('button[data-basis]'); if(!b) return;
+state.basis=b.dataset.basis; render();
+});
+$('#ppills').addEventListener('click',e=>{
+const b=e.target.closest('button'); if(!b) return;
+if(b.dataset.q!==undefined){
+if(b.dataset.q==='all'){ state.quarters=[]; }
+else{
+const q=+b.dataset.q;
+state.quarters = state.quarters.includes(q)
+? state.quarters.filter(x=>x!==q) : [...state.quarters,q];
+}
+}
+if(b.dataset.m!==undefined){
+if(b.dataset.m==='all'){ state.months=[]; }
+else{
+const m=+b.dataset.m;
+if(state.mode==='cumulative') state.months=[m];
+else state.months = state.months.includes(m)
+? state.months.filter(x=>x!==m) : [...state.months,m];
+}
+}
+render();
+});
+$('#fOwner').addEventListener('change',e=>{
+const v=e.target.value;
+state.owner = v.startsWith('F:') ? v.slice(2) : '전체';
+state.cons  = v.startsWith('C:') ? v.slice(2) : '전체';
+render();
+});
+['fType','fSrc','fCorp'].forEach(id=>{
+$('#'+id).addEventListener('change',e=>{
+state[{fType:'type',fSrc:'src',fCorp:'corp'}[id]]=e.target.value;
+render();
+});
+});
+let qT; $('#fQuery').addEventListener('input',e=>{
+state.query=e.target.value; clearTimeout(qT); qT=setTimeout(render,200);
+});
+$('#resetBtn').addEventListener('click',()=>{
+state.mode='all'; state.quarters=[]; state.months=[];
+state.owner='전체';state.cons='전체';state.type='전체';state.src='전체';state.corp='전체';state.query='';
+refreshFilters(); render();
+});
+view.addEventListener('click',e=>{
+const b=e.target.closest('[data-act]'); if(!b) return;
+const act=b.getAttribute('data-act'), val=b.getAttribute('data-val');
+if(act==='owner'){ state.owner = state.owner===val?'전체':val; state.cons='전체'; }
+if(act==='cons'){  state.cons  = state.cons===val?'전체':val;  state.owner='전체'; }
+if(act==='type')  state.type  = state.type===val?'전체':val;
+refreshFilters(); render();
+});
+$('#themeBtn').addEventListener('click',()=>{
+const cur=document.documentElement.getAttribute('data-theme');
+const next=cur==='dark'?'light':'dark';
+document.documentElement.setAttribute('data-theme',next);
+$('#themeBtn').textContent = next==='dark'?'라이트':'다크';
+store.set('theme',next);
+});
+$('#syncToggle').addEventListener('click',()=> $('#syncPanel').classList.toggle('hide'));
+function msg(kind,html){
+const m=$('#syncMsg'); m.className='msg on '+kind; m.innerHTML=html;
+}
+function normalizeUrl(u){
+u=txt(u); if(!u) return '';
+if(/\/pub\?/.test(u) && !/output=csv/.test(u)) u=u.replace(/output=\w+/,'output=csv');
+return u;
+}
+function jsonp(url, timeoutMs){
+timeoutMs = timeoutMs || 60000;
+return new Promise((res,rej)=>{
+const cb='__gsdash_'+Math.random().toString(36).slice(2);
+const s=document.createElement('script');
+let done=false;
+const cleanup=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;}
+if(s.parentNode) s.parentNode.removeChild(s); clearTimeout(timer); };
+const timer=setTimeout(()=>{ if(!done){ cleanup(); rej(new Error('응답 시간 초과')); } }, timeoutMs);
+window[cb]=data=>{ done=true; cleanup(); res(data); };
+s.onerror=()=>{ if(!done){ cleanup();
+rej(new Error('주소를 불러오지 못했습니다. 배포 URL과 접근 권한(모든 사용자)을 확인하세요.')); } };
+s.src = url + (url.indexOf('?')>=0?'&':'?') + 'callback='+cb+'&_ts='+Date.now();
+document.head.appendChild(s);
+});
+}
+function rebuild(tongyeRows, malRows, source){
+const ledger=parseTongye(tongyeRows);
+if(!ledger.length) throw new Error('통계 시트에서 미팅 원장을 찾지 못했습니다.');
+const mal=parseMal(malRows);
+const sum=parseTongyeSummary(tongyeRows);
+const regions=parseRegionTables(tongyeRows);
+const regionDefs=parseRegionDefs(tongyeRows);
+const sectors=parseSectors(tongyeRows);
+const owners=parseOwnerStats(tongyeRows);
+if(sum && sum.year && sum.year.inq>0 && mal.years.length){
+const lastY=mal.years[mal.years.length-1];
+if(lastY && lastY.partial) lastY.inq = sum.year.inq;
+}
+const yr=dominantYear(ledger);
+DB={ledger, months:mal.months, msum:mal.msum, years:mal.years,
+ytdBt:mal.ytdBt, ytdTot:mal.ytdTot, sum, regions, regionDefs, sectors, owners,
+year:yr, stamp:Date.now(), source, odd:oddYearRows(ledger,yr)};
+}
+async function loadFromScript(silent){
+const u=txt($('#urlScript').value);
+if(!u) return false;
+setStatus('','불러오는 중…');
+try{
+const d=await jsonp(u);
+if(d && d.error) throw new Error(d.error);
+if(!d || !d.tongye || !d.mal) throw new Error('응답에 통계·말 데이터가 없습니다.');
+rebuild(d.tongye, d.mal, '구글 시트 (Apps Script 실시간)');
+store.set('urlScript',u); store.set('auto',$('#autoChk').checked);
+refreshFilters(); render();
+setStatus('live','시트 실시간 연결됨');
+msg('ok',`시트에서 불러왔습니다. 미팅 원장 <b>${i(DB.ledger.length)}건</b>`);
+return true;
+}catch(err){
+if(!silent) msg('bad','Apps Script 연결 실패: '+esc(err.message));
+return false;
+}
+}
+async function fetchCSV(url){
+const bust=url+(url.includes('?')?'&':'?')+'_ts='+Date.now();
+const r=await fetch(bust,{cache:'no-store',redirect:'follow'});
+if(!r.ok) throw new Error('HTTP '+r.status);
+const t=await r.text();
+if(/<html/i.test(t.slice(0,400))) throw new Error('CSV가 아닌 HTML이 돌아왔습니다.');
+return t;
+}
+async function loadFromUrls(silent){
+const a=normalizeUrl($('#urlTongye').value), b=normalizeUrl($('#urlMal').value);
+if(!a||!b){ if(!silent) msg('bad','두 주소를 모두 넣어주세요.'); return false; }
+setStatus('','불러오는 중…');
+try{
+const [ta,tb]=await Promise.all([fetchCSV(a),fetchCSV(b)]);
+rebuild(parseCSV(ta), parseCSV(tb), '구글 시트 (웹에 게시)');
+store.set('urlTongye',a); store.set('urlMal',b); store.set('auto',$('#autoChk').checked);
+refreshFilters(); render();
+setStatus('live','시트 연결됨');
+msg('ok',`불러왔습니다. 미팅 원장 <b>${i(DB.ledger.length)}건</b>`);
+return true;
+}catch(err){
+setStatus('err','연결 실패 · 내장 데이터 표시 중');
+$('#syncPanel').classList.remove('hide');
+msg('bad',`시트를 불러오지 못했습니다: ${esc(err.message)}`);
+return false;
+}
+}
+$('#connectBtn').addEventListener('click',async ()=>{
+if(txt($('#urlScript').value)){ if(await loadFromScript(false)) return; }
+loadFromUrls(false);
+});
+$('#clearBtn').addEventListener('click',()=>{
+store.del('urlTongye'); store.del('urlMal'); store.del('urlScript');
+$('#urlScript').value=DEFAULT_URLS.script;
+$('#urlTongye').value=DEFAULT_URLS.tongye; $('#urlMal').value=DEFAULT_URLS.mal;
+msg('ok','기본 주소로 되돌렸습니다.');
+});
+let everyTimer=null;
+const dayKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+async function refreshNow(silent){
+if(RUN_MODE){
+try{ skeleton('최신 데이터를 다시 읽는 중입니다'); await loadViaRun(true); return true; }
+catch(err){ setStatus('err','갱신 실패'); render(); if(!silent) alert('갱신 실패: '+err.message); return false; }
+}
+if(INLINE_MODE){ location.reload(); return true; }
+if(txt($('#urlScript').value)){ if(await loadFromScript(silent)) return true; }
+if($('#urlTongye').value && $('#urlMal').value) return await loadFromUrls(silent);
+return false;
+}
+$('#refreshBtn').addEventListener('click',()=>refreshNow(false));
+function showNextRun(){
+const el=$('#nextRun'); if(!el) return;
+const parts=[];
+if($('#dailyChk').checked){
+const [h,m]=($('#dailyTime').value||'14:40').split(':').map(Number);
+const now=new Date();
+const next=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h||0,m||0,0,0);
+if(store.get('lastDaily','')===dayKey(now) || next<=now) next.setDate(next.getDate()+1);
+parts.push(`다음 예약 갱신: ${next.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}`);
+}
+if($('#everyChk').checked) parts.push(`${$('#everyMin').value}분마다 갱신 중`);
+el.textContent = parts.length? parts.join(' · ') : '예약 갱신 꺼짐';
+}
+function setupEvery(){
+if(everyTimer){ clearInterval(everyTimer); everyTimer=null; }
+if(!$('#everyChk').checked) return;
+const mins=Math.max(5,Math.min(720,+$('#everyMin').value||30));
+everyTimer=setInterval(()=>refreshNow(true).then(showNextRun), mins*60*1000);
+}
+function saveSched(){
+store.set('dailyOn',$('#dailyChk').checked);
+store.set('dailyTime',$('#dailyTime').value);
+store.set('everyOn',$('#everyChk').checked);
+store.set('everyMin',$('#everyMin').value);
+setupEvery(); showNextRun();
+}
+setInterval(async ()=>{
+if(!$('#dailyChk') || !$('#dailyChk').checked) return;
+const [h,m]=($('#dailyTime').value||'14:40').split(':').map(Number);
+const now=new Date(), k=dayKey(now);
+if(store.get('lastDaily','')===k) return;
+if(now.getHours()>h || (now.getHours()===h && now.getMinutes()>=m)){
+store.set('lastDaily',k);
+await refreshNow(true);
+showNextRun();
+}
+}, 30000);
+['dailyChk','dailyTime','everyChk','everyMin'].forEach(id=>
+$('#'+id).addEventListener('change', saveSched));
+function syncScriptLink(){
+const u=txt($('#urlScript').value), a=$('#openScript');
+if(a){ a.href=u||'#'; a.style.pointerEvents=u?'auto':'none'; }
+}
+$('#urlScript').addEventListener('input', syncScriptLink);
+function loadScript(src){
+return new Promise((res,rej)=>{
+const s=document.createElement('script'); s.src=src; s.onload=res;
+s.onerror=()=>rej(new Error('엑셀 해석기를 불러오지 못했습니다 (인터넷 확인)'));
+document.head.appendChild(s);
+});
+}
+async function handleFile(file){
+if(!file) return;
+setStatus('','파일 읽는 중…');
+try{
+if(/\.csv$/i.test(file.name)) throw new Error('CSV 한 개로는 두 시트를 채울 수 없습니다. 엑셀(.xlsx)을 올려주세요.');
+if(!window.XLSX) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+const buf=await file.arrayBuffer();
+const wb=XLSX.read(buf,{type:'array'});
+const pick=n=>{ const s=wb.Sheets[n]; if(!s) throw new Error(`"${n}" 시트를 찾지 못했습니다.`);
+return XLSX.utils.sheet_to_json(s,{header:1,defval:'',raw:false,blankrows:true}); };
+rebuild(pick('통계'), pick('말'), '엑셀 파일 · '+file.name);
+refreshFilters(); render();
+setStatus('stale','엑셀 파일');
+msg('ok',`엑셀에서 불러왔습니다. 미팅 원장 <b>${i(DB.ledger.length)}건</b>`);
+}catch(err){
+setStatus('err','읽기 실패');
+msg('bad','엑셀을 읽지 못했습니다: '+esc(err.message));
+}
+}
+const dz=$('#dropZone'), fi=$('#fileInput');
+dz.addEventListener('click',()=>fi.click());
+fi.addEventListener('change',e=>handleFile(e.target.files[0]));
+['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('over');}));
+dz.addEventListener('drop',e=>handleFile(e.dataTransfer.files[0]));
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',e=>e.preventDefault());
+(function boot(){
+if(store.get('present',false)){
+}
+const th=store.get('theme',null);
+if(th){ document.documentElement.setAttribute('data-theme',th);
+$('#themeBtn').textContent = th==='dark'?'라이트':'다크'; }
+$('#dailyChk').checked = store.get('dailyOn',true);
+$('#dailyTime').value  = store.get('dailyTime','14:40');
+$('#everyChk').checked = store.get('everyOn',false);
+$('#everyMin').value   = store.get('everyMin','30');
+if(WEBAPP){
+['urlScript','urlTongye','urlMal'].forEach(id=>{
+const f=$('#'+id).closest('.field'); if(f) f.classList.add('hide'); });
+['.sync .actions','#dropZone'].forEach(sel=>{
+const el=document.querySelector(sel); if(el) el.classList.add('hide'); });
+$('#syncToggle').textContent='자동 갱신';
+const h=document.querySelector('#syncPanel h3'), pp=document.querySelector('#syncPanel p');
+if(h) h.textContent='자동 갱신';
+if(pp) pp.innerHTML='이 주소는 <b>30분마다 시트를 미리 읽어 둡니다.</b> 그래서 빨리 열립니다. 방금 고친 내용을 지금 보려면 왼쪽 아래 <b>새로고침</b>을 누르세요.';
+}
+if(RUN_MODE && !INLINE_MODE){
+renderNav();
+skeleton();
+loadViaRun(false).catch(err=>{
+view.innerHTML=`<section class="panel"><h2 style="margin:0 0 8px;font-size:15px">시트를 읽지 못했습니다</h2>
+<p style="margin:0;font-size:13px;color:var(--ink2)">${esc(err.message)}</p></section>`;
+setStatus('err','시트 읽기 실패');
+}).then(()=>{
+store.set('lastDaily', dayKey(new Date()));
+setupEvery(); showNextRun();
+});
+return;
+}
+if(INLINE_MODE){
+const d=window.__INLINE_DATA__;
+try{
+if(d.error) throw new Error(d.error);
+rebuild(d.tongye, d.mal, RUN_MODE?'구글 시트 (웹주소 · 30분마다 자동 갱신)':'구글 시트 (웹주소 · 열 때마다 최신)');
+refreshFilters(); render();
+setStatus('live','시트 실시간');
+}catch(err){
+view.innerHTML=`<section class="panel"><h2 style="margin:0 0 8px;font-size:15px">시트를 읽지 못했습니다</h2>
+<p style="margin:0;font-size:13px;color:var(--ink2)">${esc(err.message)}</p></section>`;
+setStatus('err','시트 읽기 실패');
+return;
+}
+store.set('lastDaily', dayKey(new Date()));
+setupEvery(); showNextRun();
+return;
+}
+rebuild(EMBEDDED.tongye, EMBEDDED.mal, '내장 데이터 (스냅샷)');
+refreshFilters(); render();
+setStatus('stale','내장 데이터');
+const sc=store.get('urlScript', DEFAULT_URLS.script);
+const a=store.get('urlTongye', DEFAULT_URLS.tongye);
+const b=store.get('urlMal',    DEFAULT_URLS.mal);
+const auto=store.get('auto',true);
+$('#urlScript').value=sc; $('#urlTongye').value=a; $('#urlMal').value=b;
+$('#autoChk').checked=!!auto;
+setupEvery(); showNextRun(); syncScriptLink();
+if(!auto){ setStatus('stale','연결됨 · 새로고침 누르면 갱신'); return; }
+(async ()=>{
+const mark=()=>{ store.set('lastDaily', dayKey(new Date())); showNextRun(); };
+if(sc && await loadFromScript(true)){ mark(); return; }
+if(a&&b && await loadFromUrls(true)){ mark(); return; }
+setStatus('err','실시간 연결 안 됨 · 내장 데이터 표시 중');
+})();
+})();
+</script>
+</body>
+</html>

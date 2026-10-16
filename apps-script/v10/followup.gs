@@ -1,0 +1,150 @@
+/* Private follow-up workspace. No personal fields are added to public JSON/cache. */
+var FOLLOWUP_ADMIN_HASH_ = '__FOLLOWUP_ADMIN_HASH__';
+function fuHash_(s) { return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(s),Utilities.Charset.UTF_8).map(function(b){return ('0'+((b+256)%256).toString(16)).slice(-2);}).join(''); }
+function fuProps_(){return PropertiesService.getScriptProperties();}
+function fuToday_(){return Utilities.formatDate(new Date(),'Asia/Seoul','yyyy-MM-dd');}
+function fuDate_(s){s=String(s||'');if(!s)return '';if(!/^20\d{2}-\d{2}-\d{2}$/.test(s)||isNaN(new Date(s+'T00:00:00Z').getTime())||new Date(s+'T00:00:00Z').toISOString().slice(0,10)!==s)throw Error('날짜 형식을 확인하세요.');return s;}
+function fuAuth_(code){
+ if(typeof code!=='string'||code.length<20||code.length>100)throw Error('접속 코드를 확인하세요.');
+ var hash=fuHash_(code);
+ if(hash===FOLLOWUP_ADMIN_HASH_)return {admin:true,name:'관리자',role:'all'};
+ var p=fuProps_(),raw=p.getProperty('fu_access_'+hash);
+ if(raw)return JSON.parse(raw);
+ var sessionRaw=p.getProperty('fu_session_'+hash);
+ if(sessionRaw){
+  try{
+   var session=JSON.parse(sessionRaw);
+   // A remembered browser stays authorized until the user explicitly signs
+   // out (or an administrator revokes its token). Legacy 180-day sessions
+   // are intentionally accepted as permanent so existing registrations are
+   // not interrupted by this policy change.
+   if(session.actor)return session.actor;
+  }catch(ignore){}
+  p.deleteProperty('fu_session_'+hash);
+ }
+ throw Error('접속 코드가 올바르지 않거나 해제되었습니다.');
+}
+function fuActor_(code){
+ // The dashboard owner is already authenticated by Google. When Apps Script
+ // can identify that signed-in account, open the protected workspace without
+ // asking for a second code. Public/anonymous visitors have no active email
+ // here and still fall back to the scoped access-code check below.
+ try{
+  if(typeof Session!=='undefined'){
+   var active=String(Session.getActiveUser().getEmail()||'').toLowerCase();
+   var effective=String(Session.getEffectiveUser().getEmail()||'').toLowerCase();
+   if(active&&effective&&active===effective)return {admin:true,name:'관리자',role:'all',google:true};
+  }
+ }catch(ignore){}
+ return fuAuth_(code);
+}
+function fuAllowed_(actor,r){return actor.admin||r[actor.role]===actor.name;}
+function rememberFollowupAccess(code){
+ var actor=fuActor_(code),token=Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');
+ var p=fuProps_(),hash=fuHash_(token),all=p.getProperties();
+ Object.keys(all).filter(function(k){return k.indexOf('fu_session_')===0;}).forEach(function(k){try{if(!JSON.parse(all[k]).actor)p.deleteProperty(k);}catch(ignore){p.deleteProperty(k);}});
+ p.setProperty('fu_session_'+hash,JSON.stringify({actor:{admin:!!actor.admin,name:actor.name,role:actor.role},persistent:true,createdAt:new Date().toISOString()}));
+ return {code:token,persistent:true};
+}
+function forgetFollowupAccess(code){
+ if(typeof code==='string'&&code.length>=20&&code.length<=100)fuProps_().deleteProperty('fu_session_'+fuHash_(code));
+ return true;
+}
+function fuText_(s,max){return String(s||'').trim().slice(0,max||500);}
+function fuStatus_(s){
+ s=String(s||'').replace(/\s/g,'');
+ if(/종료|취소|거절|포기|실주/.test(s))return '종료';
+ if(/계약/.test(s)&&!/미계약|계약전|계약예정|계약검토|계약대기/.test(s))return '계약';
+ if(/진행|상담|미팅|검토|제안|대기|보류|예정/.test(s))return '진행 중';
+ if(/미계약/.test(s))return '미계약';
+ return '미분류';
+}
+function fuContact_(v){
+ var contact=String(v[3]||''),notes=String(v[12]||''),phones=contact.match(/(?:\+82[- .]?)?0?\d{1,2}[- .]?\d{3,4}[- .]?\d{4}/g)||[];
+ var emails=contact.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig)||[];
+ var name=contact;phones.concat(emails).forEach(function(s){name=name.replace(s,'');});
+ return {customer:name.replace(/^[\s,;/]+|[\s,;/]+$/g,'').trim(),phone:phones.join(' / '),email:emails.join(' / '),address:String(v[4]||'')};
+}
+function fuExtract_(v,headers){
+ var base=fuContact_(v),contact=String(v[3]||''),notes=String(v[12]||'');
+ function field(rx,lineRx){var out=[];headers.forEach(function(h,i){if(i>=13&&rx.test(h)&&v[i])out.push(String(v[i]));});return out.length?out.join('\n'):notes.split(/\r?\n/).filter(function(s){return lineRx.test(s);}).join('\n');}
+ return Object.assign(base,{contactRaw:contact,content:notes,kepco:field(/한전|선로|계통/,/한전|선로|계통/),municipality:field(/지자체|개발행위|인허가/,/지자체|개발행위|인허가/)});
+}
+function fuRows_(actor){
+ var ss=SpreadsheetApp.openById(SHEET_ID),out=[];
+ ss.getSheets().forEach(function(sh){
+  var year=Number(sh.getName());if(!/^20\d{2}$/.test(sh.getName())||year<2025||sh.getLastRow()<3)return;
+  var values=sh.getRange(3,1,sh.getLastRow()-2,13).getDisplayValues();
+  values.forEach(function(v,ix){
+   var no=String(v[0]||'').trim(),m=no.match(/^(?:(?:sp|ugs)[- ]?)?(\d{1,2})-\d+/i);
+   if(!m||Number(m[1])<1||Number(m[1])>12||(!v[2]&&!v[3]&&!v[12]))return;
+   var r={id:year+':'+no.toLowerCase(),no:no,year:year,month:Number(m[1]),sourceRow:ix+3,sourceSheet:sh.getName(),gid:sh.getSheetId(),
+    statusRaw:String(v[1]||''),status:fuStatus_(v[1]),type:String(v[2]||''),cons:String(v[6]||'').trim()||'미지정',own:String(v[7]||'').trim()||'미지정',meetingDate:String(v[9]||''),capacity:String(v[10]||'')};
+   if(fuAllowed_(actor,r))out.push(Object.assign(r,fuContact_(v),{meetingISO:fuSourceDate_(v[9],year),noteEvidence:fuNoteEvidence_(v[12],year,fuToday_()),noteFingerprint:fuHash_(String(v[12]||'')).slice(0,24)}));
+  });
+ });
+ var counts={};out.forEach(function(r){counts[r.id]=(counts[r.id]||0)+1;});out.forEach(function(r){r.duplicate=counts[r.id]>1;});return out;
+}
+function fuStateKey_(id){return 'fu_record_'+fuHash_(id);}
+function getFollowupWorkspace(code){
+ var actor=fuActor_(code),rows=fuRows_(actor),observationWarning=fuObserveNotes_(rows),props=fuProps_().getProperties();
+ rows.forEach(function(r){r.followup=props[fuStateKey_(r.id)]?JSON.parse(props[fuStateKey_(r.id)]):{version:0,lastContact:'',nextContact:'',note:'',history:[]};});
+ rows.forEach(function(r){delete r.noteFingerprint;});
+ return {actor:actor,rows:rows,at:new Date().toISOString(),today:fuToday_(),observationWarning:observationWarning};
+}
+function getFollowupDetail(code,input){
+ var actor=fuActor_(code);input=input||{};
+ var year=Number(input.year),row=Number(input.sourceRow),id=String(input.id||'');
+ if(!/^20\d{2}$/.test(String(year))||year<2025||!Number.isInteger(row)||row<3||id.indexOf(year+':')!==0)throw Error('상담 위치를 확인하세요.');
+ var ss=SpreadsheetApp.openById(SHEET_ID),sh=ss.getSheetByName(String(year));
+ if(!sh||row>sh.getLastRow())throw Error('원본 상담을 찾을 수 없습니다.');
+ var cols=Math.min(sh.getMaxColumns(),40),headers=sh.getRange(1,1,2,cols).getDisplayValues();
+ var names=headers[0].map(function(x,i){return String(x)+' '+headers[1][i];});
+ var dataCols=13;names.forEach(function(h,i){if(i>=13&&/한전|선로|계통|지자체|개발행위|인허가/.test(h))dataCols=i+1;});
+ var v=sh.getRange(row,1,1,dataCols).getDisplayValues()[0],no=String(v[0]||'').trim(),m=no.match(/^(?:(?:sp|ugs)[- ]?)?(\d{1,2})-\d+/i);
+ if(!m||(year+':'+no.toLowerCase())!==id)throw Error('원본 상담번호가 변경되었습니다. 목록을 새로고침하세요.');
+ var r={id:id,no:no,year:year,month:Number(m[1]),sourceRow:row,sourceSheet:String(year),gid:sh.getSheetId(),statusRaw:String(v[1]||''),status:fuStatus_(v[1]),type:String(v[2]||''),cons:String(v[6]||'').trim()||'미지정',own:String(v[7]||'').trim()||'미지정',meetingDate:String(v[9]||''),capacity:String(v[10]||'')};
+ if(!fuAllowed_(actor,r))throw Error('이 상담의 조회 권한이 없습니다.');
+ var p=fuProps_(),raw=p.getProperty(fuStateKey_(id));
+ r.followup=raw?JSON.parse(raw):{version:0,lastContact:'',nextContact:'',note:'',history:[]};
+ return Object.assign(r,fuExtract_(v,names),{meetingISO:fuSourceDate_(v[9],year),noteEvidence:fuNoteEvidence_(v[12],year,fuToday_())});
+}
+function saveFollowupRecord(code,input){
+ var actor=fuActor_(code);input=input||{};
+ var rows=fuRows_(actor).filter(function(r){return r.id===input.id;});
+ if(rows.length!==1)throw Error('상담번호가 중복되었거나 조회 권한이 없습니다. 원본을 확인하세요.');
+ var r=rows[0],next=fuDate_(input.nextContact),last=fuDate_(input.lastContact),today=fuToday_();
+ if(last&&last>today)throw Error('마지막 연락일은 오늘 이후로 저장할 수 없습니다.');
+ var note=fuText_(input.note,300),recipient=fuText_(input.recipient,80),action=String(input.action||'schedule');
+ if(['schedule','contact','request','resolve'].indexOf(action)<0)throw Error('알 수 없는 처리입니다.');
+ if(action==='contact'&&!last)throw Error('연락한 날짜를 입력하세요.');
+ if(action==='request'&&(!next||!recipient||[r.cons,r.own].indexOf(recipient)<0||recipient==='미지정'))throw Error('알림 수신 담당자와 연락 예정일을 지정하세요.');
+ if(action==='schedule'&&!next)throw Error('다음 연락일을 입력하세요.');
+ if(action==='resolve'&&!note)throw Error('알림을 해제하는 이유를 적어 주세요.');
+ var lock=LockService.getScriptLock();lock.waitLock(15000);
+ try{
+  var p=fuProps_(),key=fuStateKey_(r.id),raw=p.getProperty(key),old=raw?JSON.parse(raw):{version:0,history:[]};
+  if(Number(input.version)!==Number(old.version))throw Error('다른 사람이 먼저 수정했습니다. 새로고침 후 다시 저장하세요.');
+  var event={at:new Date().toISOString(),by:actor.name,action:action,note:note,lastContact:last,nextContact:next,recipient:recipient};
+  var data={version:old.version+1,lastContact:last||old.lastContact||'',nextContact:action==='resolve'?'':next,note:note,recipient:action==='request'?recipient:(old.recipient||r.cons),
+   requested:action==='request'?true:action==='resolve'||action==='contact'?false:!!old.requested,updatedAt:event.at,updatedBy:actor.name,history:(old.history||[]).concat([event]).slice(-5)};
+  var json=JSON.stringify(data),bytes=Utilities.newBlob(json).getBytes().length;
+  if(bytes>8500)throw Error('기록이 너무 깁니다. 메모를 줄여 주세요.');
+  var all=p.getProperties(),size=Object.keys(all).reduce(function(n,k){return n+Utilities.newBlob(k+all[k]).getBytes().length;},0);
+  if(size+bytes>450000)throw Error('연락 기록 저장 공간이 부족합니다. 관리자에게 기록 보관을 요청하세요.');
+  p.setProperty(key,json);return data;
+ }finally{lock.releaseLock();}
+}
+function issueFollowupAccess(code,input){
+ var actor=fuActor_(code);if(!actor.admin)throw Error('관리자만 발급할 수 있습니다.');
+ var role=String(input.role||'cons'),name=fuText_(input.name,80);if(['cons','own'].indexOf(role)<0||name==='미지정')throw Error('담당자를 선택하세요.');
+ if(!fuRows_(actor).some(function(r){return r[role]===name;}))throw Error('원본에 없는 담당자입니다.');
+ var token=Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');
+ var lock=LockService.getScriptLock();lock.waitLock(15000);
+ try{
+  var p=fuProps_(),who=fuHash_(role+':'+name),old=p.getProperty('fu_member_'+who);
+  if(old)p.deleteProperty('fu_access_'+old);
+  var hash=fuHash_(token);p.setProperty('fu_access_'+hash,JSON.stringify({admin:false,name:name,role:role}));p.setProperty('fu_member_'+who,hash);
+ }finally{lock.releaseLock();}
+ return {name:name,role:role,code:token};
+}

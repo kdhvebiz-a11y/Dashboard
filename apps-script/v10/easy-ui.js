@@ -1,0 +1,494 @@
+/* A simpler navigation layer, keeping the verified reporting model underneath. */
+const EASY_NAV=[
+ {k:'overall',label:'이번 기간 요약',sub:'문의와 활동을 한눈에'},
+ {k:'inquiry',label:'문의 · 미팅 전환',sub:'들어온 문의의 후속 성과'},
+ {k:'meetExe',label:'사업주 미팅 현황',sub:'선택한 달에 사업주와 진행한 미팅'},
+ {k:'contract',label:'실제 계약 실적',sub:'RPS 계약 · 용량 · 위치'},
+ {k:'owner',label:'담당자별 실적',sub:'현장 · 컨설팅 담당'},
+ {k:'source',label:'유입 · 법인 · 지역',sub:'어디서 들어온 문의인가'},
+ {k:'goal',label:'목표 관리',sub:'목표와 남은 실적'},
+ {k:'report',label:'부서 보고서',sub:'보고 · 인쇄 · 내려받기'},
+ {k:'presentation',label:'실적발표',sub:'월간 · 분기 · 누적 발표'}
+];
+/*
+ * Keep every existing workspace, but expose only six task-oriented groups in
+ * the rail.  The active group's children appear underneath it, so the rail is
+ * short while every former destination remains one click away.
+ */
+const EASY_MENU=[
+ {k:'summary',label:'종합현황',sub:'핵심 실적을 한눈에',open:'overall',items:[['overall','이번 기간 요약']]},
+ {k:'inquiries',label:'문의 · 상담',sub:'문의 유입부터 후속 상담까지',open:'inquiry',items:[['inquiry','문의 · 미팅 전환'],['source','유입 · 법인 · 지역'],['followup','상담 후속관리']]},
+ {k:'meetings',label:'미팅실적',sub:'사업주 미팅과 담당자 성과',open:'meetExe',items:[['meetExe','사업주 미팅 현황'],['owner','담당자별 실적'],['records','미팅 원장']]},
+ {k:'contracts',label:'계약실적',sub:'계약 건수 · 용량 · 위치',open:'contract',items:[['contract','실제 계약 실적']]},
+ {k:'goals',label:'목표관리',sub:'목표와 남은 실적',open:'goal',items:[['goal','목표 관리']]},
+ {k:'reports',label:'보고자료',sub:'보고서 · 발표 · 회의자료',open:'report',items:[['report','부서 보고서'],['presentation','실적발표'],['salesMeeting','영업회의 자료']]}
+];
+// Legacy section-family mapping is kept for the underlying view model.
+const easyGroup=k=>['meetCoh','inquiry'].includes(k)?'inquiry':['cons','owner'].includes(k)?'owner':['source','corp','region','capacity'].includes(k)?'source':['report','insight'].includes(k)?'report':k;
+const easyMenuGroup=k=>{
+ if(['overall'].includes(k))return 'summary';
+ if(['inquiry','meetCoh','source','corp','region','capacity','followup'].includes(k))return 'inquiries';
+ if(['meetExe','cons','owner','records'].includes(k))return 'meetings';
+ if(k==='contract')return 'contracts';
+ if(k==='goal')return 'goals';
+ if(['report','insight','presentation','salesMeeting'].includes(k))return 'reports';
+ return 'summary';
+};
+const easySubnav=(items,selected)=>`<div class="easy-subnav">${items.map(([key,label])=>`<button data-v10-section="${key}" class="${key===selected?'on':''}">${esc(label)}</button>`).join('')}</div>`;
+const easyLead=(title,sub,tag)=>`<div class="easy-lead"><div><h2>${esc(title)}</h2><p>${esc(sub)}</p></div>${tag?`<span class="easy-tag">${esc(tag)}</span>`:''}</div>`;
+function easyPrimary(a){return `<div class="v10-kpis">${[
+ v10Card('새로 들어온 전체 문의',v10Number(a.total)+' 건','문의 접수월 기준',V10.colors[0],'inquiry'),
+ v10Card('전체 사업 문의',v10Number(a.power)+' 건',`전체 문의 중 ${v10Rate(a.power,a.total)}`,V10.colors[1],'inquiry'),
+ v10Card('이번 문의에서 이어진 미팅',i(a.cohort)+' 건','이후 다른 달에 진행한 미팅도 포함',V10.colors[2],'meetCoh'),
+ v10Card('이번 기간에 실제 한 미팅',i(a.actual)+' 건','이전에 들어온 문의의 미팅도 포함',V10.colors[3],'meetExe')].join('')}</div>`;}
+function easySecondary(a){return `<div class="easy-secondary"><div><span>실제 미팅 용량</span><b>${capS(a.actualCap)}</b></div><div><span>건당 평균 용량</span><b>${d1(a.avg)} kW</b></div><div><span>계약 확정 실적</span><button class="easy-link" data-v10-section="contract">엑셀 자료 대기 →</button></div></div>`;}
+function easyTrendAxis(){
+ const axis=v10TrendAxis(),year=Number(DB.year),nowYear=Number(v10Today().slice(0,4)),nowMonth=Number(v10Today().slice(5,7));
+ return year===nowYear?axis.filter(g=>Math.min(...g.months)<=nowMonth).map(g=>({...g,months:g.months.filter(m=>m<=nowMonth)})).filter(g=>g.months.length&&(state.mode!=='cumulative'||Number(g.label.replace(/\D/g,''))<=nowMonth)):axis;
+}
+function easyOverview(){
+ const ms=selMonths(),a=v10Aggregate(ms),g=v10Goals(ms),axis=easyTrendAxis(),values=axis.map(x=>v10Aggregate(x.months));
+ return easyLead(`${DB.year}년 ${periodLabel()} 실적`, '문의가 얼마나 들어왔고, 미팅은 얼마나 진행했는지 확인하세요.',v10Scoped()?'상세 조건 적용':'부서 전체')
+ +easyPrimary(a)+easySecondary(a)+v10SourceAudit()
+ +`<div class="easy-summary"><strong>두 미팅 숫자가 다른 이유</strong><span>예를 들어 1월 문의로 7월에 미팅했다면, ‘1월 문의에서 이어진 미팅’과 ‘7월에 실제 한 미팅’에 각각 들어갑니다.</span></div>`
+ +`<div class="easy-grid">${v10Line('미팅 실적은 어떻게 변했나요?','문의 접수월의 전환 성과와 실제 활동월의 실적',axis,[
+ {name:'문의에서 이어진 미팅',color:V10.colors[2],values:values.map(x=>x.cohort)},
+ {name:'실제로 한 미팅',color:V10.colors[3],values:values.map(x=>x.actual)}])}
+ ${v10Panel('목표까지 얼마나 남았나요?','선택한 기간의 목표와 연간 계약 목표',v10GoalBar('전체 문의',a.total,g.total,'건',V10.colors[0])+v10GoalBar('전체 사업 문의',a.power,g.power,'건',V10.colors[1])+v10GoalBar('실제 미팅',a.actual,g.meeting,'건',V10.colors[3])+contractGoalProgress()+`<div class="easy-tablelink"><button class="easy-link" data-v10-section="goal">목표 설정 · 상세 보기 →</button></div>`)}</div>`
+ +`<div class="v10-grid">${v10Line('월별 신규 문의','접수된 문의의 전체 규모와 전체 사업 문의',axis,[{name:'전체 문의',color:V10.colors[0],values:values.map(x=>x.total)},{name:'전체 사업 문의',color:V10.colors[1],values:values.map(x=>x.power)}])}
+ ${v10Panel('이번 보고에서 확인할 내용','선택 기간의 데이터로 작성한 검토 의견',v10Insights())}</div>`
+ +`<details class="easy-details"><summary>월별 · 분기별 수치 비교표 펼치기</summary>${v10PeriodTable()}</details>`;
+}
+function easyInquiry(){
+ const a=v10Aggregate(selMonths()),axis=easyTrendAxis(),vals=axis.map(g=>v10Aggregate(g.months));
+ return easyLead('이번에 들어온 문의가 미팅으로 이어졌나요?','선택한 달에 접수된 문의의 후속 성과입니다. 이후 다른 달에 진행한 미팅도 포함합니다.','문의 접수월 기준')
+ +`<div class="v10-kpis">${v10Card('전체 문의',v10Number(a.total)+' 건','선택한 달에 접수된 문의',V10.colors[0],'inquiry')}${v10Card('전체 사업 문의',v10Number(a.power)+' 건',`전체 대비 ${v10Rate(a.power,a.total)}`,V10.colors[1],'inquiry')}${v10Card('미팅으로 이어진 건',i(a.cohort)+' 건',`전체 사업형태 · 발전사업 ${i(a.powerCohort)}건`,V10.colors[2],'meetCoh')}${v10Card('발전사업 미팅 전환율',v10Rate(a.powerCohort,a.power),'발전사업 미팅 ÷ 전체 사업 문의',V10.colors[4],'meetCoh')}</div>`
+ +`<div class="v10-grid">${v10Line('접수월별 발전사업 미팅 전환율','분자와 분모 모두 발전사업 기준 · 최근 문의월은 후속 미팅으로 계속 늘어날 수 있습니다.',axis,[{name:'발전사업 미팅 전환율',color:V10.colors[4],values:vals.map(x=>x.power?pct(x.powerCohort,x.power):null)}],'%')}${v10PeoplePanel('cons','cohort')}</div>`
+ +v10Breakdown('src').replace(/^.*?(?=<section class="v10-panel">)/s,'').replace(/<section class="v10-panel"><h3>비교 해석[\s\S]*/,'')
+ +v10PeriodTable()+`<details class="easy-details"><summary>연결된 미팅 ${i(a.rows.length)}건 확인 · 내려받기</summary>${v10Ledger('cohort')}</details>`;
+}
+function easyActivity(){
+ const ms=selMonths(),a=v10Aggregate(ms),axis=easyTrendAxis(),vals=axis.map(g=>v10Aggregate(g.months));
+ return easyLead(`${periodLabel()} 사업주 미팅 현황`,`${periodLabel()}에 배정된 보고 주차 전체의 미팅 실적입니다. 앞뒤 달의 날짜도 해당 주차에 속하면 이 달 실적으로 집계합니다.`,v10ReportPeriodLabel(ms))
+ +`<div class="v10-kpis">${v10Card('보고 미팅',i(a.actual)+' 건',a.actualSource,V10.colors[3],'meetExe')}${v10Card('총 미팅 용량',capS(a.actualCap),'선택 보고 주차 사업주 미팅',V10.colors[0],'capacity')}${v10Card('건당 평균 용량',d1(a.avg)+' kW','총 용량 ÷ 보고 미팅 건수',V10.colors[5],'capacity')}${v10Card('보고 주차 내 예정',i(a.scheduled)+' 건','오늘 이후 날짜 · 해당 보고 주차 합계에 포함',V10.colors[1],'records')}</div>`
+ +v10SourceAudit()
+ +`<div class="v10-grid">${v10Line('월별 사업주 미팅 추세','마케팅과 소개 문의로 실제 진행한 미팅',axis,[{name:'마케팅',color:V10.colors[0],values:vals.map(x=>x.actualMk)},{name:'소개',color:V10.colors[5],values:vals.map(x=>x.actualRef)}])}${v10PeoplePanel('own','exec')}</div>`
+ +v10Line('월별 사업주 미팅 용량','단위 kW · 건수와 용량의 흐름을 함께 확인하세요.',axis,[{name:'총 용량',color:V10.colors[3],values:vals.map(x=>x.actualCap)}],'kW')
+ +(a.gap?`<div class="v10-callout">동일 보고 주차의 월별 집계 ${i(a.actual)}건과 원장 ${i(a.exeRows.length)}건이 일치하지 않습니다. 원본 집계 내용을 확인해 주세요.</div>`:'')
+ +`<details class="easy-details"><summary>실제 미팅 원장 ${i(a.exeRows.length)}건 확인 · 내려받기</summary>${v10Ledger('exec')}</details>`;
+}
+function easyPeople(role){
+ const axis=easyTrendAxis(),current=v10PeopleData(role,state.basis,selMonths()).people;
+ // Build the legend from every visible month. Using only the selected month
+ // made the entire trend chart disappear when that month had no row for a
+ // person who worked in another month.
+ const totals=new Map();
+ axis.forEach(g=>v10PeopleData(role,state.basis,g.months).people.forEach(p=>totals.set(p.name,(totals.get(p.name)||0)+p.n)));
+ const names=[...totals].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ko')).map(x=>x[0]);
+ const series=names.map((name,j)=>({name,color:V10.colors[j%6],values:axis.map(g=>v10PeopleData(role,state.basis,g.months).people.find(p=>p.name===name)?.n||0)}));
+ const trendRows=series.map(s=>{const total=s.values.reduce((sum,v)=>sum+(Number(v)||0),0);return [`<span class="easy-person-key"><i style="background:${s.color}"></i>${esc(s.name)}</span>`,...s.values.map(v=>i(v)+'건'),i(total)+'건',d1(axis.length?total/axis.length:0)+'건'];});
+ const total=current.reduce((s,p)=>s+p.n,0),capacity=current.reduce((s,p)=>s+p.cap,0),top=current[0];
+ return easyLead('담당자별로 무엇이 달라졌나요?','미팅을 잡은 컨설팅 담당자와 현장에 다녀온 미팅 담당자를 구분합니다.')
+ +`<div class="easy-rolemenu">${easySubnav([['owner','현장 미팅 담당자'],['cons','컨설팅 담당자']],state.sect)}<label>보고 싶은 실적 <select id="easyTeamBasis"><option value="cohort" ${state.basis==='cohort'?'selected':''}>이번 문의에서 이어진 미팅</option><option value="exec" ${state.basis==='exec'?'selected':''}>이번 기간 실제로 한 미팅</option></select></label></div>`
+ +`<div class="v10-kpis">${v10Card('담당자 수',i(current.length)+' 명',periodLabel()+' 참여 인원',V10.colors[0],state.sect)}${v10Card('미팅 건수',i(total)+' 건',state.basis==='exec'?'실제 미팅월 기준':'문의 접수월 기준',V10.colors[3],state.sect)}${v10Card('미팅 용량',capS(capacity),'담당자 합계',V10.colors[4],state.sect)}${v10Card('최다 담당자',top?top.name:'—',top?i(top.n)+'건 · '+capS(top.cap):'선택 기간 실적 없음',V10.colors[5],state.sect)}</div>`
+ +v10PeoplePanel(role,state.basis)
+ +v10Line('담당자별 월간 미팅 흐름','위 담당자 표와 같은 집계 기준으로 매월 실적을 비교합니다.',axis,series)
+ +v10Panel('담당자별 월간 미팅 수치','위 차트와 같은 기준 · 월별 건수, 기간 합계와 월평균을 바로 확인합니다.',v10Table(['담당자',...axis.map(g=>g.label),'합계','월평균'],trendRows))
+ +`<details class="easy-details"><summary>담당자별 미팅 용량과 원장 확인</summary>${v10Ledger(state.basis)}</details>`;
+}
+function easyMarket(k){
+ const nav=easySubnav([['source','마케팅 · 소개'],['corp','법인'],['region','지역'],['capacity','용량']],k);
+ let body=k==='source'?v10Breakdown('src'):k==='corp'?v10Breakdown('corp'):k==='region'?v10Region():v10Capacity();
+ if(k==='capacity'){
+  body=body.replace(/<div class="v10-kpis">[\s\S]*?(?=<section class="v10-panel">)/,'');
+  return nav+body;
+ }
+ return nav+body;
+}
+const easyGoalOriginal=v10GoalView;
+// Department inquiry targets are independent daily, weekly and monthly commitments.
+const EASY_INQUIRY_TARGETS={daily:50,weekly:350,monthly:1500};
+const easyGoalState={mode:store.get('v10_goalMode','week'),weeks:store.get('v10_goalWeeks',{}),goals:store.get('v10_weekGoals',{})};
+const easyPad=n=>String(n).padStart(2,'0');
+function easyIsoWeek(dateText=v10Today()){
+ const d=new Date(dateText+'T00:00:00Z'),day=(d.getUTCDay()+6)%7;
+ d.setUTCDate(d.getUTCDate()-day+3);
+ const first=new Date(Date.UTC(d.getUTCFullYear(),0,4)),firstDay=(first.getUTCDay()+6)%7;
+ first.setUTCDate(first.getUTCDate()-firstDay+3);
+ return Math.max(1,Math.min(52,1+Math.round((d-first)/604800000)));
+}
+function easyWeekRange(year,week){
+ const jan4=new Date(Date.UTC(Number(year),0,4)),day=(jan4.getUTCDay()+6)%7;
+ const monday=new Date(jan4);monday.setUTCDate(jan4.getUTCDate()-day+(Number(week)-1)*7);
+ const friday=new Date(monday);friday.setUTCDate(monday.getUTCDate()+4);
+ const iso=d=>`${d.getUTCFullYear()}-${easyPad(d.getUTCMonth()+1)}-${easyPad(d.getUTCDate())}`;
+ const short=d=>`${d.getUTCMonth()+1}/${d.getUTCDate()}(${['일','월','화','수','목','금','토'][d.getUTCDay()]})`;
+ return {week:Number(week),start:iso(monday),end:iso(friday),label:`${short(monday)}~${short(friday)}`};
+}
+function easyGoalWeek(){
+ const y=Number(DB.year),saved=Number(easyGoalState.weeks[y]);
+ if(saved>=1&&saved<=52)return saved;
+ return y===Number(v10Today().slice(0,4))?easyIsoWeek():52;
+}
+function easyWeekDefaultGoals(){
+ const months=Array.from({length:12},(_,i)=>v10GoalMonth(i+1)),out={};
+ for(const k of ['total','power','meeting','contractCount','contractCap'])out[k]=months.every(x=>x[k]!==null&&x[k]!==undefined)?v10Sum(months,k)/52:null;
+ return {...out,total:EASY_INQUIRY_TARGETS.weekly,source:'전체 문의 주 350건 · 그 외 연간 목표 ÷ 52'};
+}
+function easyWeekGoals(week){
+ const saved=easyGoalState.goals[`${DB.year}-W${easyPad(week)}`];
+ return saved?{...saved,source:'주간 직접 설정 · 이 브라우저'}:easyWeekDefaultGoals();
+}
+function easyWeekActual(range){
+ const rows=DB.ledger.filter(r=>r.date&&r.date>=range.start&&r.date<=range.end&&r.date<=v10Today()&&Number(r.meetingYear)===Number(DB.year)&&v10Match(r));
+ const meeting=sumRows(rows),today=v10Today();
+ return {rows,meeting:meeting.n,capacity:meeting.cap,contracts:null,contractCap:null};
+}
+function easyWeeklyGoals(){
+ const week=easyGoalWeek(),range=easyWeekRange(DB.year,week),goal=easyWeekGoals(week),actual=easyWeekActual(range),scoped=v10Scoped();
+ const option=Array.from({length:52},(_,i)=>{const r=easyWeekRange(DB.year,i+1);return `<option value="${i+1}" ${week===i+1?'selected':''}>${i+1}주차 · ${r.label}</option>`;}).join('');
+ const rows=Array.from({length:52},(_,i)=>{const w=i+1,r=easyWeekRange(DB.year,w),g=easyWeekGoals(w);return [`${w}주차`,r.label,g.total===null?'—':d1(g.total),g.power===null?'—':d1(g.power),g.meeting===null?'—':d1(g.meeting),g.contractCount===null?'—':d1(g.contractCount),g.contractCap===null?'—':d1(g.contractCap),esc(g.source)];});
+ return `<div class="easy-week-select"><button class="btn" data-easy-week-step="-1" ${week===1?'disabled':''}>이전 주</button><label>조회 주차<select id="v10GoalWeek">${option}</select></label><button class="btn" data-easy-week-step="1" ${week===52?'disabled':''}>다음 주</button><strong>${DB.year}년 ${week}주차 · ${range.label}</strong></div>`
+ +`<div class="easy-summary"><strong>월~금 5일을 1주로 집계</strong><span>전체 문의 기본 목표는 주 350건입니다. 일 50건·월 1,500건과 별도로 설정한 값입니다. 그 외 주간 목표는 연간 목표÷52이며, 아래에서 주차별로 조정할 수 있습니다.</span></div>`
+ +`<div class="v10-kpis">${v10Card('주간 사업주 미팅',i(actual.meeting)+' 건',`${range.label} · 미팅일 원장`,V10.colors[3],'meetExe')}${v10Card('주간 미팅 용량',capS(actual.capacity),'월~금 사업주 미팅',V10.colors[0],'capacity')}${v10Card('주간 계약','—','계약은 원장 보고 월 단위로 집계',V10.colors[4],'contract')}${v10Card('주간 계약 용량','—','계약일로 주간 실적을 나누지 않음',V10.colors[5],'contract')}</div>`
+ +v10Panel('선택 주 목표 달성','미팅은 실제 미팅일 기준입니다. 문의 접수일과 계약 보고 일자가 없어 문의·계약 주간 실적은 표시하지 않습니다.',v10GoalBar('전체 문의',null,goal.total,'건',V10.colors[0])+v10GoalBar('전체 사업 문의',null,goal.power,'건',V10.colors[1])+v10GoalBar('사업주 미팅',scoped?null:actual.meeting,goal.meeting,'건',V10.colors[3]))
+ +`<div class="v10-callout">주간 문의 실적은 현재 대시보드 자료에 문의 접수 ‘일자’가 없어 임의로 나누지 않았습니다. 원본에 정확한 접수일 열을 연결하면 주간 문의 달성률도 계산할 수 있습니다.</div>`
+ +v10Panel('주차별 목표 설정',`${week}주차 ${range.label}에만 적용됩니다. 이 브라우저에 저장되며 원본 스프레드시트는 수정하지 않습니다.`,`<form id="v10WeekGoalForm" data-week="${week}"><div class="v10-settings">${[['total','전체 문의 (건)'],['power','전체 사업 문의 (건)'],['meeting','실제 미팅 (건)'],['contractCount','계약 (건)'],['contractCap','계약 용량 (kWp)']].map(([k,label])=>`<label>${label}<input type="number" name="${k}" min="0" step="0.1" value="${goal[k]===null||goal[k]===undefined?'':Number(goal[k].toFixed(1))}" placeholder="미설정"></label>`).join('')}</div><div class="v10-actions"><button class="btn primary" type="submit">${week}주차 목표 저장</button><button class="btn" type="button" data-easy-week-action="restore">기본 목표로 복원</button><span id="v10WeekGoalStatus" role="status"></span></div></form>`)
+ +`<details class="easy-details"><summary>1~52주 목표표 펼치기</summary>${v10Table(['주차','월~금 기간','전체 문의','전체 사업 문의','미팅','계약','계약 용량(kWp)','설정 기준'],rows)}</details>`;
+}
+const easyReportOptions=store.get('v10_reportParts',{trend:true,team:true,goal:true,market:false,insight:true});
+function easyReport(){
+ const ms=selMonths(),a=v10Aggregate(ms),g=v10Goals(ms),key=`${DB.year}-${ms.join(',')}`,note=V10.reportNotes[key]||'';
+ const options=[['trend','기간별 추세'],['team','담당자'],['goal','목표 달성'],['market','유입 · 법인 · 지역'],['insight','분석 · 개선 제안']];
+ return v10Banner('컨설팅 부서 실적 보고',`${DB.year}년 ${periodLabel()} · ${v10Scoped()?'선택 조건 적용':'부서 전체'} · ${new Date(DB.stamp).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})} 갱신`)
+ +`<div class="v10-actions"><button class="btn primary" data-v10-action="print">인쇄 / PDF 저장</button><button class="btn" data-v10-action="summaryCsv">비교표 내려받기</button><button class="btn" data-v10-section="contract">계약 자료 안내</button></div>`
+ +`<div class="v10-actions"><span>보고서에 넣을 항목</span>${options.map(([k,label])=>`<label style="font-size:14px"><input type="checkbox" data-report-part="${k}" ${easyReportOptions[k]?'checked':''}> ${label}</label>`).join('')}</div>`
+ +easyPrimary(a)+easySecondary(a)+v10SourceAudit()+v10PeriodTable()
+ +(easyReportOptions.trend?v10Trend(ms):'')
+ +(easyReportOptions.team?`<div class="v10-grid">${v10PeoplePanel('cons','cohort')}${v10PeoplePanel('own','exec')}</div>`:'')
+ +(easyReportOptions.goal?v10Panel('목표 달성 현황','선택 기간의 목표 합계',v10GoalBar('전체 문의',a.total,g.total,'건',V10.colors[0])+v10GoalBar('전체 사업 문의',a.power,g.power,'건',V10.colors[1])+v10GoalBar('사업주 미팅',a.actual,g.meeting,'건',V10.colors[3])+v10GoalBar('확정 계약',v10Scoped()?null:contractAggregate(ms,{filtered:false}).count,g.contractCount,'건',V10.colors[4])):'')
+ +(easyReportOptions.market?v10Breakdown('src')+v10Breakdown('corp')+v10Region():'')
+ +(easyReportOptions.insight?v10Panel('종합 분석 및 개선 제안','선택한 기간의 수치를 근거로 한 검토 의견',v10Insights()):'')
+ +v10Panel('보고자 의견','특이사항과 다음 기간 실행 계획을 적을 수 있습니다.',`<textarea id="v10ReportNote" data-key="${esc(key)}" aria-label="보고자 의견" placeholder="보고 의견을 입력하세요.">${esc(note)}</textarea><div class="easy-report-note">${esc(note)}</div>`)
+ +'<p class="v10-print-note">문의월의 후속 미팅은 이후 갱신될 수 있습니다. 사업주 미팅은 월별 보고 주차, 계약은 RPS 원장의 계약연도·보고 월을 기준으로 집계합니다.</p>';
+}
+const easyPerfSlide=(number,title,sub,body)=>`<section class="perf-slide"><header class="perf-slide-head"><span>${String(number).padStart(2,'0')}</span><div><h2>${esc(title)}</h2><p>${esc(sub)}</p></div></header><div class="perf-slide-body">${body}</div></section>`;
+function easyPresentationRegion(ms){
+ const meetingRows=v10Rows(ms,'cohort').filter(r=>/^발전사업/.test(r.type)),summary=regionFor(ms).find(g=>g.title==='문의');
+ const developmentIndexes=(summary?.cols||[]).map((c,j)=>/^발전사업/.test(c)?j:-1).filter(j=>j>=0);
+ const values=RG_ORDER.map(name=>{
+  const rows=meetingRows.filter(r=>regionOf(r.reg)===name||r.reg===name),meeting=sumRows(rows);
+  let inquiries=null;
+  if(DB.rawYear)inquiries=DB.inquiries.filter(r=>ms.includes(r.cmo)&&v10Match(r)&&/^발전사업/.test(r.type)&&(regionOf(r.reg)===name||r.reg===name)).length;
+  else if(!v10Scoped()){
+   const region=summary?.regions.find(r=>r.region===name);
+   inquiries=region?developmentIndexes.reduce((sum,j)=>sum+(Number(region.vals[j])||0),0):null;
+  }
+  return {name,inquiries,meetings:meeting.n,capacity:meeting.cap,avg:meeting.avg};
+ });
+ const rank=(key)=>values.filter(x=>x[key]>0).slice().sort((a,b)=>b[key]-a[key]).reduce((map,x,j)=>{if(j<2)map.set(x.name,j+1);return map;},new Map());
+ const inquiryRank=rank('inquiries'),meetingRank=rank('meetings');
+ values.sort((a,b)=>b.meetings-a.meetings||(b.inquiries||0)-(a.inquiries||0)||RG_ORDER.indexOf(a.name)-RG_ORDER.indexOf(b.name));
+ const mark=(value,place,kind)=>place?`<span class="perf-rank ${kind} rank-${place}"><b>${v10Number(value)}</b><small>${place}위</small></span>`:v10Number(value);
+ return {values,rows:values.map(x=>[esc(x.name),mark(x.inquiries,inquiryRank.get(x.name),'inquiry'),mark(x.meetings,meetingRank.get(x.name),'meeting'),v10Rate(x.meetings,x.inquiries),capS(x.capacity),d1(x.avg)+' kW']),inquiryRank,meetingRank};
+}
+function easyPresentationRegionComment(region){
+ const inq=region.values.filter(x=>x.inquiries!==null).slice().sort((a,b)=>b.inquiries-a.inquiries),mt=region.values.slice().sort((a,b)=>b.meetings-a.meetings);
+ if(!inq.length)return '지역별 발전사업 문의 원본을 확인할 수 없어 문의 순위는 표시하지 않았습니다.';
+ return `발전사업 신규 문의는 ${inq[0].name} ${i(inq[0].inquiries)}건이 가장 많고, ${inq[1]?.name||'다음 권역'} ${i(inq[1]?.inquiries||0)}건이 뒤를 이었습니다. 실제 미팅은 ${mt[0].name} ${i(mt[0].meetings)}건이 가장 많으며 전환율은 ${v10Rate(mt[0].meetings,mt[0].inquiries)}입니다.`;
+}
+const EASY_PRESENTATION_STAFF_DEFAULT=['조성현','최창민','임준길','진으뜸'];
+const easyPresentationStaff={extra:store.get('v10_presentation_staff_extra',[])};
+function easyPresentationWeeks(month){
+ const block=DB.months?.find(x=>x.m===month),source=block?.wmeet||[];
+ return source.map((w,j)=>({label:w.label||w.wk||`${j+1}주차`,week:w.wk||`${j+1}주차`,n:w.n||0,cap:w.cap||0,mkN:w.mkN||0,refN:w.refN||0}));
+}
+function easyPresentationWeekBounds(label,month){
+ return v10ReportWeekBounds(label,month);
+}
+function easyPresentationWeekRows(month){
+ const weeks=easyPresentationWeeks(month),rows=v10Rows([month],'exec');
+ if(!weeks.length)return [];
+ const assign=r=>Math.min(weeks.length-1,Math.max(0,Math.floor(((Number(r.date?.slice(8,10))||1)-1)/7)));
+ return weeks.map((w,j)=>{const bounds=easyPresentationWeekBounds(w.label,month);return {...w,rows:rows.filter(r=>bounds?txt(r.date)>=bounds.start&&txt(r.date)<=bounds.end:assign(r)===j)};});
+}
+function easyPresentationStaffPanel(month){
+ const weekRows=easyPresentationWeekRows(month),all=v10Rows([month],'exec'),available=[...new Set(all.map(r=>r.own||'미지정'))].filter(n=>!EASY_PRESENTATION_STAFF_DEFAULT.includes(n)).sort();
+ const selected=[...EASY_PRESENTATION_STAFF_DEFAULT,...easyPresentationStaff.extra.filter(n=>available.includes(n))];
+ const picker=`<div class="perf-staff-picker v10-no-print"><strong>추가 담당자 선택</strong>${available.length?available.map(n=>`<label><input type="checkbox" data-perf-staff="${esc(n)}" ${easyPresentationStaff.extra.includes(n)?'checked':''}> ${esc(n)}</label>`).join(''):'<span>추가 담당자가 없습니다.</span>'}</div>`;
+ const metric=rows=>{const a=sumRows(rows);return `<b>${i(a.n)}건</b><small>${d1(a.cap)} kW</small>`;};
+ const own=(rows,name)=>rows.filter(r=>(r.own||'미지정')===name);
+ const cells=(rows,name)=>['마케팅','소개'].map((src,j)=>`<td class="${j===0?'perf-person-start':''}">${metric(own(rows,name).filter(r=>v10Source(r.src)===src))}</td>`).join('');
+ const tables=[];
+ for(let offset=0;offset<selected.length;offset+=4){
+  const names=selected.slice(offset,offset+4);
+  tables.push(`<div class="v10-table perf-staff-table"><table><thead><tr><th rowspan="2">기간 / 주차</th>${names.map((name,j)=>`<th colspan="2" class="perf-person-head perf-person-start person-${(offset+j)%4}">${esc(name)}</th>`).join('')}</tr><tr>${names.map(()=>'<th class="perf-person-start perf-marketing-head">마케팅</th><th class="perf-referral-head">소개</th>').join('')}</tr></thead><tbody>${weekRows.map(w=>`<tr><td><b>${esc(w.week)}</b><small>${esc(w.label)}</small></td>${names.map(name=>cells(w.rows,name)).join('')}</tr>`).join('')}<tr class="perf-total"><th>월 소계</th>${names.map(name=>cells(all,name)).join('')}</tr><tr class="perf-staff-month-total"><th>${month}월 전체 실적</th>${names.map((name,j)=>`<td colspan="2" class="perf-person-start person-${(offset+j)%4}">${metric(own(all,name))}<span>마케팅 ${i(own(all,name).filter(r=>v10Source(r.src)==='마케팅').length)}건 · 소개 ${i(own(all,name).filter(r=>v10Source(r.src)==='소개').length)}건${own(all,name).some(r=>v10Source(r.src)==='미분류')?` · 기타 ${i(own(all,name).filter(r=>v10Source(r.src)==='미분류').length)}건`:''}</span></td>`).join('')}</tr></tbody></table></div>`);
+ }
+ const selectedRows=all.filter(r=>selected.includes(r.own||'미지정')),total=sumRows(selectedRows);
+ return picker+tables.join('')+`<div class="perf-data-comment"><strong>선택 담당자 전체 합계</strong><span>${i(total.n)}건 · ${d1(total.cap)} kW</span></div><p class="v10-note">${esc(v10ReportPeriodLabel([month]))}. 다른 달의 날짜도 해당 보고 주차에 속하면 ${month}월 실적에 포함합니다. 전체 실적에는 유입 미분류가 있으면 함께 포함합니다.</p>`;
+}
+const easyPresentationComments={
+ records:RUN_MODE?{}:store.get('v10_presentation_comments_local',{}),
+ loaded:{},loading:{},saving:{},message:{},error:{},drafts:{},dirty:{},loadSeq:{},months:store.get('v10_presentation_comment_months',{})
+};
+const easyPresentationCommentKey=(year,month)=>`${Number(year)}-${String(Number(month)).padStart(2,'0')}`;
+function easyPresentationCommentMonth(ms=selMonths()){
+ const months=[...new Set(ms.map(Number).filter(m=>m>=1&&m<=12))].sort((a,b)=>a-b);
+ if(months.length===1)return months[0];
+ const saved=Number(easyPresentationComments.months[DB.year]);
+ return months.includes(saved)?saved:(months[months.length-1]||Number(v10Today().slice(5,7)));
+}
+function easyPresentationCommentBlank(year,month){return {year:Number(year),month:Number(month),text:'',updatedAt:'',updatedBy:''};}
+function easyPresentationCommentParts(text){
+ const raw=txt(text);if(!raw)return {analysis:'',inquiryAnalysis:'',improvement:''};
+ try{
+  const parsed=JSON.parse(raw);
+  if(parsed?.version===3)return {analysis:txt(parsed.analysis),inquiryAnalysis:txt(parsed.inquiryAnalysis),improvement:txt(parsed.improvement)};
+  if(parsed?.version===2)return {analysis:txt(parsed.analysis),inquiryAnalysis:'',improvement:txt(parsed.improvement)};
+ }catch(error){}
+ return {analysis:raw,inquiryAnalysis:'',improvement:''};
+}
+function easyPresentationCommentText(parts){return parts.analysis||parts.inquiryAnalysis||parts.improvement?JSON.stringify({version:3,analysis:txt(parts.analysis),inquiryAnalysis:txt(parts.inquiryAnalysis),improvement:txt(parts.improvement)}):'';}
+function easyPresentationCommentFormText(form){
+ const key=easyPresentationCommentKey(form.dataset.year,form.dataset.month),data=new FormData(form);
+ const previous=easyPresentationCommentParts(easyPresentationComments.drafts[key]??easyPresentationComments.records[key]?.text??'');
+ return easyPresentationCommentText({analysis:data.get('analysis'),inquiryAnalysis:data.get('inquiryAnalysis')??previous.inquiryAnalysis,improvement:data.get('improvement')});
+}
+function easyPresentationDefaultParts(month){return {
+ analysis:`종합분석\n\n· 목표 대비 실적: \n· 원인 및 특이사항: \n· 발표 핵심: `,
+ inquiryAnalysis:'',
+ improvement:`${month}월 개선방안\n\n① 마케팅\n· \n\n② 컨설팅\n· \n\n③ 한전수전합리화 사업\n· \n\n④ 교육 및 역량 강화\n· `
+};}
+function easyPresentationCommentRPC(name,...args){return new Promise((resolve,reject)=>{
+ if(!RUN_MODE){reject(Error('운영 대시보드에서 팀 공용 저장소에 연결됩니다.'));return;}
+ let settled=false;
+ const timer=setTimeout(()=>{if(settled)return;settled=true;reject(Error('코멘트 저장소 응답이 늦습니다. 작성한 내용은 유지되며 다시 저장할 수 있습니다.'));},12000);
+ const done=(fn,value)=>{if(settled)return;settled=true;clearTimeout(timer);fn(value);};
+ try{google.script.run.withSuccessHandler(value=>done(resolve,value)).withFailureHandler(e=>done(reject,Error(e?.message||String(e))))[name](...args);}
+ catch(error){done(reject,error);}
+});}
+function easyEnsurePresentationComment(year,month){
+ const key=easyPresentationCommentKey(year,month);
+ if(easyPresentationComments.loaded[key]||easyPresentationComments.loading[key]||easyPresentationComments.saving[key])return;
+ if(!RUN_MODE){easyPresentationComments.records[key]=easyPresentationComments.records[key]||easyPresentationCommentBlank(year,month);easyPresentationComments.loaded[key]=true;return;}
+ const seq=(easyPresentationComments.loadSeq[key]||0)+1;easyPresentationComments.loadSeq[key]=seq;easyPresentationComments.loading[key]=true;easyPresentationComments.error[key]='';
+ setTimeout(async()=>{
+  try{
+   const record=await easyPresentationCommentRPC('getPresentationComment',Number(year),Number(month));if(easyPresentationComments.loadSeq[key]!==seq)return;
+   easyPresentationComments.records[key]=record;easyPresentationComments.loaded[key]=true;easyPresentationComments.error[key]='';
+   if(!easyPresentationComments.dirty[key])easyPresentationComments.drafts[key]=record.text||'';
+  }
+  catch(error){if(easyPresentationComments.loadSeq[key]===seq){easyPresentationComments.loaded[key]=true;easyPresentationComments.error[key]=error.message||String(error);}}
+  finally{if(easyPresentationComments.loadSeq[key]===seq){easyPresentationComments.loading[key]=false;if(state.sect==='presentation')render();}}
+ },0);
+}
+function easyPresentationCommentStatus(record,key){
+ if(easyPresentationComments.error[key])return `<span class="perf-comment-error" role="alert">${esc(easyPresentationComments.error[key])}</span><button class="btn" type="button" data-v10-action="presentationCommentRetry" data-year="${record.year}" data-month="${record.month}">저장 내용 다시 불러오기</button>`;
+ if(easyPresentationComments.loading[key])return '<span role="status">저장된 코멘트 확인 중… 지금 바로 작성할 수 있습니다.</span>';
+ if(easyPresentationComments.message[key])return `<span class="perf-comment-success" role="status">${esc(easyPresentationComments.message[key])}</span>`;
+ if(record?.updatedAt){const at=new Date(record.updatedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});return `<span>마지막 저장 ${esc(at)}${record.updatedBy?' · '+esc(record.updatedBy):''}</span>`;}
+ return '<span>아직 저장된 코멘트가 없습니다.</span>';
+}
+function easyPresentationCommentEditor(ms){
+ const month=easyPresentationCommentMonth(ms),key=easyPresentationCommentKey(DB.year,month);easyEnsurePresentationComment(DB.year,month);
+ const record=easyPresentationComments.records[key]||easyPresentationCommentBlank(DB.year,month),saving=!!easyPresentationComments.saving[key];
+ if(!Object.hasOwn(easyPresentationComments.drafts,key))easyPresentationComments.drafts[key]=record.text||'';
+ const draft=easyPresentationComments.drafts[key],draftParts=easyPresentationCommentParts(draft),parts=draft?draftParts:easyPresentationDefaultParts(month),saved=easyPresentationCommentParts(record.text);
+ const months=[...new Set(ms.map(Number).filter(m=>m>=1&&m<=12))].sort((a,b)=>a-b);
+ const options=(months.length?months:Array.from({length:12},(_,j)=>j+1)).map(m=>`<option value="${m}" ${m===month?'selected':''}>${m}월</option>`).join('');
+ const inquiryAnalysis=easyPresentationInsights(month);
+ return `<div class="perf-comment-editor v10-no-print"><div class="perf-comment-head"><div><h3>발표 코멘트 작성·저장</h3><p>왼쪽 위에는 자동 집계된 문의 분석을 표시하고, 그 아래 종합분석과 오른쪽 개선방안을 직접 작성합니다. 같은 연도·월을 다시 열면 저장한 내용이 표시됩니다.</p></div><label>코멘트 월<select id="easyPresentationCommentMonth" aria-label="코멘트 월">${options}</select></label></div><form id="easyPresentationCommentForm" data-year="${DB.year}" data-month="${month}"><div class="perf-comment-columns"><div class="perf-comment-analysis-stack"><section class="perf-auto-inquiry"><div class="perf-comment-block-title"><strong>문의 분석</strong><span>문의·미팅·계약 실적 자동 집계</span></div>${inquiryAnalysis}</section><label><strong>종합분석</strong><span>목표 대비 실적의 원인과 발표 핵심</span><textarea name="analysis" maxlength="1600" ${saving?'disabled':''}>${esc(parts.analysis)}</textarea></label></div><label class="perf-comment-improvement"><strong>개선방안</strong><span>마케팅·컨설팅·사업·교육별 실행 계획</span><textarea name="improvement" maxlength="1600" ${saving?'disabled':''}>${esc(parts.improvement)}</textarea></label></div><div class="perf-comment-actions"><button class="btn primary" ${saving?'disabled':''}>${saving?'저장 중…':'이달 코멘트 저장'}</button>${easyPresentationCommentStatus(record,key)}<small id="easyPresentationCommentCount">${(parts.analysis.length+parts.improvement.length).toLocaleString()} / 3,200자</small></div></form></div><div class="perf-comment-print"><div><h3>문의 분석</h3>${inquiryAnalysis}<h3>종합분석</h3><p>${saved.analysis?esc(saved.analysis):'저장된 종합분석이 없습니다.'}</p></div><div><h3>개선방안</h3><p>${saved.improvement?esc(saved.improvement):'저장된 개선방안이 없습니다.'}</p></div>${record.updatedAt?`<small>저장 ${esc(new Date(record.updatedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}))}</small>`:''}</div>`;
+}
+async function easySavePresentationComment(form){
+ const year=Number(form.dataset.year),month=Number(form.dataset.month),key=easyPresentationCommentKey(year,month),text=easyPresentationCommentFormText(form);
+ if(easyPresentationComments.saving[key])return;easyPresentationComments.drafts[key]=text;easyPresentationComments.dirty[key]=true;easyPresentationComments.loadSeq[key]=(easyPresentationComments.loadSeq[key]||0)+1;easyPresentationComments.loading[key]=false;easyPresentationComments.saving[key]=true;easyPresentationComments.message[key]='';easyPresentationComments.error[key]='';render();
+ try{
+  const saved=RUN_MODE?await easyPresentationCommentRPC('savePresentationComment',{year,month,text}):{...easyPresentationCommentBlank(year,month),text,updatedAt:new Date().toISOString()};
+  easyPresentationComments.records[key]=saved;easyPresentationComments.drafts[key]=saved.text||'';easyPresentationComments.dirty[key]=false;easyPresentationComments.loaded[key]=true;easyPresentationComments.message[key]=text?`${year}년 ${month}월 코멘트를 저장했습니다.`:`${year}년 ${month}월 저장 코멘트를 비웠습니다.`;
+  if(!RUN_MODE){store.set('v10_presentation_comments_local',easyPresentationComments.records);}
+ }catch(error){easyPresentationComments.error[key]=error.message||String(error);}
+ finally{easyPresentationComments.saving[key]=false;render();}
+}
+function easyDownloadPresentationPdf(){
+ const month=easyPresentationCommentMonth(),before=document.title;
+ document.title=`${DB.year}년_${String(month).padStart(2,'0')}월_컨설팅_실적발표`;
+ try{window.print();}finally{document.title=before;}
+}
+const easyPerfMW=value=>value===null||value===undefined?'—':(value/1000).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2});
+function easyPresentationSource(a){
+ const powerRows=a.rows.filter(r=>/^발전사업/.test(r.type));
+ return {mkAll:a.total,mkPower:a.pwrMk,mkMeet:powerRows.filter(r=>v10Source(r.src)==='마케팅').length,refAll:a.inqRef,refPower:a.pwrRef,refMeet:powerRows.filter(r=>v10Source(r.src)==='소개').length};
+}
+function easyPresentationInsights(month){
+ const a=v10Aggregate([month]),s=easyPresentationSource(a),weeks=easyPresentationWeeks(month),goal=weeks.length*17,c=contractAggregate([month],{filtered:false});
+ const cards=[
+  ['marketing','마케팅 문의 → 미팅',[['전체 문의',v10Number(s.mkAll)+'건'],['발전사업 문의',v10Number(s.mkPower)+'건'],['미팅',i(s.mkMeet)+'건'],['전환율',v10Rate(s.mkMeet,s.mkPower)]]],
+  ['referral','소개 문의 → 미팅',[['전체 문의',v10Number(s.refAll)+'건'],['발전사업 문의',v10Number(s.refPower)+'건'],['미팅',i(s.refMeet)+'건'],['전환율',v10Rate(s.refMeet,s.refPower)]]],
+  ['meeting','사업주 미팅 목표',[['주 목표','17건'],['보고 주차',i(weeks.length)+'주'],['월 목표',goal?i(goal)+'건':'—'],['진행 미팅',i(a.actual)+'건'],['달성률',goal?v10Rate(a.actual,goal):'—'],['잔여',goal?i(Math.max(goal-a.actual,0))+'건':'—'],['보고 기간',v10ReportPeriodLabel([month]).replace('보고 주차 기준 · ','')]]],
+  ['contract','계약 실적',c.covered?[['계약 건수',i(c.count)+'건'],['계약 용량',easyPerfMW(c.capacity)+' MW'],['공사금액',contractMoney(c.amount)]]:[['계약 건수','—'],['계약 용량','—'],['공사금액','—']]]
+ ];
+ return `<div class="perf-inquiry-metrics">${cards.map(([kind,title,items])=>`<article class="${kind}"><h4>${esc(title)}</h4><dl>${items.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl></article>`).join('')}</div>`;
+}
+function easyPresentationContractComparison(title,months){
+ const categories=['전체','직영','외주','입찰'],rows=categories.map(category=>{const goal=contractGoal(category,months),actual=contractCategoryAggregate(months,category);return {category,goal,actual:actual.capacity,count:actual.count};});
+ const chart=v10Panel(title,'목표(주황)와 계약 실적(초록)을 유형별로 비교합니다. 단위: MW',chartBars({labels:categories,series:[{name:'목표',color:V10.colors[1],values:rows.map(x=>x.goal===null?null:x.goal/1000)},{name:'실적',color:V10.colors[4],values:rows.map(x=>x.actual/1000)}],unit:'MW',fmt:v=>Number(v).toFixed(2),height:250,stacked:false,noTable:true,horizontalValues:true}));
+ const table=`<div class="perf-contract-table"><p class="v10-note">${esc(title)} · 단위: MW</p>${v10Table(['구분','목표 용량','계약 용량','계약 건수','달성률','잔여'],rows.map(x=>[x.category,easyPerfMW(x.goal),easyPerfMW(x.actual),i(x.count)+'건',v10Rate(x.actual,x.goal),x.goal===null?'—':easyPerfMW(Math.max(x.goal-x.actual,0))]))}</div>`;
+ return chart+table;
+}
+function easyPresentationCapacityMatrix(last){
+ const labels=['50 kW 미만','50~100 kW','100~300 kW','300~500 kW','500~1,000 kW','1,000~1,500 kW','1,500~2,000 kW','2,000 kW 이상'];
+ const rows=[];let selectedSummary='';
+ for(let m=1;m<=last;m++){
+  const block=DB.months?.find(x=>x.m===m),reportRows=v10Rows([m],'exec'),complete=v10ReportLedgerComplete([m]);
+  const limits=[50,100,300,500,1000,1500,2000,Infinity];
+  const values=labels.map((_,j)=>complete?reportRows.filter(r=>r.cap>=(j?limits[j-1]:0)&&r.cap<limits[j]).length:Number(block?.buckets?.[j]?.n)||0),top=[...new Set(values.filter(v=>v>0))].sort((a,b)=>b-a).slice(0,2),total=complete?reportRows.length:Number(block?.bkTot)||values.reduce((s,v)=>s+v,0),avg=complete?(total?v10Sum(reportRows,'cap')/total:0):Number(block?.bkAvg)||0;
+  rows.push([m+'월',...values.map(v=>{const rank=top.indexOf(v)+1;return rank?`<span class="perf-band-rank rank-${rank}"><b>${i(v)}</b><small>${values.filter(n=>n===v).length>1?'공동 ':''}${rank}위</small></span>`:i(v);}),i(total)+'건',d1(avg)+' kW/건']);
+  if(m===last)selectedSummary=top.map((value,j)=>`${j+1}위 ${values.map((v,k)=>v===value?labels[k]:null).filter(Boolean).join(' · ')} (${i(value)}건)`).join(' / ');
+ }
+ return `<p class="perf-band-summary"><strong>${last}월 주요 용량 구간</strong> ${esc(selectedSummary||'집계된 미팅이 없습니다.')}</p><div class="perf-capacity-table">${v10Table(['월',...labels,'총 미팅','평균 용량'],rows)}</div>`;
+}
+function easyPresentationMeetingMonth(month){
+ const selected=v10Aggregate([month]),weeks=easyPresentationWeeks(month);
+ const weekChart=v10Panel(`${month}월 주차별 사업주 미팅`,v10ReportPeriodLabel([month])+' · 실제 미팅만 막대로 표시하며 주 목표 17건은 아래 표에서 비교합니다.',chartBars({labels:weeks.map(w=>w.week),series:[{name:'마케팅',color:'#eb6834',values:weeks.map(w=>w.mkN)},{name:'소개',color:'#2364d2',values:weeks.map(w=>w.refN)}],unit:'건',fmt:i,height:245,stacked:true,noTable:true}));
+ const weeklyGoal=17;
+ const totals={n:weeks.reduce((s,w)=>s+w.n,0),cap:weeks.reduce((s,w)=>s+w.cap,0),goal:weeks.length*weeklyGoal};
+ const weekTable=`<div class="v10-table perf-week-table"><table><thead><tr>${['기간','주차','주 목표','미팅 건수','미팅 용량 (kW)','달성률'].map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${weeks.map(w=>`<tr class="${w.n>=weeklyGoal?'perf-goal-met':''}"><td>${esc(w.label)}</td><td>${esc(w.week)}</td><td>${i(weeklyGoal)}건</td><td><b>${i(w.n)}건</b></td><td>${d1(w.cap)}</td><td>${v10Rate(w.n,weeklyGoal)}${w.n>=weeklyGoal?'<span class="perf-achieved">목표 달성</span>':''}</td></tr>`).join('')}<tr class="perf-total"><th colspan="2">전체 합계</th><td>${i(totals.goal)}건</td><td>${i(totals.n)}건</td><td>${d1(totals.cap)}</td><td>${v10Rate(totals.n,totals.goal)}</td></tr></tbody></table></div>`;
+ const kpis=`<div class="perf-source-kpis"><article class="perf-source-card meeting marketing"><span>${month}월 보고 실적</span><h3>사업주 미팅</h3><strong>${i(selected.actual)}<small>건</small></strong><p>월별 보고 주차 기준</p></article><article class="perf-source-card inquiry marketing"><span>${month}월 미팅 용량</span><h3>총 미팅 용량</h3><strong>${capS(selected.actualCap)}</strong><p>사업주 미팅 전체 용량</p></article><article class="perf-source-card meeting referral"><span>${month}월 평균</span><h3>건당 평균 용량</h3><strong>${d1(selected.avg)}<small>kW</small></strong><p>총 용량 ÷ 진행 건수</p></article><article class="perf-source-card inquiry referral"><span>유입 구분</span><h3>마케팅 / 소개</h3><strong>${i(selected.actualMk)} / ${i(selected.actualRef)}<small>건</small></strong><p>월별 보고 주차 기준</p></article></div>`;
+ return kpis+weekChart+weekTable+v10Panel(`1~${month}월 미팅 용량 구간`,'각 월 미팅 건수 1위(노랑)·2위(파랑)를 강조했습니다. 동점은 공동 순위로 표시합니다.',easyPresentationCapacityMatrix(month));
+}
+function easyPresentationHighlightMonthTable(table,month){
+ return table.replace(new RegExp(`(<tr><td>${Number(month)}월</td>)([\\s\\S]*?)(</tr>)`),(_,start,cells,end)=>start+cells.replace(/(<td[^>]*>)([\s\S]*?)(<\/td>)/g,(_,open,value,close)=>open+(/\d/.test(value)?`<span class="perf-value-highlight">${value}</span>`:value)+close)+end);
+}
+function easyPresentation(){
+ const ms=selMonths(),month=easyPresentationCommentMonth(ms),monthSet=[month],axis=easyTrendAxis().filter(g=>Math.min(...g.months)<=month),monthly=axis.map(g=>v10Aggregate(g.months));
+ const ytdMonths=Array.from({length:month},(_,j)=>j+1),selected=v10Aggregate(monthSet);
+ const now=v10Today(),nowYear=Number(now.slice(0,4)),nowMonth=Number(now.slice(5,7));
+ const quarters=Array.from({length:4},(_,q)=>({label:`${q+1}분기`,months:[q*3+1,q*3+2,q*3+3]}));
+ const quarterData=quarters.map(q=>{const actual=contractAggregate(q.months,{filtered:false}),goal=contractGoal('전체',q.months),future=Number(DB.year)===nowYear&&q.months[0]>nowMonth;return {...q,actual:future?null:actual.capacity,goal};});
+ const sourceMonthly=monthly.map(easyPresentationSource);
+ const {mkMeet:selectedMkMeet,refMeet:selectedRefMeet}=easyPresentationSource(selected);
+ const sourceKpis=`<div class="perf-source-kpis">
+  <article class="perf-source-card inquiry marketing"><span>발전사업 문의 · ${month}월</span><h3>마케팅 문의</h3><strong>${v10Number(selected.pwrMk)}<small>건</small></strong><p>마케팅으로 접수된 발전사업 문의</p></article>
+  <article class="perf-source-card meeting marketing"><span>마케팅 문의 → 미팅</span><h3>마케팅 미팅</h3><strong>${i(selectedMkMeet)}<small>건</small></strong><p><b>${v10Rate(selectedMkMeet,selected.pwrMk)} 전환</b> · 마케팅 발전사업 문의 대비</p></article>
+  <article class="perf-source-card inquiry referral"><span>발전사업 문의 · ${month}월</span><h3>소개 문의</h3><strong>${v10Number(selected.pwrRef)}<small>건</small></strong><p>소개로 접수된 발전사업 문의</p></article>
+  <article class="perf-source-card meeting referral"><span>소개 문의 → 미팅</span><h3>소개 미팅</h3><strong>${i(selectedRefMeet)}<small>건</small></strong><p><b>${v10Rate(selectedRefMeet,selected.pwrRef)} 전환</b> · 소개 발전사업 문의 대비</p></article>
+ </div>`;
+ const marketingSeries=[{name:'전체 문의',color:'#8793a3',values:sourceMonthly.map(x=>x.mkAll)},{name:'발전사업 문의',color:'#2a78d6',values:sourceMonthly.map(x=>x.mkPower)},{name:'미팅',color:'#eb6834',values:sourceMonthly.map(x=>x.mkMeet)}];
+ const referralSeries=[{name:'전체 문의',color:'#8793a3',values:sourceMonthly.map(x=>x.refAll)},{name:'발전사업 문의',color:'#d38a00',values:sourceMonthly.map(x=>x.refPower)},{name:'미팅',color:'#2364d2',values:sourceMonthly.map(x=>x.refMeet)}];
+ const sourceTable=`<div class="v10-table perf-source-table"><table><thead><tr><th rowspan="2">월</th><th colspan="4" class="perf-marketing-head">마케팅</th><th colspan="4" class="perf-referral-head perf-source-divider">소개</th></tr><tr>${['마케팅','소개'].map((src,j)=>['전체 문의','발전사업 문의','미팅','전환율'].map((h,k)=>`<th class="${j?'perf-referral-head':'perf-marketing-head'} ${j&&k===0?'perf-source-divider':''}">${h}</th>`).join('')).join('')}</tr></thead><tbody>${axis.map((g,j)=>{const x=sourceMonthly[j];return `<tr><td>${esc(g.label)}</td><td>${v10Number(x.mkAll)}</td><td class="perf-mk-inquiry">${v10Number(x.mkPower)}</td><td class="perf-mk-meeting">${i(x.mkMeet)}</td><td><b>${v10Rate(x.mkMeet,x.mkPower)}</b></td><td class="perf-source-divider">${v10Number(x.refAll)}</td><td class="perf-ref-inquiry">${v10Number(x.refPower)}</td><td class="perf-ref-meeting">${i(x.refMeet)}</td><td><b>${v10Rate(x.refMeet,x.refPower)}</b></td></tr>`;}).join('')}</tbody></table></div>`;
+ const yearMonths=Array.from({length:12},(_,j)=>j+1),annualGoal=contractGoal('전체',yearMonths),annualActual=contractAggregate(yearMonths,{filtered:false}).capacity;
+ const quarterRows=quarterData.map(q=>[q.label,easyPerfMW(q.goal),easyPerfMW(q.actual),v10Rate(q.actual,q.goal),q.actual===null||q.goal===null?'—':easyPerfMW(Math.max(q.goal-q.actual,0))]);
+ quarterRows.push(['연간 합계',easyPerfMW(annualGoal),easyPerfMW(annualActual),v10Rate(annualActual,annualGoal),annualGoal===null?'—':easyPerfMW(Math.max(annualGoal-annualActual,0))].map(v=>`<strong>${v}</strong>`));
+ const quarterTable=`<div class="perf-quarter-table"><p class="v10-note">단위: MW · 연간 합계는 해당 계약연도 전체 원장 실적입니다.</p>${v10Table(['분기','계약 목표','실제 계약 용량','달성률','잔여'],quarterRows)}</div>`;
+ const region=easyPresentationRegion(monthSet);
+ const quarterChart=v10Panel('분기별 계약 용량','분기마다 목표와 실적을 나란히 비교합니다. 단위: MW',chartBars({labels:quarters.map(q=>q.label),series:[{name:'목표',color:V10.colors[1],values:quarterData.map(q=>q.goal===null?null:q.goal/1000)},{name:'실적',color:V10.colors[4],values:quarterData.map(q=>q.actual===null?null:q.actual/1000)}],unit:'MW',fmt:v=>Number(v).toFixed(2),height:280,stacked:false,noTable:true,horizontalValues:true}));
+ return `<div class="perf-deck"><div class="perf-cover"><div><span class="perf-eyebrow">GRANDSUN · CONSULTING PERFORMANCE</span><h2>${esc(DB.year)}년 ${month}월<br>컨설팅 실적발표</h2><p>계약·문의·사업주 미팅 실적을 실제 원본과 선택 월에 맞춰 구성했습니다.</p></div><div class="perf-cover-actions"><span>${v10Scoped()?'상세 조건 적용':'부서 전체'}</span></div></div>`
+ +easyPerfSlide(1,'분기별 계약 목표와 실적',`${DB.year}년 계약 원장 연도·보고 월 기준`,quarterChart+quarterTable)
+ +easyPerfSlide(2,`${month}월과 누적 계약 실적`,'전체·직영·외주·입찰의 목표와 계약 용량을 같은 기준으로 비교합니다.',`<div class="perf-two">${easyPresentationContractComparison(`${month}월`,monthSet)}${easyPresentationContractComparison(`1~${month}월 누적`,ytdMonths)}</div>`)
+ +easyPerfSlide(3,'발전사업 신규 문의와 미팅','마케팅과 소개를 분리하고, 문의 접수월 기준으로 후속 미팅을 연결합니다.',sourceKpis+`<p class="v10-note">선택한 보고 월: ${month}월 · 해당 월의 숫자만 강조했습니다.</p><div class="perf-source-charts">${v10Line('마케팅 신규 문의와 미팅','전체 문의·발전사업 문의·미팅의 월별 추세',axis,marketingSeries,'건',{tableAlwaysOpen:true,highlightLabel:month+'월'})}${v10Line('소개 신규 문의와 미팅','전체 문의·발전사업 문의·미팅의 월별 추세',axis,referralSeries,'건',{tableAlwaysOpen:true,highlightLabel:month+'월'})}</div>`+easyPresentationHighlightMonthTable(sourceTable,month))
+ +easyPerfSlide(4,`${month}월 지역별 발전사업 신규 문의·미팅`,'마케팅·소개 발전사업 문의만 집계하며 문의월 기준 후속 미팅을 연결합니다.',`<div class="perf-region-table">${v10Table(['권역','발전사업 문의','미팅','전환율','미팅 용량','평균 용량'],region.rows)}</div>`+`<p class="perf-region-guide"><strong>권역 구분</strong> 수도권: 서울·경기·인천 / 충청권: 대전·세종·충북·충남 / 강원권: 강원<br>영남권: 부산·대구·울산·경북·경남 / 호남권: 광주·전북·전남 / 제주: 제주</p><div class="perf-data-comment"><strong>지역별 코멘트</strong><span>${esc(easyPresentationRegionComment(region))}</span></div>`)
+ +easyPerfSlide(5,`${month}월 사업주 미팅 현황`,`${month}월 ${v10ReportPeriodLabel([month])}. 앞뒤 달의 날짜도 해당 보고 주차에 속하면 ${month}월 실적에 포함합니다.`,easyPresentationMeetingMonth(month))
+ +easyPerfSlide(6,`${month}월 담당자별 사업주 미팅`,'기본 담당자 4명의 마케팅·소개 미팅을 주차별로 표시하며 다른 담당자를 추가할 수 있습니다.',easyPresentationStaffPanel(month))
+ +easyPerfSlide(7,'종합분석 및 개선방안','자동 집계된 문의 분석을 확인하고 종합분석과 개선방안을 직접 작성합니다.',easyPresentationCommentEditor(monthSet)+`<div class="perf-next"><strong>집계 기준</strong><span>문의 후속 미팅은 문의월 기준, 사업주 미팅은 월별 보고 주차 기준, 계약은 RPS 원장의 계약연도·보고 월 기준입니다.</span></div>`)
+ +'</div>';
+}
+function easyGoals(){
+ const targets=`<div class="v10-kpis">${v10Card('전체 문의 · 일 목표',i(EASY_INQUIRY_TARGETS.daily)+' 건','하루 목표',V10.colors[0],'goal')}${v10Card('전체 문의 · 주 목표',i(EASY_INQUIRY_TARGETS.weekly)+' 건','월~금 조회 · 독립 설정',V10.colors[1],'goal')}${v10Card('전체 문의 · 월 목표',i(EASY_INQUIRY_TARGETS.monthly)+' 건','월 기본 목표',V10.colors[3],'goal')}</div>`;
+ const nav=`<div class="easy-goalmode"><button class="${easyGoalState.mode==='week'?'on':''}" data-easy-goal-mode="week">주간 목표 · 52주</button><button class="${easyGoalState.mode==='month'?'on':''}" data-easy-goal-mode="month">월간 목표</button></div>`;
+ if(easyGoalState.mode==='week')return targets+nav+easyWeeklyGoals();
+ const html=easyGoalOriginal();
+ return targets+nav+html.replace(/(<section class="v10-panel"><h3>월별 목표 설정[\s\S]*?<\/form><\/section>)/, '<details class="easy-details"><summary>목표를 새로 입력하거나 수정하기</summary>$1</details>');
+}
+if(!SECTIONS.some(s=>s.k==='presentation'))SECTIONS.push({k:'presentation',t:'실적발표',g:'보고',basis:'cohort'});
+Object.assign(VIEWS,{overall:easyOverview,inquiry:easyInquiry,meetCoh:easyInquiry,meetExe:easyActivity,cons:()=>easyPeople('cons'),owner:()=>easyPeople('own'),source:()=>easyMarket('source'),corp:()=>easyMarket('corp'),region:()=>easyMarket('region'),capacity:()=>easyMarket('capacity'),goal:easyGoals,report:easyReport,presentation:easyPresentation});
+renderNav=function(){
+ const active=easyMenuGroup(state.sect);
+ $('#nav').innerHTML='<div class="grp">업무별 대시보드</div>'+EASY_MENU.map((s,ix)=>{
+  const on=active===s.k;
+  const children=on&&s.items.length>1?`<div class="easy-nav-children" aria-label="${esc(s.label)} 세부 메뉴">${s.items.map(([key,label])=>`<button class="easy-nav-child${state.sect===key||key==='inquiry'&&state.sect==='meetCoh'||key==='source'&&['corp','region','capacity'].includes(state.sect)||key==='owner'&&state.sect==='cons'?' on':''}" data-sect="${key}"><span></span>${esc(label)}</button>`).join('')}</div>`:'';
+  return `<button class="nav easy-nav-group${on?' on':''}" data-sect="${s.open}" title="${esc(s.sub)}" aria-expanded="${on&&s.items.length>1?'true':'false'}"><span class="ix">${String(ix+1).padStart(2,'0')}</span><span>${esc(s.label)}</span></button>${children}`;
+ }).join('');
+ const selected=EASY_MENU.find(x=>x.k===active);
+ $('#sectTitle').textContent=selected?.label||sectOf(state.sect).t;
+ $('#easyPresentationPdf')?.classList.toggle('hide',state.sect!=='presentation');
+ if($('#easySubtitle'))$('#easySubtitle').textContent=selected?.sub||'선택 조건의 상세 자료';
+};
+function easyFilterCount(){return ['owner','cons','type','src','corp','region'].filter(k=>state[k]&&state[k]!=='전체').length+(state.query?1:0);}
+const easyPeriodOriginal=renderPeriod;
+renderPeriod=function(){
+ easyPeriodOriginal();
+ const month=$('#easyMonth');
+ if(month)month.value=state.mode==='month'&&state.months.length===1?String(state.months[0]):'custom';
+ const count=easyFilterCount();
+ $('#easyFilterToggle').innerHTML='상세 조건'+(count?` <span class="easy-count">${count}</span>`:'');
+ const names=[state.cons!=='전체'?'컨설팅 '+state.cons:'',state.owner!=='전체'?'현장 '+state.owner:'',...['type','src','corp','region'].map(k=>state[k]!=='전체'?state[k]:'')].filter(Boolean);
+ const partial=Number(DB.year)===Number(v10Today().slice(0,4))&&selMonths().includes(Number(v10Today().slice(5,7)));
+ $('#easyPeriodNote').textContent=`${DB.year}년 ${periodLabel()} · ${names.length?names.join(' / '):'부서 전체'}${partial?' · 이번 달은 진행 중인 실적입니다.':''}`;
+ document.querySelectorAll('[data-easy-preset]').forEach(b=>{
+  const p=b.dataset.easyPreset,now=Number(v10Today().slice(5,7));
+  b.classList.toggle('on',p==='this'&&state.mode==='month'&&state.months.length===1&&state.months[0]===now||p==='last'&&state.mode==='month'&&state.months.length===1&&state.months[0]===(now===1?12:now-1)||p==='quarter'&&state.mode==='quarter'||p==='ytd'&&state.mode==='cumulative');
+ });
+ $('#basisNote').classList.add('hide');
+};
+function easyPreset(p){
+ const today=v10Today(),y=Number(today.slice(0,4)),m=Number(today.slice(5,7));
+ if(p==='this'||p==='last'){
+  const targetY=p==='last'&&m===1?y-1:y;
+  if(v10Years().includes(targetY)&&Number(DB.year)!==targetY)v10ActivateYear(targetY,false);
+  state.mode='month';state.quarters=[];state.months=[p==='last'?(m===1?12:m-1):m];
+ }else if(p==='quarter'){state.mode='quarter';state.quarters=[qOf(m)];state.months=[];}
+ else if(p==='ytd'){state.mode='cumulative';state.months=[m];state.quarters=[];}
+ refreshFilters();render();
+}
+function easyInstall(){
+ const pbar=$('#periodbar'),oldTop=document.querySelector('.v10-top');
+ const year=$('#v10Year'),reset=$('#v10ResetAll');
+ const toolbar=document.createElement('div');toolbar.className='easy-toolbar';
+ toolbar.innerHTML=`<div class="easy-period"><span id="easyYearSlot"></span><select id="easyMonth" aria-label="조회 월"><option value="custom">선택 기간</option>${Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}월</option>`).join('')}</select></div><button class="easy-preset" data-easy-preset="this">이번 달</button><button class="easy-preset" data-easy-preset="last">지난달</button><button class="easy-preset" data-easy-preset="quarter">이번 분기</button><button class="easy-preset" data-easy-preset="ytd">연 누적</button><button class="easy-preset" id="easyCustomToggle" aria-expanded="false">기간 골라 비교</button><span class="easy-spacer"></span><button class="btn" id="easyFilterToggle" aria-expanded="false">상세 조건</button><span id="easyResetSlot"></span>`;
+ pbar.prepend(toolbar);$('#easyYearSlot').appendChild(year);$('#easyResetSlot').appendChild(reset);reset.textContent='초기화';oldTop.classList.add('hide');
+ const custom=document.createElement('div');custom.id='easyCustom';custom.className='easy-custom hide';
+ custom.innerHTML='<p>비교할 월 또는 분기를 누르세요. 여러 개를 골라도 됩니다.</p>';
+ const mode=$('#pmode'),pills=$('#ppills'),oldPeriodRow=mode.closest('.prow');
+ custom.appendChild(mode);custom.appendChild(pills);oldPeriodRow.classList.add('hide');
+ mode.querySelector('[data-mode="all"]').textContent='연 전체';mode.querySelector('[data-mode="year"]').classList.add('hide');
+ mode.querySelector('[data-mode="month"]').textContent='월 선택';mode.querySelector('[data-mode="quarter"]').textContent='분기 선택';mode.querySelector('[data-mode="cumulative"]').textContent='누적';
+ pbar.appendChild(custom);
+ const filters=document.querySelector('#periodbar .filters').closest('.prow');filters.id='easyConditions';filters.classList.add('easy-conditions','hide');pbar.appendChild(filters);
+ $('#pbasis').style.display='none';$('#pbasisLab').style.display='none';
+ const note=document.createElement('p');note.id='easyPeriodNote';note.className='easy-period-note';pbar.appendChild(note);
+ const title=$('#sectTitle'),titleGroup=document.createElement('div');title.replaceWith(titleGroup);
+ const titleRow=document.createElement('div');titleRow.className='easy-title-row';titleGroup.appendChild(titleRow);titleRow.appendChild(title);
+ const pdfButton=document.createElement('button');pdfButton.id='easyPresentationPdf';pdfButton.type='button';pdfButton.className='btn primary easy-pdf-download hide';pdfButton.dataset.v10Action='presentationPdf';pdfButton.textContent='PDF 다운로드';pdfButton.title='현재 실적발표를 PDF로 저장';titleRow.appendChild(pdfButton);
+ const subtitle=document.createElement('p');subtitle.id='easySubtitle';titleGroup.appendChild(subtitle);
+ const version=document.createElement('div');version.className='easy-version';version.textContent='실무 · 보고 통합 / v10.2 · 원본 대조';document.querySelector('.rail').appendChild(version);
+ $('#easyCustomToggle').addEventListener('click',()=>{const open=custom.classList.toggle('hide')===false;$('#easyCustomToggle').setAttribute('aria-expanded',String(open));if(open&&state.mode==='all')state.mode='month';render();});
+ $('#easyFilterToggle').addEventListener('click',()=>{const open=filters.classList.toggle('hide')===false;$('#easyFilterToggle').setAttribute('aria-expanded',String(open));});
+ $('#easyMonth').addEventListener('change',e=>{if(e.target.value==='custom'){custom.classList.remove('hide');$('#easyCustomToggle').setAttribute('aria-expanded','true');return;}state.mode='month';state.months=[Number(e.target.value)];state.quarters=[];if(state.sect==='owner')state.owner='전체';if(state.sect==='cons')state.cons='전체';refreshFilters();render();});
+ // The main team menu opens on field activity. The consultant subtab opens on
+ // inquiry-cohort performance; users can still change the basis afterwards.
+ $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-sect]');if(!b)return;if(b.dataset.sect==='owner')state.basis='exec';if(b.dataset.sect==='cons')state.basis='cohort';},true);
+ document.addEventListener('click',e=>{const b=e.target.closest('[data-easy-preset]');if(b)easyPreset(b.dataset.easyPreset);});
+ document.addEventListener('change',e=>{if(e.target.id==='easyTeamBasis'){state.basis=e.target.value;render();}});
+ document.addEventListener('change',e=>{if(e.target.id==='easyPresentationCommentMonth'){easyPresentationComments.months[DB.year]=Number(e.target.value);store.set('v10_presentation_comment_months',easyPresentationComments.months);render();}});
+ document.addEventListener('change',e=>{if(e.target.id==='v10GoalWeek'){easyGoalState.weeks[DB.year]=Number(e.target.value);store.set('v10_goalWeeks',easyGoalState.weeks);render();}});
+ document.addEventListener('click',e=>{const mode=e.target.closest('[data-easy-goal-mode]');if(mode){easyGoalState.mode=mode.dataset.easyGoalMode;store.set('v10_goalMode',easyGoalState.mode);render();return;}const step=e.target.closest('[data-easy-week-step]');if(step){easyGoalState.weeks[DB.year]=Math.max(1,Math.min(52,easyGoalWeek()+Number(step.dataset.easyWeekStep)));store.set('v10_goalWeeks',easyGoalState.weeks);render();return;}const restore=e.target.closest('[data-easy-week-action="restore"]');if(restore){delete easyGoalState.goals[`${DB.year}-W${easyPad(easyGoalWeek())}`];store.set('v10_weekGoals',easyGoalState.goals);render();}});
+ document.addEventListener('submit',e=>{if(e.target.id!=='v10WeekGoalForm')return;e.preventDefault();const data=new FormData(e.target),goals={};for(const k of ['total','power','meeting','contractCount','contractCap']){const raw=txt(data.get(k));goals[k]=raw===''?null:Number(raw);if(goals[k]!==null&&(!Number.isFinite(goals[k])||goals[k]<0))return;}const week=Number(e.target.dataset.week);easyGoalState.goals[`${DB.year}-W${easyPad(week)}`]={...goals};store.set('v10_weekGoals',easyGoalState.goals);render();const status=$('#v10WeekGoalStatus');if(status)status.textContent=`${week}주차 목표를 저장했습니다.`;});
+ document.addEventListener('submit',e=>{if(e.target.id!=='easyPresentationCommentForm')return;e.preventDefault();easySavePresentationComment(e.target);});
+ document.addEventListener('input',e=>{if(!e.target.matches?.('#easyPresentationCommentForm textarea'))return;const form=e.target.form,year=Number(form.dataset.year),month=Number(form.dataset.month),key=easyPresentationCommentKey(year,month),value=easyPresentationCommentFormText(form),parts=easyPresentationCommentParts(value);easyPresentationComments.drafts[key]=value;easyPresentationComments.dirty[key]=value!==(easyPresentationComments.records[key]?.text||'');const count=$('#easyPresentationCommentCount');if(count)count.textContent=`${(parts.analysis.length+parts.improvement.length).toLocaleString()} / 3,200자`;});
+ document.addEventListener('change',e=>{if(!e.target.matches?.('[data-perf-staff]'))return;const name=e.target.dataset.perfStaff;if(e.target.checked&&!easyPresentationStaff.extra.includes(name))easyPresentationStaff.extra.push(name);if(!e.target.checked)easyPresentationStaff.extra=easyPresentationStaff.extra.filter(n=>n!==name);store.set('v10_presentation_staff_extra',easyPresentationStaff.extra);render();});
+ document.addEventListener('click',e=>{if(e.target.closest('[data-v10-action="presentationPdf"]')){easyDownloadPresentationPdf();return;}const retry=e.target.closest('[data-v10-action="presentationCommentRetry"]');if(!retry)return;const year=Number(retry.dataset.year),month=Number(retry.dataset.month),key=easyPresentationCommentKey(year,month);easyPresentationComments.loaded[key]=false;easyPresentationComments.error[key]='';easyPresentationComments.message[key]='';easyEnsurePresentationComment(year,month);render();});
+ document.addEventListener('change',e=>{if(e.target.dataset.reportPart){easyReportOptions[e.target.dataset.reportPart]=e.target.checked;store.set('v10_reportParts',easyReportOptions);render();}});
+ document.addEventListener('input',e=>{if(e.target.id==='v10ReportNote'){const output=document.querySelector('.easy-report-note');if(output)output.textContent=e.target.value;}});
+ // Keep the automatic refresh options, without configuration URLs in the daily work surface.
+ ['#dropZone','.sync .actions'].forEach(s=>document.querySelector(s)?.classList.add('hide'));
+ ['urlScript','urlTongye','urlMal'].forEach(id=>$('#'+id)?.closest('.field')?.classList.add('hide'));
+ $('#syncToggle').textContent='자동 갱신';
+ const h=document.querySelector('#syncPanel h3'),desc=document.querySelector('#syncPanel p');
+ if(h)h.textContent='데이터 자동 갱신';if(desc)desc.textContent='열려 있는 동안의 갱신 간격을 설정합니다. 지금 반영하려면 새로고침을 누르세요.';
+ const prefs={dailyChk:store.get('dailyOn',false),everyChk:store.get('everyOn',true)};
+ Object.entries(prefs).forEach(([id,val])=>$('#'+id).checked=val);
+ $('#everyMin').value=store.get('everyMin',30);$('#dailyTime').value=store.get('dailyTime','14:40');
+ const th=store.get('theme',null);if(th)document.documentElement.setAttribute('data-theme',th);
+ setupEvery();showNextRun();
+}
+easyInstall();

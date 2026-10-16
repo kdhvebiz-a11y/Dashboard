@@ -1,0 +1,49 @@
+/* Shared legibility scale for every dashboard view. */
+:root{--f-body:18px;--f-tbl:18px;--f-th:16px;--f-axis:18px;--f-h2:22px;--f-sub:16px;--f-note:16px;--f-kpi-lab:17px;--f-kpi-sub:15px}
+body{font-size:18px;line-height:1.65}
+.main{max-width:none}
+.main :is(.v10-panel h3,.perf-comment-head h3,.easy-lead h2){font-size:22px}
+.perf-slide-head h2,#sectTitle{font-size:28px}
+.main :is(.v10-note,.easy-lead p,.perf-slide-head p,#easySubtitle,.easy-period-note,.perf-region-guide,.v10-print-note,.perf-comment-head p,.perf-comment-columns label>span,.perf-comment-block-title>span){font-size:16px;line-height:1.65}
+.main :is(.legend,.legend span,.tip,.tip .row,.easy-tag,.easy-preset,.btn,.btn.sm,.easy-subnav button,.easy-link,.easy-conditions label,.perf-staff-picker,.perf-band-summary){font-size:16px}
+.main :is(input,select,textarea){font-size:17px}
+.rail button.nav,.rail .btn{font-size:16px}
+.main :is(.v10-goal-head,.v10-settings label,.v10-insight p,.easy-summary,.easy-secondary span,.contract-source,.contract-basis small,.contract-filter-grid label,.fu-filter-grid label,.fu-method,.fu-raw,.fu-detail-fields dt,.fu-history li,.fu-detail a,.fu-actions a,.fu-content,.fu-note-excerpt){font-size:16px}
+.main :is(.fu-detail-fields dd,.fu-detail h3){font-size:18px}
+.main :is(.fu-metrics small,.fu-badge,.fu-evidence small,.fu-history small){font-size:15px}
+.main .fu-metrics span{font-size:18px}
+.main :is(.v10-kpi .label,.perf-source-card h3){font-size:19px}
+.main :is(.v10-kpi small,.perf-source-card>span,.perf-source-card p,.perf-source-card p b,.perf-source-card strong small){font-size:15px}
+.main :is(.v10-kpi strong,.perf-source-card strong){font-size:36px}
+.main :is(.v10-table,.tblwrap) table{font-size:18px;width:100%;font-variant-numeric:tabular-nums}
+.main :is(.v10-table,.tblwrap) :is(th,td){text-align:center!important;vertical-align:middle;padding:14px 10px;line-height:1.5}
+.main :is(.v10-table,.tblwrap) th{font-size:16px;white-space:normal;word-break:keep-all}
+.main :is(.v10-table,.tblwrap) td{font-size:18px}
+.perf-slide :is(.v10-table,.tblwrap) table{table-layout:fixed;min-width:680px}
+.perf-source-table table{min-width:1050px!important}
+.perf-source-table th:first-child:not([colspan]){width:9%}
+.perf-source-table thead tr:first-child th[colspan]{font-size:22px}
+.perf-values-always table{min-width:860px!important}
+.perf-values-always th:first-child,.perf-values-always td:first-child{width:150px;white-space:normal}
+.perf-capacity-table table{min-width:1400px!important}
+.perf-staff-table table{min-width:1120px!important}
+.main .perf-staff-table td b,.perf-band-rank b{font-size:20px}
+.main .perf-staff-table td small{font-size:15px;white-space:normal}
+.main .perf-staff-table .perf-person-head{font-size:24px}
+.main .perf-staff-month-total td b{font-size:28px}
+.perf-staff-month-total td span,.perf-rank small,.perf-band-rank small{font-size:13px}
+.perf-rank{justify-content:center}
+.perf-week-table th:first-child{width:21%}.perf-week-table th:nth-child(2){width:12%}.perf-week-table th:nth-child(5){width:23%}
+.perf-contract-table{align-self:center}.perf-contract-table table{min-width:560px!important}
+.perf-contract-table>.v10-note{text-align:center}
+.perf-source-charts{grid-template-columns:minmax(0,1fr)}
+.chartbox{overflow-x:auto}.chartbox svg.chart{min-width:600px;max-height:460px}
+.main svg.chart text,.main svg.chart text.val{font-size:var(--chart-readable-font,18px)!important}
+.main .legend{gap:18px;margin-top:14px}
+.main .perf-comment-editor textarea{font-size:19px}
+.perf-inquiry-metrics h4{font-size:19px}.perf-inquiry-metrics dt,.perf-inquiry-metrics dd{font-size:17px}
+.perf-inquiry-metrics dl>div{gap:8px;flex-wrap:wrap}.perf-inquiry-metrics dd{margin-left:auto}
+.perf-value-highlight{display:inline;padding:2px 5px;border-radius:4px;background:#fff0ad;color:inherit;font-weight:750;box-decoration-break:clone;print-color-adjust:exact}
+@media(max-width:1450px){.perf-two{grid-template-columns:minmax(0,1fr)}.perf-inquiry-metrics{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:800px){.main :is(.v10-table,.tblwrap) :is(th,td){padding:12px 8px}.v10-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-slide-head h2{font-size:24px}}
+@media print{.main :is(.v10-table,.tblwrap) table{min-width:0!important;table-layout:auto;font-size:12px}.main :is(.v10-table,.tblwrap) :is(th,td){font-size:12px;padding:7px 4px}.chartbox{overflow:visible}.chartbox svg.chart{min-width:0;max-height:none}.perf-source-charts,.perf-two{grid-template-columns:1fr}.main .perf-staff-table td small{font-size:11px}.perf-selected-month,.perf-selected-month-row>td{print-color-adjust:exact}}

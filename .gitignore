@@ -1,0 +1,22 @@
+# Local credentials, private source data and generated files
+.env*
+.clasprc*
+.clasp.json
+*.pem
+*.key
+.codex-work/
+outputs/
+output/
+tmp/
+work/
+node_modules/
+*.log
+apps-script/v10/contracts-data.json
+apps-script/v10/index.html
+apps-script/v10/대시보드.gs
+*.xlsx
+*.xls
+*.csv
+*.hwp
+*.hwpx
+.DS_Store
