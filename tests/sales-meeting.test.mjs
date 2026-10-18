@@ -19,4 +19,7 @@ assert.ok(source.includes('후속 조치 · 담당/기한'),'minutes can append 
 assert.ok(source.includes("kind==='minutes'?'#salesMinutesCopy'"),'minutes copy is isolated from raw-detail tables');
 assert.ok(source.includes('월 전체는 달력월, 주차 합계는 보고 주차 기준'),'period distinction is explicit');
 assert.ok(source.includes('미팅26 시트의 N1:AE70'),'missing-source error is actionable');
+assert.ok(source.includes('보고 주차 선택'),'sales meeting report exposes week selection above the preview');
+assert.ok(source.includes('smDetailMeetingMatch'),'inquiry and meeting periods are paired by dates');
+assert.ok(source.includes('minutes-period-basis'),'copied minutes state both inquiry and meeting week ranges');
 console.log('PASS: sales meeting data source, navigation and Hangul copy UI');

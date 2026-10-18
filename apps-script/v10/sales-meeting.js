@@ -4,6 +4,7 @@ const SALES_MEETING_SOURCE={
  meeting:'https:'+'/'+'/docs.google.com/spreadsheets/d/1PR1M6AfYkzmvYlzFKkV4KRhJWTWs0rzZBmroZ3CSwyc/edit?gid=843263122#gid=843263122'
 };
 const salesMeetingState={
+ detailKey:txt(store.get('v10_salesMeetingDetailKey','')),
  week:Number(store.get('v10_salesMeetingWeek',0))||0,
  reporter:txt(store.get('v10_salesMeetingReporter','김동호'))||'김동호',
  extra:txt(store.get('v10_salesMeetingExtra','한전수전합리화사업 - 0건 (제안1건)')),
@@ -12,6 +13,39 @@ const salesMeetingState={
 const SM_COL={AB:27,AC:28,AD:29,AE:30,AF:31,AG:32,AH:33,AI:34,N:13,O:14,P:15,Q:16};
 const smCell=(rows,r,c)=>txt(rows?.[r]?.[c]);
 const smNumber=value=>{const t=txt(value);return t?`${v10Number(num(t))}`:'—';};
+const smDatePad=value=>String(value).padStart(2,'0');
+function smPeriodBounds(value,year,monthHint){
+ const parts=[...txt(value).matchAll(/(?:(20\d{2})[\/.\-])?(\d{1,2})[\/.\-](\d{1,2})/g)].map(match=>({year:num(match[1]),month:num(match[2]),day:num(match[3])}));
+ if(parts.length<2)return null;
+ let startYear=parts[0].year||num(year),endYear=parts[1].year||startYear;
+ if(!startYear)return null;
+ if(!parts[0].year&&monthHint&&parts[0].month+6<num(monthHint))startYear++;
+ if(!parts[1].year&&parts[1].month<parts[0].month)endYear=startYear+1;else if(!parts[1].year)endYear=startYear;
+ const iso=partYear=>part=>`${partYear}-${smDatePad(part.month)}-${smDatePad(part.day)}`;
+ return {start:iso(startYear)(parts[0]),end:iso(endYear)(parts[1])};
+}
+function smDetailKey(detail){
+ const bounds=smPeriodBounds(detail?.period,detail?.year,detail?.month);
+ return detail?`${num(detail.year)}-${smDatePad(detail.month)}-${num(detail.week)}-${bounds?.start||txt(detail.period)}`:'';
+}
+function smDetailMeetingMatch(detail,meeting){
+ const inquiryBounds=smPeriodBounds(detail?.period,detail?.year,detail?.month),meetingBounds=smPeriodBounds(meeting?.period,meeting?.year,detail?.month);
+ return !!(inquiryBounds&&meetingBounds&&inquiryBounds.start===meetingBounds.start&&inquiryBounds.end===meetingBounds.end);
+}
+function smSelectDetail(inquiry,meeting){
+ const details=inquiry?.details||[];
+ if(!details.length)return null;
+ const stored=details.find(detail=>smDetailKey(detail)===salesMeetingState.detailKey);
+ if(stored)return stored;
+ return details.find(detail=>smDetailMeetingMatch(detail,meeting))||details.find(detail=>{
+  const bounds=smPeriodBounds(detail.period,detail.year,detail.month);
+  return bounds&&bounds.start<=v10Today()&&bounds.end>=v10Today();
+ })||details.findLast?.(detail=>{
+  const bounds=smPeriodBounds(detail.period,detail.year,detail.month);
+  return bounds&&bounds.start<=v10Today();
+ })||details.at(-1);
+}
+function smPeriodLabel(period){return txt(period).replace(/\s*~\s*/,' ~ ');}
 const smMetric=(rows,row)=>({label:smCell(rows,row,SM_COL.AC),values:[SM_COL.AD,SM_COL.AE,SM_COL.AF,SM_COL.AG,SM_COL.AH].map(c=>smCell(rows,row,c))});
 function smMetricBlock(rows,row){
  const out=[];
@@ -130,14 +164,17 @@ function smMinutesReport(inquiry,detail,meeting){
  const sources=smMinuteSources(detail),entries=meeting.entries.map(entry=>({no:entry.no,...smMinuteEntryParts(entry.text)}));
  const extra=salesMeetingState.extra?`<p class="minutes-extra">※${esc(salesMeetingState.extra)}</p>`:'';
  const actions=salesMeetingState.actions?`<h3>4. 후속 조치</h3><div class="minutes-actions">${esc(salesMeetingState.actions).replace(/\n/g,'<br>')}</div>`:'';
- return `<section id="salesMinutesCopy" class="sales-minutes-report"><h2 class="minutes-report-title"><span>■</span>컨설팅-${esc(salesMeetingState.reporter)}</h2><div class="minutes-report-box"><div class="minutes-box-title">* 컨설팅 내용</div><h3>1. 유입별 문의건수 <span>[ ${i(inquiry.month)}월 ${i(detail.week)}주 진행사항 (${esc(detail.period)}) ]</span></h3>${smMinuteInquiryTable(detail,sources)}<h3>2. 사업형태별 문의건수</h3>${smMinuteTopTable(detail,sources)}${extra}<h3>3. 미팅가망 및 특이사항</h3><ol class="minutes-meeting-list">${entries.map(entry=>`<li><span>${esc(entry.main)}</span>${entry.note?`<strong>${esc(entry.note)}</strong>`:''}</li>`).join('')}</ol><ul class="minutes-summary">${smMinuteSummaryLine('유입별 미팅가망',meeting.summary.source)}${smMinuteSummaryLine('지역별 대응예정',meeting.summary.branch)}${smMinuteSummaryLine('문의',meeting.summary.relation)}${smMinuteSummaryLine('설치장소',meeting.summary.site)}${smMinuteSummaryLine('미팅가망 및 확정',meeting.summary.status)}</ul>${actions}</div></section>`;
+ const matched=smDetailMeetingMatch(detail,meeting),mismatch=matched?'':`<p class="minutes-period-warning">※ 문의 주차와 미팅 원본의 날짜가 다릅니다. 각 제목의 기간을 확인하세요.</p>`;
+ return `<section id="salesMinutesCopy" class="sales-minutes-report"><h2 class="minutes-report-title"><span>■</span>컨설팅-${esc(salesMeetingState.reporter)}</h2><div class="minutes-report-box"><div class="minutes-box-title">* 컨설팅 내용</div><div class="minutes-period-basis"><b>문의 ${esc(detail.year)}년 ${i(detail.month)}월 ${i(detail.week)}주차</b><span>${esc(smPeriodLabel(detail.period))} · 월~금</span><b>미팅 ${esc(meeting.year)}년 ${i(meeting.week)}주차</b><span>${esc(smPeriodLabel(meeting.period))} · 원본 기준</span></div>${mismatch}<h3>1. 유입별 문의건수 <span>[ ${i(detail.month)}월 ${i(detail.week)}주 진행사항 (${esc(detail.period)}) ]</span></h3>${smMinuteInquiryTable(detail,sources)}<h3>2. 사업형태별 문의건수</h3>${smMinuteTopTable(detail,sources)}${extra}<h3>3. 미팅가망 및 특이사항 <span>[ ${esc(meeting.year)}년 ${i(meeting.week)}주차 (${esc(meeting.period)}) ]</span></h3><ol class="minutes-meeting-list">${entries.map(entry=>`<li><span>${esc(entry.main)}</span>${entry.note?`<strong>${esc(entry.note)}</strong>`:''}</li>`).join('')}</ol><ul class="minutes-summary">${smMinuteSummaryLine('유입별 미팅가망',meeting.summary.source)}${smMinuteSummaryLine('지역별 대응예정',meeting.summary.branch)}${smMinuteSummaryLine('문의',meeting.summary.relation)}${smMinuteSummaryLine('설치장소',meeting.summary.site)}${smMinuteSummaryLine('미팅가망 및 확정',meeting.summary.status)}</ul>${actions}</div></section>`;
 }
 function easySalesMeeting(){
- const inquiry=smParseInquiryReport(V10.payload?.tongye),meeting=smParseMeetingReport(V10.payload?.meeting26),detailWeeks=inquiry.details.map(x=>x.week),week=detailWeeks.includes(salesMeetingState.week)?salesMeetingState.week:(detailWeeks.at(-1)||0),detail=inquiry.details.find(x=>x.week===week);
- salesMeetingState.week=week;
- const inquirySection=inquiry.ready?`<section id="salesInquiryCopy" class="sales-report-card sales-copy-section"><header><div><p class="sales-kicker">${esc(inquiry.year)}년 ${i(inquiry.month)}월 원본 집계</p><h3>월간 · 주차별 문의 현황</h3><p>월 전체는 달력월, 주차 합계는 보고 주차 기준이라 서로 다를 수 있습니다.</p></div><strong>${i(inquiry.month)}월</strong></header><h4 class="sales-subtitle">월 전체 문의</h4>${smMetricsTable(inquiry.monthly)}<p class="sales-note">합계는 원본 통계 시트의 값을 그대로 표시합니다.</p><h4 class="sales-subtitle">주차별 문의</h4>${smWeeklyOverview(inquiry)}${detail?`<div class="sales-detail-head"><div><h4>${detail.week}주차 일자별 문의</h4><p>${esc(detail.period)}</p></div><label>상세 주차<select id="salesMeetingWeek">${inquiry.details.map(x=>`<option value="${x.week}" ${x.week===detail.week?'selected':''}>${x.week}주차 · ${esc(x.period)}</option>`).join('')}</select></label></div>${smDailyTable(detail)}${smTopThree(detail)}`:''}</section>`:`<section id="salesInquiryCopy" class="sales-report-card sales-copy-section"><h3>월간 · 주차별 문의 현황</h3><p class="sales-empty">통계 시트의 AB1:AI190 자료를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p></section>`;
- const sourcePeriods=[inquiry.ready?`문의 ${esc(inquiry.year)}년 ${i(inquiry.month)}월`:'문의 자료 대기',meeting.ready?`미팅 ${esc(meeting.year)}년 ${i(meeting.week)}주차`:'미팅 자료 대기'].join(' · ');
- return easyLead('영업회의 자료','회의록 1페이지 형식과 원본 상세표를 한글에 바로 붙여넣을 수 있습니다.',sourcePeriods)+`<div class="sales-minutes-controls"><label>보고자명<input id="salesMeetingReporter" maxlength="20" value="${esc(salesMeetingState.reporter)}"></label><label>별도 사업 메모<input id="salesMeetingExtra" maxlength="100" value="${esc(salesMeetingState.extra)}" placeholder="예: 한전수전합리화사업 - 0건 (제안1건)"></label><label class="sales-actions-field">후속 조치 · 담당/기한<textarea id="salesMeetingActions" maxlength="500" rows="2" placeholder="선택 입력 · 예: 김동호 / 10월 16일 / 제안서 발송">${esc(salesMeetingState.actions)}</textarea></label></div><div class="sales-copy-toolbar"><button class="btn primary" data-sales-copy="minutes">회의록 형식 복사</button><button class="btn" data-sales-copy="all">원본 상세 전체 복사</button><button class="btn" data-sales-copy="inquiry">문의표만 복사</button><button class="btn" data-sales-copy="meeting">미팅표만 복사</button><a class="btn" href="${SALES_MEETING_SOURCE.inquiry}" target="_blank" rel="noopener">문의 원본 열기</a><a class="btn" href="${SALES_MEETING_SOURCE.meeting}" target="_blank" rel="noopener">미팅 원본 열기</a><span id="salesCopyStatus" role="status"></span></div><div class="v10-callout sales-basis"><b>권장 보고 순서</b> 주간 문의 → 문의 TOP 3 → 미팅가망·특이사항 → 후속 조치 순으로 보고합니다. 보고자명과 메모를 수정하면 회의록 미리보기와 복사본에 바로 반영됩니다.</div>${smMinutesReport(inquiry,detail,meeting)}<details class="sales-source-details"><summary>원본 상세자료 펼치기</summary><div class="v10-callout sales-basis"><b>집계 기준</b> 문의 자료와 미팅 자료는 각 원본 시트에 적힌 기간을 그대로 표시합니다. 대시보드 상단의 월 선택과 달라도 영업회의 자료의 기준은 바뀌지 않습니다.</div><div id="salesMeetingCopyRoot" class="sales-copy-root">${inquirySection}${smMeetingSection(meeting)}</div></details>`;
+ const inquiry=smParseInquiryReport(V10.payload?.tongye),meeting=smParseMeetingReport(V10.payload?.meeting26),detail=smSelectDetail(inquiry,meeting);
+ salesMeetingState.detailKey=smDetailKey(detail);salesMeetingState.week=detail?.week||0;
+ const matched=smDetailMeetingMatch(detail,meeting);
+ const inquirySection=inquiry.ready?`<section id="salesInquiryCopy" class="sales-report-card sales-copy-section"><header><div><p class="sales-kicker">${esc(inquiry.year)}년 ${i(inquiry.month)}월 원본 집계</p><h3>월간 · 주차별 문의 현황</h3><p>월 전체는 달력월, 주차 합계는 보고 주차 기준이라 서로 다를 수 있습니다.</p></div><strong>${i(inquiry.month)}월</strong></header><h4 class="sales-subtitle">월 전체 문의</h4>${smMetricsTable(inquiry.monthly)}<p class="sales-note">합계는 원본 통계 시트의 값을 그대로 표시합니다.</p><h4 class="sales-subtitle">주차별 문의</h4>${smWeeklyOverview(inquiry)}${detail?`<div class="sales-detail-head"><div><h4>${detail.month}월 ${detail.week}주차 일자별 문의</h4><p>${esc(detail.period)} · 월요일~금요일</p></div></div>${smDailyTable(detail)}${smTopThree(detail)}`:''}</section>`:`<section id="salesInquiryCopy" class="sales-report-card sales-copy-section"><h3>월간 · 주차별 문의 현황</h3><p class="sales-empty">통계 시트의 AB1:AI190 자료를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p></section>`;
+ const sourcePeriods=[detail?`문의 ${esc(detail.year)}년 ${i(detail.month)}월 ${i(detail.week)}주차 · ${esc(smPeriodLabel(detail.period))}`:'문의 자료 대기',meeting.ready?`미팅 ${esc(meeting.year)}년 ${i(meeting.week)}주차 · ${esc(smPeriodLabel(meeting.period))}`:'미팅 자료 대기'].join(' / ');
+ const periodSelector=detail?`<section class="sales-period-picker"><div class="sales-period-picker-head"><div><p>보고 주차 선택</p><h3>날짜를 기준으로 문의·미팅 자료를 확인합니다</h3></div><label>문의 주차<select id="salesMeetingWeek">${inquiry.details.map(item=>`<option value="${esc(smDetailKey(item))}" ${smDetailKey(item)===smDetailKey(detail)?'selected':''}>${item.year}년 ${item.month}월 ${item.week}주차 · ${esc(smPeriodLabel(item.period))}</option>`).join('')}</select></label></div><div class="sales-period-cards"><article><span>문의 기준</span><b>${esc(detail.year)}년 ${i(detail.month)}월 ${i(detail.week)}주차</b><strong>${esc(smPeriodLabel(detail.period))}</strong><small>월요일~금요일 집계</small></article><article><span>미팅 원본 기준</span><b>${meeting.ready?`${esc(meeting.year)}년 ${i(meeting.week)}주차`:'자료 대기'}</b><strong>${meeting.ready?esc(smPeriodLabel(meeting.period)):'—'}</strong><small>미팅 원본 시트 표시 기간</small></article><div class="sales-period-status ${matched?'is-match':'is-warning'}"><b>${matched?'날짜 일치':'기간 확인 필요'}</b><span>${matched?'문의와 미팅 자료의 시작일·종료일이 같습니다.':'문의 선택 주차와 현재 미팅 원본의 날짜가 다릅니다.'}</span></div></div></section>`:'';
+ return easyLead('영업회의 자료','회의록 1페이지 형식과 원본 상세표를 한글에 바로 붙여넣을 수 있습니다.',sourcePeriods)+periodSelector+`<div class="sales-minutes-controls"><label>보고자명<input id="salesMeetingReporter" maxlength="20" value="${esc(salesMeetingState.reporter)}"></label><label>별도 사업 메모<input id="salesMeetingExtra" maxlength="100" value="${esc(salesMeetingState.extra)}" placeholder="예: 한전수전합리화사업 - 0건 (제안1건)"></label><label class="sales-actions-field">후속 조치 · 담당/기한<textarea id="salesMeetingActions" maxlength="500" rows="2" placeholder="선택 입력 · 예: 김동호 / 10월 16일 / 제안서 발송">${esc(salesMeetingState.actions)}</textarea></label></div><div class="sales-copy-toolbar"><button class="btn primary" data-sales-copy="minutes">회의록 형식 복사</button><button class="btn" data-sales-copy="all">원본 상세 전체 복사</button><button class="btn" data-sales-copy="inquiry">문의표만 복사</button><button class="btn" data-sales-copy="meeting">미팅표만 복사</button><a class="btn" href="${SALES_MEETING_SOURCE.inquiry}" target="_blank" rel="noopener">문의 원본 열기</a><a class="btn" href="${SALES_MEETING_SOURCE.meeting}" target="_blank" rel="noopener">미팅 원본 열기</a><span id="salesCopyStatus" role="status"></span></div><div class="v10-callout sales-basis"><b>권장 보고 순서</b> 주간 문의 → 문의 TOP 3 → 미팅가망·특이사항 → 후속 조치 순으로 보고합니다. 보고자명과 메모를 수정하면 회의록 미리보기와 복사본에 바로 반영됩니다.</div>${smMinutesReport(inquiry,detail,meeting)}<details class="sales-source-details"><summary>원본 상세자료 펼치기</summary><div class="v10-callout sales-basis"><b>집계 기준</b> 문의 자료와 미팅 자료는 각 원본 시트에 적힌 기간을 그대로 표시합니다. 대시보드 상단의 월 선택과 달라도 영업회의 자료의 기준은 바뀌지 않습니다.</div><div id="salesMeetingCopyRoot" class="sales-copy-root">${inquirySection}${smMeetingSection(meeting)}</div></details>`;
 }
 function smPrepareClipboard(root){
  const clone=root.cloneNode(true);
@@ -152,6 +189,8 @@ function smPrepareClipboard(root){
  clone.querySelectorAll('.minutes-report-title').forEach(node=>node.setAttribute('style','margin:0 0 8px;font-size:17px;font-weight:800;color:#111;'));
  clone.querySelectorAll('.minutes-report-box').forEach(node=>node.setAttribute('style','border:1px solid #111;padding:0 8px 10px;color:#111;background:#fff;font-family:Malgun Gothic,Arial,sans-serif;'));
  clone.querySelectorAll('.minutes-box-title').forEach(node=>node.setAttribute('style','margin:0 -8px 8px;padding:3px 7px;border-bottom:1px dotted #444;font-size:13px;font-weight:800;'));
+ clone.querySelectorAll('.minutes-period-basis').forEach(node=>node.setAttribute('style','display:grid;grid-template-columns:auto 1fr;gap:2px 9px;margin:6px 0 8px;padding:6px 8px;border:1px solid #6685ad;background:#eef5ff;font-size:10px;line-height:1.35;'));
+ clone.querySelectorAll('.minutes-period-warning').forEach(node=>node.setAttribute('style','margin:4px 0;color:#b52b1d;font-size:10px;font-weight:800;'));
  clone.querySelectorAll('.sales-minutes-report h3').forEach(node=>node.setAttribute('style','margin:9px 0 4px;font-size:13px;font-weight:800;'));
  clone.querySelectorAll('.sales-minutes-report table').forEach(node=>node.setAttribute('style','width:100%;border-collapse:collapse;table-layout:fixed;margin:3px 0;font-size:11px;'));
  clone.querySelectorAll('.sales-minutes-report th,.sales-minutes-report td').forEach(node=>node.setAttribute('style','border:1px solid #111;padding:3px 4px;text-align:center;vertical-align:middle;'));
@@ -183,7 +222,7 @@ if(!SECTIONS.some(s=>s.k==='salesMeeting'))SECTIONS.push({k:'salesMeeting',t:'�
 if(!EASY_NAV.some(s=>s.k==='salesMeeting'))EASY_NAV.push({k:'salesMeeting',label:'영업회의 자료',sub:'한글 보고서에 바로 복사'});
 Object.assign(VIEWS,{salesMeeting:easySalesMeeting});
 document.addEventListener('change',event=>{
- if(event.target.id==='salesMeetingWeek'){salesMeetingState.week=Number(event.target.value);store.set('v10_salesMeetingWeek',salesMeetingState.week);render();return;}
+ if(event.target.id==='salesMeetingWeek'){salesMeetingState.detailKey=txt(event.target.value);store.set('v10_salesMeetingDetailKey',salesMeetingState.detailKey);render();return;}
  const setting={salesMeetingReporter:['reporter','v10_salesMeetingReporter'],salesMeetingExtra:['extra','v10_salesMeetingExtra'],salesMeetingActions:['actions','v10_salesMeetingActions']}[event.target.id];
  if(!setting)return;salesMeetingState[setting[0]]=txt(event.target.value);store.set(setting[1],salesMeetingState[setting[0]]);render();
 });

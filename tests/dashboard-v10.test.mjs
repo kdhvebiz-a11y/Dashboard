@@ -116,8 +116,15 @@ assert.equal(run('smParseInquiryReport(smInquiryFixture).details[0].days[0].metr
 assert.equal(run('smParseInquiryReport(smInquiryFixture).details[0].top[0].items[0].value'),'24');
 assert.equal(run('smParseMeetingReport(smMeetingFixture).entries.length'),2);
 assert.equal(run("smParseMeetingReport(smMeetingFixture).summary.source.find(x=>x[0]==='소개')[1]"),1);
+assert.equal(run("smPeriodBounds('2026/10/12(월)~2026/10/16(금)',2026,10).start"),'2026-10-12');
+assert.equal(run("smPeriodBounds('11/2~11/6',2026,10).end"),'2026-11-06');
 run('V10.payload.tongye=smInquiryFixture;V10.payload.meeting26=smMeetingFixture');
 const salesMeetingView=run('easySalesMeeting()');
+assert.ok(salesMeetingView.includes('보고 주차 선택'));
+assert.ok(salesMeetingView.includes('문의 기준')&&salesMeetingView.includes('미팅 원본 기준'));
+assert.ok(salesMeetingView.includes('2026년 41주차'));
+assert.ok(salesMeetingView.includes('2026/10/05(월)~2026/10/09(금)'));
+assert.ok(salesMeetingView.includes('기간 확인 필요'),'different source periods are not silently merged');
 assert.ok(salesMeetingView.includes('월간 · 주차별 문의 현황'));
 assert.ok(salesMeetingView.includes('발전사업 (토지)'));
 assert.ok(salesMeetingView.includes('이번 주 사업주 미팅'));

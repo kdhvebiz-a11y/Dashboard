@@ -1,3 +1,48 @@
+.sales-period-picker {
+  margin: 0 0 14px;
+  padding: 18px;
+  border: 1px solid #9fb9dc;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f7faff 0%, #edf4ff 100%);
+}
+.sales-period-picker-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+.sales-period-picker-head p { margin: 0 0 3px; color: #2769c7; font-size: 14px; font-weight: 900; }
+.sales-period-picker-head h3 { margin: 0; font-size: 20px; }
+.sales-period-picker-head label {
+  display: grid;
+  gap: 6px;
+  min-width: 360px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+.sales-period-picker-head select {
+  min-height: 44px;
+  border: 1px solid #88a8d3;
+  border-radius: 9px;
+  padding: 0 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: 700 15px/1.4 inherit;
+}
+.sales-period-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(220px, .8fr); gap: 10px; }
+.sales-period-cards article,
+.sales-period-status { display: grid; gap: 4px; padding: 13px 15px; border: 1px solid #c7d4e5; border-radius: 11px; background: var(--card); }
+.sales-period-cards article span { color: var(--muted); font-size: 13px; font-weight: 800; }
+.sales-period-cards article b { font-size: 18px; }
+.sales-period-cards article strong { color: #1e5fae; font-size: 16px; }
+.sales-period-cards article small { color: var(--muted); font-size: 13px; }
+.sales-period-status { align-content: center; }
+.sales-period-status b { font-size: 16px; }
+.sales-period-status span { font-size: 13px; line-height: 1.45; }
+.sales-period-status.is-match { border-color: #9bd5b4; background: #effbf4; color: #17683c; }
+.sales-period-status.is-warning { border-color: #edc37b; background: #fff8e8; color: #8a5700; }
 .sales-minutes-controls {
   display: grid;
   grid-template-columns: minmax(160px, .6fr) minmax(300px, 1.4fr) minmax(300px, 1.5fr);
@@ -49,6 +94,19 @@
   font-size: 17px;
   font-weight: 900;
 }
+.minutes-period-basis {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 7px 0 9px;
+  padding: 7px 9px;
+  border: 1px solid #8da5c5;
+  background: #eef5ff;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.minutes-period-basis b { white-space: nowrap; }
+.minutes-period-warning { margin: 5px 0; color: #b52b1d; font-size: 12px; font-weight: 800; }
 .sales-minutes-report h3 { margin: 13px 0 6px; font-size: 17px; color: #111; }
 .sales-minutes-report h3 span { font-size: 15px; }
 .minutes-table-wrap { width: 100%; overflow: auto; }
@@ -113,10 +171,16 @@
 .sales-source-details[open] > summary { margin-bottom: 14px; }
 .sales-source-details .sales-copy-root { margin-top: 14px; }
 @media (max-width: 1050px) {
+  .sales-period-cards { grid-template-columns: 1fr 1fr; }
+  .sales-period-status { grid-column: 1 / -1; }
   .sales-minutes-controls { grid-template-columns: 1fr 1fr; }
   .sales-actions-field { grid-column: 1 / -1; }
 }
 @media (max-width: 700px) {
+  .sales-period-picker-head { align-items: stretch; flex-direction: column; }
+  .sales-period-picker-head label { min-width: 0; }
+  .sales-period-cards { grid-template-columns: 1fr; }
+  .sales-period-status { grid-column: auto; }
   .sales-minutes-controls { grid-template-columns: 1fr; }
   .sales-actions-field { grid-column: auto; }
   .sales-minutes-report { padding: 12px; }
