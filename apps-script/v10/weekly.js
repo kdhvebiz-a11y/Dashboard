@@ -5,6 +5,7 @@ const cwShift=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTC
 function cwWeekOne(year){const d=new Date(Date.UTC(year,0,4));d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return cwISO(d);}
 function cwWeekCount(year){return Math.round((Date.parse(cwWeekOne(year+1))-Date.parse(cwWeekOne(year)))/604800000);}
 function cwRange(year,week){const start=cwShift(cwWeekOne(year),(week-1)*7);return {year,week,start,end:cwShift(start,4),meetingStart:cwShift(start,-3),meetingEnd:cwShift(start,3)};}
+function cwThisWeek(year){return Math.max(1,Math.min(cwWeekCount(year),1+Math.floor((Date.parse(v10Today())-Date.parse(cwWeekOne(year)))/604800000)));}
 function cwSelected(year){const saved=Number(CW.weeks[year]);if(saved>=1&&saved<=cwWeekCount(year))return saved;return Math.max(1,Math.min(cwWeekCount(year),1+Math.floor((Date.parse(v10Today())-Date.parse(cwWeekOne(year)))/604800000)));}
 function cwPeriod(raw,year,month){
  const m=String(raw||'').match(/(\d{1,2})[\/-](\d{1,2})\s*[~～–—-]\s*(\d{1,2})[\/-](\d{1,2})/);if(!m)return null;
@@ -46,13 +47,12 @@ function cwCard(label,value,note,color){return `<article class="v10-kpi" style="
 function cwView(){
  const year=Number(DB.year),week=cwSelected(year),{range:r,inquiry,meeting}=cwData(year,week),count=cwWeekCount(year);
  const source=smParseInquiryReport(V10.payload?.tongye),available=cwInquiryRows(V10.payload),meetingRows=cwMeetingRows(V10.payload);
- const selector=`<div class="cw-controls"><button class="btn" data-cw-step="-1" ${week===1?'disabled':''}>이전 주</button><label>연간 주차<select id="consultingWeek" aria-label="연간 주차">${Array.from({length:count},(_,n)=>{const w=cwRange(year,n+1);return `<option value="${n+1}" ${week===n+1?'selected':''}>${n+1}주차 · ${cwLabel(w.start,w.end)}</option>`;}).join('')}</select></label><button class="btn" data-cw-step="1" ${week===count?'disabled':''}>다음 주</button><button class="btn" data-cw-today>이번 주</button><strong>${year}년 ${week}주차</strong></div>`;
  const periods=`<div class="cw-periods"><div><span>문의 · 월요일~금요일</span><b>${cwLabel(r.start,r.end)}</b></div><div><span>미팅 · 금요일~목요일</span><b>${cwLabel(r.meetingStart,r.meetingEnd)}</b></div></div>`;
  const inquiryBody=inquiry?smMetricsTable(inquiry.metrics):v10Empty('이 주의 문의 원본 자료가 연결되지 않았습니다.');
  const meetingBody=meeting?v10Table(['구분','미팅 건수','미팅 용량'],[['전체',cwShow(meeting.count),cwShow(meeting.capacity,' kW')],['마케팅',cwShow(meeting.marketingCount),cwShow(meeting.marketingCapacity,' kW')]]):v10Empty(CW.loading?'미팅 원본을 불러오는 중입니다.':'이 주의 미팅 원본 자료가 연결되지 않았습니다.');
  const rows=Array.from({length:count},(_,n)=>{const w=cwRange(year,n+1),a=available.find(x=>x.start===w.start),b=meetingRows.find(x=>x.start===w.meetingStart);return [`<button class="easy-link ${n+1===week?'cw-selected':''}" data-cw-week="${n+1}">${n+1}주차</button>`,cwLabel(w.start,w.end),cwShow(cwMetric(a,0)),cwShow(cwMetric(a,1)),cwLabel(w.meetingStart,w.meetingEnd),cwShow(b?.count),cwShow(b?.capacity,' kW')];});
- return easyLead('컨설팅 주간 실적','문의와 미팅의 원본 보고 기간을 각각 확인합니다.','주간 · 부서 전체')+selector+periods
- +`<div class="v10-kpis">${cwCard('전체 주간 문의',cwShow(cwMetric(inquiry,0)),'월~금 · 원본 합계',V10.colors[0])}${cwCard('발전사업 주간 문의',cwShow(cwMetric(inquiry,1)),'월~금 · 원본 합계',V10.colors[1])}${cwCard('보고 미팅 건수',cwShow(meeting?.count),'금~목 · 원본 보고 미팅',V10.colors[3])}${cwCard('보고 미팅 용량',cwShow(meeting?.capacity,' kW'),'금~목 · 원본 합계',V10.colors[4])}</div>`
+ return easyLead('컨설팅 주간 실적',`${year}년 ${week}주차 · 문의와 미팅의 원본 보고 기간을 각각 확인합니다. 주차는 위 조회 바에서 바꿉니다.`,`${year}년 ${week}주차${week===cwThisWeek(year)?' · 이번 주':''}`)+periods
+ +`<div class="v10-kpis cw-kpis">${cwCard('주간 문의',cwShow(cwMetric(inquiry,0)),`${cwLabel(r.start,r.end)} · 월~금 · 전체 문의 원본 합계`,V10.colors[0])}${cwCard('발전사업 주간 문의',cwShow(cwMetric(inquiry,1)),`${cwLabel(r.start,r.end)} · 월~금 · 원본 합계`,V10.colors[1])}<article class="v10-kpi easy-big" style="--metric:${V10.colors[3]}"><span class="label">주간 미팅</span><strong>${esc(cwShow(meeting?.count))}</strong><span class="cap">미팅 용량 ${esc(cwShow(meeting?.capacity,' kW'))}${meeting?.count&&meeting?.capacity?` <small>· 건당 ${d1(meeting.capacity/meeting.count)} kW</small>`:''}</span><small>${cwLabel(r.meetingStart,r.meetingEnd)} · 금~목 · 원본 보고 미팅</small></article></div>`
  +`<div class="cw-panels">${v10Panel('유입별 주간 문의',`${cwLabel(r.start,r.end)} · 월~금`,inquiryBody+`<p class="v10-note">문의 원본: 통계 AB~AH · 현재 ${source.year||'—'}년 ${source.month||'—'}월 표가 연결되어 있습니다. 빈칸은 —, 원본의 0은 0으로 표시합니다.</p><a class="easy-link" href="${SALES_MEETING_SOURCE.inquiry}" target="_blank" rel="noopener">문의 원본 열기 ↗</a>`)}${v10Panel('주간 미팅 실적',`${cwLabel(r.meetingStart,r.meetingEnd)} · 금~목`,meetingBody+`<p class="v10-note">미팅 원본: ${esc(meeting?.sheet||'월별 시트')} J~O. 예정 미팅이 포함된 경우 원본 집계 그대로 표시합니다.</p><a class="easy-link" href="https://docs.google.com/spreadsheets/d/1DkUE6SYR9uyS3TGzlRTq28yuGluYpnuF2yuyCt_2lx8/edit?gid=${meeting?.gid||1866167974}" target="_blank" rel="noopener">미팅 원본 열기 ↗</a>`)}</div>`
  +((CW.error||V10.payload?.weeklyMeetings?.errors?.length)?`<div class="v10-callout" role="status">미팅 자료 연결 확인 필요: ${esc(CW.error||V10.payload.weeklyMeetings.errors.join(' / '))}</div>`:'')
  +`<p class="v10-note">주차는 ISO 연간 주차를 사용합니다.${count===53?' '+year+'년은 달력상 53주차가 있어 연말 누락 없이 표시합니다.':''} 서로 다른 기간의 문의와 미팅으로 전환율을 계산하지 않습니다. 문의 과거 주차는 원본에 확인된 자료만 표시합니다.</p>`
@@ -66,8 +66,20 @@ function cwLoad(){
 SECTIONS.push({k:'weekly',t:'주간 실적',g:'실적',basis:'exec'});
 VIEWS.weekly=()=>{cwLoad();return cwView();};
 EASY_MENU.find(x=>x.k==='summary').items.push(['weekly','주간 실적']);
+if(state.sect==='overall')state.sect='weekly'; // the weekly view is the landing screen
 const cwOriginalPeriod=renderPeriod;
-renderPeriod=function(){cwOriginalPeriod();document.body.classList.toggle('cw-weekly',state.sect==='weekly');if(state.sect==='weekly'){$('#easyPeriodNote').textContent=`${DB.year}년 · 연간 주차 조회 · 문의 월~금 / 미팅 금~목 · 부서 전체`;} };
+// The week picker lives in the top toolbar, right after the year, so the period bar and the
+// weekly view read as one control: 연간 주차 [select] → 이전 주 · 이번 주 · 다음 주.
+function cwToolbarHTML(year){
+ const week=cwSelected(year),count=cwWeekCount(year),today=cwThisWeek(year),range=cwRange(year,week);
+ const options=Array.from({length:count},(_,n)=>{const w=cwRange(year,n+1);return `<option value="${n+1}" ${week===n+1?'selected':''}>${n+1}주차 · ${cwLabel(w.start,w.end)}${n+1===today?' · 이번 주':''}</option>`;}).join('');
+ return `<label class="cw-pick">연간 주차<select id="consultingWeek" aria-label="연간 주차">${options}</select></label><div class="cw-nav" role="group" aria-label="주차 이동"><button class="btn cw-step" type="button" data-cw-step="-1" ${week===1?'disabled':''}>◀ 이전 주</button><button class="btn cw-now${week===today?' on':''}" type="button" data-cw-today ${week===today?'aria-current="true"':''}>이번 주</button><button class="btn cw-step" type="button" data-cw-step="1" ${week===count?'disabled':''}>다음 주 ▶</button></div><strong class="cw-current">${year}년 ${week}주차 <small>문의 ${cwLabel(range.start,range.end)} · 미팅 ${cwLabel(range.meetingStart,range.meetingEnd)}</small></strong>`;
+}
+renderPeriod=function(){cwOriginalPeriod();const weekly=state.sect==='weekly';document.body.classList.toggle('cw-weekly',weekly);
+ const toolbar=document.querySelector('.easy-toolbar');let slot=document.getElementById('cwToolbarWeek');
+ if(weekly&&toolbar){if(!slot){slot=document.createElement('div');slot.id='cwToolbarWeek';slot.className='cw-toolbar';const period=toolbar.querySelector('.easy-period');period?period.after(slot):toolbar.prepend(slot);}slot.innerHTML=cwToolbarHTML(Number(DB.year));}
+ else slot?.remove?.();
+ if(weekly){$('#easyPeriodNote').textContent=`${DB.year}년 · 연간 주차 조회 · 문의 월~금 / 미팅 금~목 · 부서 전체`;} };
 const cwToolbar=document.querySelector('.easy-toolbar');
 if(cwToolbar){const button=document.createElement('button');button.className='easy-preset cw-open';button.dataset.v10Section='weekly';button.textContent='주간 조회';cwToolbar.insertBefore(button,cwToolbar.firstChild);}
 document.addEventListener('change',e=>{if(e.target.id==='consultingWeek'){CW.weeks[DB.year]=Number(e.target.value);store.set('v10_consultingWeeks',CW.weeks);render();}});

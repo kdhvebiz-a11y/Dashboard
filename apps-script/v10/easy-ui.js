@@ -1,6 +1,5 @@
 /* A simpler navigation layer, keeping the verified reporting model underneath. */
 const EASY_NAV=[
- {k:'overall',label:'이번 기간 요약',sub:'문의와 활동을 한눈에'},
  {k:'inquiry',label:'문의 · 미팅 전환',sub:'들어온 문의의 후속 성과'},
  {k:'meetExe',label:'사업주 미팅 현황',sub:'선택한 달에 사업주와 진행한 미팅'},
  {k:'contract',label:'실제 계약 실적',sub:'RPS 계약 · 용량 · 위치'},
@@ -16,7 +15,7 @@ const EASY_NAV=[
  * short while every former destination remains one click away.
  */
 const EASY_MENU=[
- {k:'summary',label:'종합현황',sub:'핵심 실적을 한눈에',open:'overall',items:[['overall','이번 기간 요약']]},
+ {k:'summary',label:'주간 현황',sub:'이번 주 문의와 미팅',open:'weekly',items:[]},
  {k:'inquiries',label:'문의 · 상담',sub:'문의 유입부터 후속 상담까지',open:'inquiry',items:[['inquiry','문의 · 미팅 전환'],['source','유입 · 법인 · 지역'],['followup','상담 후속관리']]},
  {k:'meetings',label:'미팅실적',sub:'사업주 미팅과 담당자 성과',open:'meetExe',items:[['meetExe','사업주 미팅 현황'],['owner','담당자별 실적'],['records','미팅 원장']]},
  {k:'contracts',label:'계약실적',sub:'계약 건수 · 용량 · 위치',open:'contract',items:[['contract','실제 계약 실적']]},
@@ -26,7 +25,7 @@ const EASY_MENU=[
 // Legacy section-family mapping is kept for the underlying view model.
 const easyGroup=k=>['meetCoh','inquiry'].includes(k)?'inquiry':['cons','owner'].includes(k)?'owner':['source','corp','region','capacity'].includes(k)?'source':['report','insight'].includes(k)?'report':k;
 const easyMenuGroup=k=>{
- if(['overall'].includes(k))return 'summary';
+ if(['overall','weekly'].includes(k))return 'summary';
  if(['inquiry','meetCoh','source','corp','region','capacity','followup'].includes(k))return 'inquiries';
  if(['meetExe','cons','owner','records'].includes(k))return 'meetings';
  if(k==='contract')return 'contracts';
@@ -46,19 +45,41 @@ function easyTrendAxis(){
  const axis=v10TrendAxis(),year=Number(DB.year),nowYear=Number(v10Today().slice(0,4)),nowMonth=Number(v10Today().slice(5,7));
  return year===nowYear?axis.filter(g=>Math.min(...g.months)<=nowMonth).map(g=>({...g,months:g.months.filter(m=>m<=nowMonth)})).filter(g=>g.months.length&&(state.mode!=='cumulative'||Number(g.label.replace(/\D/g,''))<=nowMonth)):axis;
 }
-function easyOverview(){
- const ms=selMonths(),a=v10Aggregate(ms),g=v10Goals(ms),axis=easyTrendAxis(),values=axis.map(x=>v10Aggregate(x.months));
- return easyLead(`${DB.year}년 ${periodLabel()} 실적`, '문의가 얼마나 들어왔고, 미팅은 얼마나 진행했는지 확인하세요.',v10Scoped()?'상세 조건 적용':'부서 전체')
- +easyPrimary(a)+easySecondary(a)+v10SourceAudit()
- +`<div class="easy-summary"><strong>두 미팅 숫자가 다른 이유</strong><span>예를 들어 1월 문의로 7월에 미팅했다면, ‘1월 문의에서 이어진 미팅’과 ‘7월에 실제 한 미팅’에 각각 들어갑니다.</span></div>`
- +`<div class="easy-grid">${v10Line('미팅 실적은 어떻게 변했나요?','문의 접수월의 전환 성과와 실제 활동월의 실적',axis,[
- {name:'문의에서 이어진 미팅',color:V10.colors[2],values:values.map(x=>x.cohort)},
- {name:'실제로 한 미팅',color:V10.colors[3],values:values.map(x=>x.actual)}])}
- ${v10Panel('목표까지 얼마나 남았나요?','선택한 기간의 목표와 연간 계약 목표',v10GoalBar('전체 문의',a.total,g.total,'건',V10.colors[0])+v10GoalBar('전체 사업 문의',a.power,g.power,'건',V10.colors[1])+v10GoalBar('실제 미팅',a.actual,g.meeting,'건',V10.colors[3])+contractGoalProgress()+`<div class="easy-tablelink"><button class="easy-link" data-v10-section="goal">목표 설정 · 상세 보기 →</button></div>`)}</div>`
- +`<div class="v10-grid">${v10Line('월별 신규 문의','접수된 문의의 전체 규모와 전체 사업 문의',axis,[{name:'전체 문의',color:V10.colors[0],values:values.map(x=>x.total)},{name:'전체 사업 문의',color:V10.colors[1],values:values.map(x=>x.power)}])}
- ${v10Panel('이번 보고에서 확인할 내용','선택 기간의 데이터로 작성한 검토 의견',v10Insights())}</div>`
- +`<details class="easy-details"><summary>월별 · 분기별 수치 비교표 펼치기</summary>${v10PeriodTable()}</details>`;
+// Overview building blocks: a big figure with its capacity line, and the bridge that
+// explains how the two meeting counts overlap.
+const easyBig=(label,value,unit,cap,sub,color,section)=>`<button class="v10-kpi easy-big" style="--metric:${color}" data-v10-section="${section}"><span class="label">${esc(label)}</span><strong>${esc(value)}<em>${esc(unit)}</em></strong>${cap?`<span class="cap">${cap}</span>`:''}<small>${esc(sub)}</small></button>`;
+function easyMeetingSplit(a,ms){
+ const year=Number(DB.year),exe=new Set(a.exeRows);
+ const both=a.rows.filter(r=>exe.has(r)).length;            // this period's inquiries met in this period
+ const later=a.rows.length-both;                             // this period's inquiries met in a later month
+ const earlier=a.exeRows.filter(r=>!(ms.includes(r.cmo)&&r.year===year)).length; // meetings held now for earlier inquiries
+ return {both,later,earlier,cohortLedger:a.rows.length,actualLedger:a.exeRows.length};
 }
+function easyMeetingBridge(a,ms){
+ const s=easyMeetingSplit(a,ms),label=periodLabel(),max=Math.max(s.cohortLedger,s.actualLedger,1),c=V10.colors;
+ const seg=(n,color,text)=>n>0?`<span style="flex:${n};background:${color}" title="${esc(text)} ${i(n)}건">${n/max>0.12?esc(text)+' '+i(n):i(n)}</span>`:'';
+ const row=(title,sub,total,segments,section)=>`<div class="easy-bridge-row"><button class="easy-bridge-label" data-v10-section="${section}"><b>${esc(title)}</b><small>${esc(sub)}</small></button><div class="bar" style="width:${(Math.max(total,0)/max*100).toFixed(1)}%">${segments}</div><strong>${i(total)}건</strong></div>`;
+ const note=`두 막대의 보라색 부분은 같은 미팅입니다 — 이번 기간 문의가 이번 기간에 미팅까지 간 건.${a.gap?` 막대는 원장 기준이며, 보고 집계 ${i(a.actual)}건과 원장 ${i(s.actualLedger)}건은 ${i(Math.abs(a.gap))}건 차이가 있어 원본 확인이 필요합니다.`:''}`;
+ return v10Panel('두 미팅 숫자는 어떻게 다른가요?',`${label} 문의에서 이어진 미팅과 ${label}에 진행한 미팅은 겹치는 부분이 있습니다.`,
+  `<div class="easy-bridge">${row(`${label} 문의 → 미팅`,'문의 접수월 기준 · 이후 달 미팅 포함',s.cohortLedger,seg(s.both,c[3],'이번 기간 미팅')+seg(s.later,c[2],'다음 달 이후 미팅'),'meetCoh')}${row(`${label}에 진행한 미팅`,'보고 주차 기준 · 이전 문의 포함',s.actualLedger,seg(s.both,c[3],'이번 기간 문의')+seg(s.earlier,c[5],'이전 달 문의'),'meetExe')}</div><div class="easy-bridge-legend"><span><i style="background:${c[3]}"></i>이번 기간 문의 + 이번 기간 미팅 (양쪽에 모두 포함)</span><span><i style="background:${c[2]}"></i>이번 기간 문의 · 다음 달 이후 미팅</span><span><i style="background:${c[5]}"></i>이전 달 문의 · 이번 기간 미팅</span></div><p class="v10-note">${note}</p>`);
+}
+function easySummaryBlocks(ms,a,g){
+ const axis=easyTrendAxis(),values=axis.map(x=>v10Aggregate(x.months)),label=periodLabel(),c=V10.colors;
+ const avgCohort=a.cohort?a.cohortCap/a.cohort:0;
+ const inquiryBlock=`<section class="easy-block"><div class="easy-block-head"><h3>문의</h3><span>${esc(label)} · 문의 접수월 기준</span></div><div class="easy-block-grid">
+  <div class="easy-stack">${easyBig('전체 문의 (총문의)',v10Number(a.total),'건','',a.total===null?'현재 조건으로 나눌 문의 원장 없음':'발전사업 · O&M · 정부사업 등 모든 문의',c[0],'inquiry')}${easyBig('사업 문의',v10Number(a.power),'건','',`전체 문의 중 ${v10Rate(a.power,a.total)} · 발전사업`,c[1],'inquiry')}</div>
+  ${v10Line('월별 문의 추세','전체 문의와 사업 문의 · 접수월 기준',axis,[{name:'전체 문의',color:c[0],values:values.map(x=>x.total)},{name:'사업 문의',color:c[1],values:values.map(x=>x.power)}])}
+  ${v10Panel('문의 목표',`${label} 목표 대비`,v10GoalBar('전체 문의',a.total,g.total,'건',c[0])+v10GoalBar('사업 문의',a.power,g.power,'건',c[1])+`<div class="easy-tablelink"><button class="easy-link" data-v10-section="goal">목표 설정 · 상세 보기 →</button></div>`)}
+ </div></section>`;
+ const meetingBlock=`<section class="easy-block"><div class="easy-block-head"><h3>미팅</h3><span>${esc(label)} · 건수와 실제 미팅 용량</span></div><div class="easy-block-grid">
+  <div class="easy-stack">${easyBig(`${label} 문의 → 미팅으로 이어진`,i(a.cohort),'건',`미팅 용량 ${capS(a.cohortCap)} <small>· 건당 ${d1(avgCohort)} kW</small>`,'이번 기간에 들어온 문의 중 미팅까지 간 건 · 이후 달 미팅 포함',c[2],'meetCoh')}${easyBig(`${label}에 실제 진행한 미팅`,i(a.actual),'건',`미팅 용량 ${capS(a.actualCap)} <small>· 건당 ${d1(a.avg)} kW</small>`,`${a.actualSource} · 이전 달 문의의 미팅 포함`,c[3],'meetExe')}</div>
+  ${v10Line('월별 미팅 추세','문의에서 이어진 미팅과 실제 진행한 미팅',axis,[{name:'문의 → 미팅',color:c[2],values:values.map(x=>x.cohort)},{name:'실제 진행 미팅',color:c[3],values:values.map(x=>x.actual)}])}
+  ${v10Panel('미팅 · 계약 목표',`${label} 목표 대비`,v10GoalBar('실제 진행 미팅',a.actual,g.meeting,'건',c[3])+contractGoalProgress()+`<div class="easy-tablelink"><button class="easy-link" data-v10-section="contract">계약 실적 상세 →</button></div>`)}
+ </div></section>`;
+ return inquiryBlock+meetingBlock+easyMeetingBridge(a,ms);
+}
+// The former overview screen is folded into the department report; keep the key for old links.
+function easyOverview(){return easyReport();}
 function easyInquiry(){
  const a=v10Aggregate(selMonths()),axis=easyTrendAxis(),vals=axis.map(g=>v10Aggregate(g.months));
  return easyLead('이번에 들어온 문의가 미팅으로 이어졌나요?','선택한 달에 접수된 문의의 후속 성과입니다. 이후 다른 달에 진행한 미팅도 포함합니다.','문의 접수월 기준')
@@ -157,19 +178,22 @@ function easyWeeklyGoals(){
  +`<details class="easy-details"><summary>1~52주 목표표 펼치기</summary>${v10Table(['주차','월~금 기간','전체 문의','전체 사업 문의','미팅','계약','계약 용량(kWp)','설정 기준'],rows)}</details>`;
 }
 const easyReportOptions=store.get('v10_reportParts',{trend:true,team:true,goal:true,market:false,insight:true});
+const easyReportMore={open:store.get('v10_reportMore',false)};
 function easyReport(){
  const ms=selMonths(),a=v10Aggregate(ms),g=v10Goals(ms),key=`${DB.year}-${ms.join(',')}`,note=V10.reportNotes[key]||'';
- const options=[['trend','기간별 추세'],['team','담당자'],['goal','목표 달성'],['market','유입 · 법인 · 지역'],['insight','분석 · 개선 제안']];
+ const options=[['team','담당자'],['market','유입 · 법인 · 지역'],['insight','분석 · 개선 제안']];
+ const more=easyReportMore.open;
  return v10Banner('컨설팅 부서 실적 보고',`${DB.year}년 ${periodLabel()} · ${v10Scoped()?'선택 조건 적용':'부서 전체'} · ${new Date(DB.stamp).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})} 갱신`)
- +`<div class="v10-actions"><button class="btn primary" data-v10-action="print">인쇄 / PDF 저장</button><button class="btn" data-v10-action="summaryCsv">비교표 내려받기</button><button class="btn" data-v10-section="contract">계약 자료 안내</button></div>`
- +`<div class="v10-actions"><span>보고서에 넣을 항목</span>${options.map(([k,label])=>`<label style="font-size:14px"><input type="checkbox" data-report-part="${k}" ${easyReportOptions[k]?'checked':''}> ${label}</label>`).join('')}</div>`
- +easyPrimary(a)+easySecondary(a)+v10SourceAudit()+v10PeriodTable()
- +(easyReportOptions.trend?v10Trend(ms):'')
+ +`<div class="v10-actions"><button class="btn primary" data-v10-action="print">인쇄 / PDF 저장</button><button class="btn" data-v10-action="summaryCsv">비교표 내려받기</button><button class="btn" data-v10-section="contract">계약 자료 안내</button><span class="easy-spacer"></span><button class="btn" data-v10-action="reportMore" aria-expanded="${more?'true':'false'}">${more?'상세 항목 접기 ▲':'상세 항목 펼치기 ▼'}</button></div>`
+ +easySummaryBlocks(ms,a,g)
+ +v10Panel('보고자 의견','특이사항과 다음 기간 실행 계획을 적을 수 있습니다.',`<textarea id="v10ReportNote" data-key="${esc(key)}" aria-label="보고자 의견" placeholder="보고 의견을 입력하세요.">${esc(note)}</textarea><div class="easy-report-note">${esc(note)}</div>`)
+ +`<div class="easy-report-more${more?'':' hide'}">`
+ +`<div class="v10-actions v10-no-print"><span>보고서에 넣을 항목</span>${options.map(([k,label])=>`<label style="font-size:14px"><input type="checkbox" data-report-part="${k}" ${easyReportOptions[k]?'checked':''}> ${label}</label>`).join('')}</div>`
+ +v10SourceAudit()+v10PeriodTable()
  +(easyReportOptions.team?`<div class="v10-grid">${v10PeoplePanel('cons','cohort')}${v10PeoplePanel('own','exec')}</div>`:'')
- +(easyReportOptions.goal?v10Panel('목표 달성 현황','선택 기간의 목표 합계',v10GoalBar('전체 문의',a.total,g.total,'건',V10.colors[0])+v10GoalBar('전체 사업 문의',a.power,g.power,'건',V10.colors[1])+v10GoalBar('사업주 미팅',a.actual,g.meeting,'건',V10.colors[3])+v10GoalBar('확정 계약',v10Scoped()?null:contractAggregate(ms,{filtered:false}).count,g.contractCount,'건',V10.colors[4])):'')
  +(easyReportOptions.market?v10Breakdown('src')+v10Breakdown('corp')+v10Region():'')
  +(easyReportOptions.insight?v10Panel('종합 분석 및 개선 제안','선택한 기간의 수치를 근거로 한 검토 의견',v10Insights()):'')
- +v10Panel('보고자 의견','특이사항과 다음 기간 실행 계획을 적을 수 있습니다.',`<textarea id="v10ReportNote" data-key="${esc(key)}" aria-label="보고자 의견" placeholder="보고 의견을 입력하세요.">${esc(note)}</textarea><div class="easy-report-note">${esc(note)}</div>`)
+ +'</div>'
  +'<p class="v10-print-note">문의월의 후속 미팅은 이후 갱신될 수 있습니다. 사업주 미팅은 월별 보고 주차, 계약은 RPS 원장의 계약연도·보고 월을 기준으로 집계합니다.</p>';
 }
 const easyPerfSlide=(number,title,sub,body)=>`<section class="perf-slide"><header class="perf-slide-head"><span>${String(number).padStart(2,'0')}</span><div><h2>${esc(title)}</h2><p>${esc(sub)}</p></div></header><div class="perf-slide-body">${body}</div></section>`;
@@ -229,16 +253,21 @@ function easyPresentationStaffPanel(month){
 }
 const easyPresentationComments={
  records:RUN_MODE?{}:store.get('v10_presentation_comments_local',{}),
- loaded:{},loading:{},saving:{},message:{},error:{},drafts:{},dirty:{},loadSeq:{},months:store.get('v10_presentation_comment_months',{})
+ loaded:{},loading:{},saving:{},message:{},error:{},drafts:{},dirty:{},loadSeq:{},editing:{},available:{},availableLoading:{},months:store.get('v10_presentation_comment_months',{})
 };
 const easyPresentationCommentKey=(year,month)=>`${Number(year)}-${String(Number(month)).padStart(2,'0')}`;
+const easyPresentationPeriodSig=(ms=selMonths())=>[...new Set(ms.map(Number))].sort((a,b)=>a-b).join(',');
 function easyPresentationCommentMonth(ms=selMonths()){
  const months=[...new Set(ms.map(Number).filter(m=>m>=1&&m<=12))].sort((a,b)=>a-b);
+ // A month picked in the editor sticks while the dashboard period stays the same,
+ // so last month's presentation can be opened while the period shows this month.
+ const choice=easyPresentationComments.months[DB.year];
+ if(choice&&typeof choice==='object'&&choice.period===easyPresentationPeriodSig(ms)&&Number(choice.month)>=1&&Number(choice.month)<=12)return Number(choice.month);
  if(months.length===1)return months[0];
- const saved=Number(easyPresentationComments.months[DB.year]);
+ const saved=Number(choice&&typeof choice==='object'?choice.month:choice);
  return months.includes(saved)?saved:(months[months.length-1]||Number(v10Today().slice(5,7)));
 }
-function easyPresentationCommentBlank(year,month){return {year:Number(year),month:Number(month),text:'',updatedAt:'',updatedBy:''};}
+function easyPresentationCommentBlank(year,month){return {year:Number(year),month:Number(month),text:'',updatedAt:'',updatedBy:'',locked:false,hasPrevious:false,seeded:false};}
 function easyPresentationCommentParts(text){
  const raw=txt(text);if(!raw)return {analysis:'',inquiryAnalysis:'',improvement:''};
  try{
@@ -267,6 +296,18 @@ function easyPresentationCommentRPC(name,...args){return new Promise((resolve,re
  try{google.script.run.withSuccessHandler(value=>done(resolve,value)).withFailureHandler(e=>done(reject,Error(e?.message||String(e))))[name](...args);}
  catch(error){done(reject,error);}
 });}
+// A record is read-only once confirmed, until the reporter presses 수정하기.
+const easyPresentationCommentLocked=(record,key)=>!!(record?.locked&&(record.text||record.seeded))&&!easyPresentationComments.editing[key];
+function easyEnsurePresentationMonths(year){
+ const y=Number(year);
+ if(!RUN_MODE||easyPresentationComments.available[y]||easyPresentationComments.availableLoading[y])return;
+ easyPresentationComments.availableLoading[y]=true;
+ setTimeout(async()=>{
+  try{const list=await easyPresentationCommentRPC('listPresentationCommentMonths',y);easyPresentationComments.available[y]=Array.isArray(list)?list.map(Number):[];if(state.sect==='presentation')render();}
+  catch(error){/* the picker works without the saved-month marks */}
+  finally{easyPresentationComments.availableLoading[y]=false;}
+ },0);
+}
 function easyEnsurePresentationComment(year,month){
  const key=easyPresentationCommentKey(year,month);
  if(easyPresentationComments.loaded[key]||easyPresentationComments.loading[key]||easyPresentationComments.saving[key])return;
@@ -282,30 +323,52 @@ function easyEnsurePresentationComment(year,month){
   finally{if(easyPresentationComments.loadSeq[key]===seq){easyPresentationComments.loading[key]=false;if(state.sect==='presentation')render();}}
  },0);
 }
+const easyPresentationStamp=at=>at?new Date(at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'';
 function easyPresentationCommentStatus(record,key){
  if(easyPresentationComments.error[key])return `<span class="perf-comment-error" role="alert">${esc(easyPresentationComments.error[key])}</span><button class="btn" type="button" data-v10-action="presentationCommentRetry" data-year="${record.year}" data-month="${record.month}">저장 내용 다시 불러오기</button>`;
  if(easyPresentationComments.loading[key])return '<span role="status">저장된 코멘트 확인 중… 지금 바로 작성할 수 있습니다.</span>';
  if(easyPresentationComments.message[key])return `<span class="perf-comment-success" role="status">${esc(easyPresentationComments.message[key])}</span>`;
- if(record?.updatedAt){const at=new Date(record.updatedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});return `<span>마지막 저장 ${esc(at)}${record.updatedBy?' · '+esc(record.updatedBy):''}</span>`;}
+ if(record?.seeded)return `<span class="perf-comment-locked">발표 확정본 · ${esc(easyPresentationStamp(record.updatedAt))} 발표분이 코드에 보관되어 있습니다. 저장을 누르면 팀 저장소에도 기록됩니다.</span>`;
+ if(record?.updatedAt){const at=easyPresentationStamp(record.updatedAt);return `<span class="${record.locked?'perf-comment-locked':''}">${record.locked?'확정됨 · ':''}마지막 저장 ${esc(at)}${record.updatedBy?' · '+esc(record.updatedBy):''}</span>`;}
  return '<span>아직 저장된 코멘트가 없습니다.</span>';
 }
 function easyPresentationCommentEditor(ms){
- const month=easyPresentationCommentMonth(ms),key=easyPresentationCommentKey(DB.year,month);easyEnsurePresentationComment(DB.year,month);
+ const month=easyPresentationCommentMonth(ms),key=easyPresentationCommentKey(DB.year,month);easyEnsurePresentationComment(DB.year,month);easyEnsurePresentationMonths(DB.year);
  const record=easyPresentationComments.records[key]||easyPresentationCommentBlank(DB.year,month),saving=!!easyPresentationComments.saving[key];
  if(!Object.hasOwn(easyPresentationComments.drafts,key))easyPresentationComments.drafts[key]=record.text||'';
  const draft=easyPresentationComments.drafts[key],draftParts=easyPresentationCommentParts(draft),parts=draft?draftParts:easyPresentationDefaultParts(month),saved=easyPresentationCommentParts(record.text);
- const months=[...new Set(ms.map(Number).filter(m=>m>=1&&m<=12))].sort((a,b)=>a-b);
- const options=(months.length?months:Array.from({length:12},(_,j)=>j+1)).map(m=>`<option value="${m}" ${m===month?'selected':''}>${m}월</option>`).join('');
+ const locked=easyPresentationCommentLocked(record,key),readonly=locked||saving;
+ const periodMonths=new Set(ms.map(Number)),available=new Set((easyPresentationComments.available[DB.year]||[]).map(Number));
+ const options=Array.from({length:12},(_,j)=>j+1).map(m=>`<option value="${m}" ${m===month?'selected':''}>${m}월${available.has(m)?' ✓ 저장됨':''}${periodMonths.has(m)&&!available.has(m)?' · 조회 중인 기간':''}</option>`).join('');
  const inquiryAnalysis=easyPresentationInsights(month);
- return `<div class="perf-comment-editor v10-no-print"><div class="perf-comment-head"><div><h3>발표 코멘트 작성·저장</h3><p>왼쪽 위에는 자동 집계된 문의 분석을 표시하고, 그 아래 종합분석과 오른쪽 개선방안을 직접 작성합니다. 같은 연도·월을 다시 열면 저장한 내용이 표시됩니다.</p></div><label>코멘트 월<select id="easyPresentationCommentMonth" aria-label="코멘트 월">${options}</select></label></div><form id="easyPresentationCommentForm" data-year="${DB.year}" data-month="${month}"><div class="perf-comment-columns"><div class="perf-comment-analysis-stack"><section class="perf-auto-inquiry"><div class="perf-comment-block-title"><strong>문의 분석</strong><span>문의·미팅·계약 실적 자동 집계</span></div>${inquiryAnalysis}</section><label><strong>종합분석</strong><span>목표 대비 실적의 원인과 발표 핵심</span><textarea name="analysis" maxlength="1600" ${saving?'disabled':''}>${esc(parts.analysis)}</textarea></label></div><label class="perf-comment-improvement"><strong>개선방안</strong><span>마케팅·컨설팅·사업·교육별 실행 계획</span><textarea name="improvement" maxlength="1600" ${saving?'disabled':''}>${esc(parts.improvement)}</textarea></label></div><div class="perf-comment-actions"><button class="btn primary" ${saving?'disabled':''}>${saving?'저장 중…':'이달 코멘트 저장'}</button>${easyPresentationCommentStatus(record,key)}<small id="easyPresentationCommentCount">${(parts.analysis.length+parts.improvement.length).toLocaleString()} / 3,200자</small></div></form></div><div class="perf-comment-print"><div><h3>문의 분석</h3>${inquiryAnalysis}<h3>종합분석</h3><p>${saved.analysis?esc(saved.analysis):'저장된 종합분석이 없습니다.'}</p></div><div><h3>개선방안</h3><p>${saved.improvement?esc(saved.improvement):'저장된 개선방안이 없습니다.'}</p></div>${record.updatedAt?`<small>저장 ${esc(new Date(record.updatedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}))}</small>`:''}</div>`;
+ const actions=locked
+  ?`<button class="btn primary" type="button" data-v10-action="presentationCommentEdit" data-year="${DB.year}" data-month="${month}">수정하기</button>${record.hasPrevious?`<button class="btn" type="button" data-v10-action="presentationCommentRestore" data-year="${DB.year}" data-month="${month}">이전 저장본으로 되돌리기</button>`:''}`
+  :`<button class="btn primary" ${saving?'disabled':''}>${saving?'저장 중…':'저장하고 확정'}</button>${record.text||record.seeded?`<button class="btn" type="button" data-v10-action="presentationCommentCancel" data-year="${DB.year}" data-month="${month}">취소</button>`:''}${record.hasPrevious?`<button class="btn" type="button" data-v10-action="presentationCommentRestore" data-year="${DB.year}" data-month="${month}">이전 저장본으로 되돌리기</button>`:''}`;
+ const guide=locked?'확정된 코멘트는 그대로 유지됩니다. 고치려면 <b>수정하기</b>를 누른 뒤 저장하세요.':'저장하면 확정되어 다시 <b>수정하기</b>를 누르기 전에는 바뀌지 않습니다. 같은 연도·월을 다시 열면 저장한 내용이 표시됩니다.';
+ return `<div class="perf-comment-editor v10-no-print${locked?' perf-comment-readonly':''}"><div class="perf-comment-head"><div><h3>발표 코멘트 작성·저장</h3><p>왼쪽 위에는 자동 집계된 문의 분석을 표시하고, 그 아래 종합분석과 오른쪽 개선방안을 직접 작성합니다. ${guide}</p></div><label>코멘트 월<select id="easyPresentationCommentMonth" aria-label="코멘트 월">${options}</select></label></div><form id="easyPresentationCommentForm" data-year="${DB.year}" data-month="${month}" data-locked="${locked?'1':'0'}"><div class="perf-comment-columns"><div class="perf-comment-analysis-stack"><section class="perf-auto-inquiry"><div class="perf-comment-block-title"><strong>문의 분석</strong><span>문의·미팅·계약 실적 자동 집계</span></div>${inquiryAnalysis}</section><label><strong>종합분석</strong><span>목표 대비 실적의 원인과 발표 핵심</span><textarea name="analysis" maxlength="1600" ${readonly?'readonly':''}>${esc(parts.analysis)}</textarea></label></div><label class="perf-comment-improvement"><strong>개선방안</strong><span>마케팅·컨설팅·사업·교육별 실행 계획</span><textarea name="improvement" maxlength="1600" ${readonly?'readonly':''}>${esc(parts.improvement)}</textarea></label></div><div class="perf-comment-actions">${actions}${easyPresentationCommentStatus(record,key)}<small id="easyPresentationCommentCount">${(parts.analysis.length+parts.improvement.length).toLocaleString()} / 3,200자</small></div></form></div><div class="perf-comment-print"><div><h3>문의 분석</h3>${inquiryAnalysis}<h3>종합분석</h3><p>${saved.analysis?esc(saved.analysis):'저장된 종합분석이 없습니다.'}</p></div><div><h3>개선방안</h3><p>${saved.improvement?esc(saved.improvement):'저장된 개선방안이 없습니다.'}</p></div>${record.updatedAt?`<small>${record.seeded?'발표 확정본 ':'저장 '}${esc(easyPresentationStamp(record.updatedAt))}</small>`:''}</div>`;
 }
 async function easySavePresentationComment(form){
  const year=Number(form.dataset.year),month=Number(form.dataset.month),key=easyPresentationCommentKey(year,month),text=easyPresentationCommentFormText(form);
- if(easyPresentationComments.saving[key])return;easyPresentationComments.drafts[key]=text;easyPresentationComments.dirty[key]=true;easyPresentationComments.loadSeq[key]=(easyPresentationComments.loadSeq[key]||0)+1;easyPresentationComments.loading[key]=false;easyPresentationComments.saving[key]=true;easyPresentationComments.message[key]='';easyPresentationComments.error[key]='';render();
+ if(easyPresentationComments.saving[key])return;
+ const record=easyPresentationComments.records[key];
+ if(easyPresentationCommentLocked(record,key))return; // a confirmed comment is never overwritten by an Enter key or stray submit
+ easyPresentationComments.drafts[key]=text;easyPresentationComments.dirty[key]=true;easyPresentationComments.loadSeq[key]=(easyPresentationComments.loadSeq[key]||0)+1;easyPresentationComments.loading[key]=false;easyPresentationComments.saving[key]=true;easyPresentationComments.message[key]='';easyPresentationComments.error[key]='';render();
  try{
-  const saved=RUN_MODE?await easyPresentationCommentRPC('savePresentationComment',{year,month,text}):{...easyPresentationCommentBlank(year,month),text,updatedAt:new Date().toISOString()};
-  easyPresentationComments.records[key]=saved;easyPresentationComments.drafts[key]=saved.text||'';easyPresentationComments.dirty[key]=false;easyPresentationComments.loaded[key]=true;easyPresentationComments.message[key]=text?`${year}년 ${month}월 코멘트를 저장했습니다.`:`${year}년 ${month}월 저장 코멘트를 비웠습니다.`;
+  const force=!!(record?.locked&&easyPresentationComments.editing[key]);
+  const saved=RUN_MODE?await easyPresentationCommentRPC('savePresentationComment',{year,month,text,force}):{...easyPresentationCommentBlank(year,month),text,locked:!!text,updatedAt:new Date().toISOString()};
+  easyPresentationComments.records[key]=saved;easyPresentationComments.drafts[key]=saved.text||'';easyPresentationComments.dirty[key]=false;easyPresentationComments.loaded[key]=true;easyPresentationComments.editing[key]=false;easyPresentationComments.message[key]=text?`${year}년 ${month}월 코멘트를 저장하고 확정했습니다.`:`${year}년 ${month}월 저장 코멘트를 비웠습니다.`;
+  if(easyPresentationComments.available[year]){const set=new Set(easyPresentationComments.available[year]);if(text)set.add(month);else set.delete(month);easyPresentationComments.available[year]=[...set].sort((a,b)=>a-b);}
   if(!RUN_MODE){store.set('v10_presentation_comments_local',easyPresentationComments.records);}
+ }catch(error){easyPresentationComments.error[key]=error.message||String(error);}
+ finally{easyPresentationComments.saving[key]=false;render();}
+}
+async function easyRestorePresentationComment(year,month){
+ const key=easyPresentationCommentKey(year,month);
+ if(easyPresentationComments.saving[key])return;
+ easyPresentationComments.saving[key]=true;easyPresentationComments.message[key]='';easyPresentationComments.error[key]='';render();
+ try{
+  const saved=await easyPresentationCommentRPC('restorePresentationComment',Number(year),Number(month));
+  easyPresentationComments.records[key]=saved;easyPresentationComments.drafts[key]=saved.text||'';easyPresentationComments.dirty[key]=false;easyPresentationComments.loaded[key]=true;easyPresentationComments.editing[key]=false;easyPresentationComments.message[key]=`${year}년 ${month}월 코멘트를 이전 저장본으로 되돌렸습니다.`;
  }catch(error){easyPresentationComments.error[key]=error.message||String(error);}
  finally{easyPresentationComments.saving[key]=false;render();}
 }
@@ -400,6 +463,7 @@ function easyGoals(){
  return targets+nav+html.replace(/(<section class="v10-panel"><h3>월별 목표 설정[\s\S]*?<\/form><\/section>)/, '<details class="easy-details"><summary>목표를 새로 입력하거나 수정하기</summary>$1</details>');
 }
 if(!SECTIONS.some(s=>s.k==='presentation'))SECTIONS.push({k:'presentation',t:'실적발표',g:'보고',basis:'cohort'});
+for(let j=SECTIONS.length-1;j>=0;j--)if(SECTIONS[j].k==='overall')SECTIONS.splice(j,1);
 Object.assign(VIEWS,{overall:easyOverview,inquiry:easyInquiry,meetCoh:easyInquiry,meetExe:easyActivity,cons:()=>easyPeople('cons'),owner:()=>easyPeople('own'),source:()=>easyMarket('source'),corp:()=>easyMarket('corp'),region:()=>easyMarket('region'),capacity:()=>easyMarket('capacity'),goal:easyGoals,report:easyReport,presentation:easyPresentation});
 renderNav=function(){
  const active=easyMenuGroup(state.sect);
@@ -469,14 +533,15 @@ function easyInstall(){
  $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-sect]');if(!b)return;if(b.dataset.sect==='owner')state.basis='exec';if(b.dataset.sect==='cons')state.basis='cohort';},true);
  document.addEventListener('click',e=>{const b=e.target.closest('[data-easy-preset]');if(b)easyPreset(b.dataset.easyPreset);});
  document.addEventListener('change',e=>{if(e.target.id==='easyTeamBasis'){state.basis=e.target.value;render();}});
- document.addEventListener('change',e=>{if(e.target.id==='easyPresentationCommentMonth'){easyPresentationComments.months[DB.year]=Number(e.target.value);store.set('v10_presentation_comment_months',easyPresentationComments.months);render();}});
+ document.addEventListener('change',e=>{if(e.target.id==='easyPresentationCommentMonth'){easyPresentationComments.months[DB.year]={month:Number(e.target.value),period:easyPresentationPeriodSig()};store.set('v10_presentation_comment_months',easyPresentationComments.months);render();}});
  document.addEventListener('change',e=>{if(e.target.id==='v10GoalWeek'){easyGoalState.weeks[DB.year]=Number(e.target.value);store.set('v10_goalWeeks',easyGoalState.weeks);render();}});
  document.addEventListener('click',e=>{const mode=e.target.closest('[data-easy-goal-mode]');if(mode){easyGoalState.mode=mode.dataset.easyGoalMode;store.set('v10_goalMode',easyGoalState.mode);render();return;}const step=e.target.closest('[data-easy-week-step]');if(step){easyGoalState.weeks[DB.year]=Math.max(1,Math.min(52,easyGoalWeek()+Number(step.dataset.easyWeekStep)));store.set('v10_goalWeeks',easyGoalState.weeks);render();return;}const restore=e.target.closest('[data-easy-week-action="restore"]');if(restore){delete easyGoalState.goals[`${DB.year}-W${easyPad(easyGoalWeek())}`];store.set('v10_weekGoals',easyGoalState.goals);render();}});
  document.addEventListener('submit',e=>{if(e.target.id!=='v10WeekGoalForm')return;e.preventDefault();const data=new FormData(e.target),goals={};for(const k of ['total','power','meeting','contractCount','contractCap']){const raw=txt(data.get(k));goals[k]=raw===''?null:Number(raw);if(goals[k]!==null&&(!Number.isFinite(goals[k])||goals[k]<0))return;}const week=Number(e.target.dataset.week);easyGoalState.goals[`${DB.year}-W${easyPad(week)}`]={...goals};store.set('v10_weekGoals',easyGoalState.goals);render();const status=$('#v10WeekGoalStatus');if(status)status.textContent=`${week}주차 목표를 저장했습니다.`;});
  document.addEventListener('submit',e=>{if(e.target.id!=='easyPresentationCommentForm')return;e.preventDefault();easySavePresentationComment(e.target);});
  document.addEventListener('input',e=>{if(!e.target.matches?.('#easyPresentationCommentForm textarea'))return;const form=e.target.form,year=Number(form.dataset.year),month=Number(form.dataset.month),key=easyPresentationCommentKey(year,month),value=easyPresentationCommentFormText(form),parts=easyPresentationCommentParts(value);easyPresentationComments.drafts[key]=value;easyPresentationComments.dirty[key]=value!==(easyPresentationComments.records[key]?.text||'');const count=$('#easyPresentationCommentCount');if(count)count.textContent=`${(parts.analysis.length+parts.improvement.length).toLocaleString()} / 3,200자`;});
  document.addEventListener('change',e=>{if(!e.target.matches?.('[data-perf-staff]'))return;const name=e.target.dataset.perfStaff;if(e.target.checked&&!easyPresentationStaff.extra.includes(name))easyPresentationStaff.extra.push(name);if(!e.target.checked)easyPresentationStaff.extra=easyPresentationStaff.extra.filter(n=>n!==name);store.set('v10_presentation_staff_extra',easyPresentationStaff.extra);render();});
- document.addEventListener('click',e=>{if(e.target.closest('[data-v10-action="presentationPdf"]')){easyDownloadPresentationPdf();return;}const retry=e.target.closest('[data-v10-action="presentationCommentRetry"]');if(!retry)return;const year=Number(retry.dataset.year),month=Number(retry.dataset.month),key=easyPresentationCommentKey(year,month);easyPresentationComments.loaded[key]=false;easyPresentationComments.error[key]='';easyPresentationComments.message[key]='';easyEnsurePresentationComment(year,month);render();});
+ document.addEventListener('click',e=>{if(e.target.closest('[data-v10-action="presentationPdf"]')){easyDownloadPresentationPdf();return;}const edit=e.target.closest('[data-v10-action="presentationCommentEdit"]');if(edit){const key=easyPresentationCommentKey(edit.dataset.year,edit.dataset.month);if(!window.confirm(`${edit.dataset.year}년 ${edit.dataset.month}월 확정 코멘트를 수정합니다. 저장하기 전까지는 기존 내용이 유지됩니다.`))return;easyPresentationComments.editing[key]=true;easyPresentationComments.message[key]='';render();return;}const cancel=e.target.closest('[data-v10-action="presentationCommentCancel"]');if(cancel){const key=easyPresentationCommentKey(cancel.dataset.year,cancel.dataset.month);easyPresentationComments.editing[key]=false;easyPresentationComments.drafts[key]=easyPresentationComments.records[key]?.text||'';easyPresentationComments.dirty[key]=false;render();return;}const restore=e.target.closest('[data-v10-action="presentationCommentRestore"]');if(restore){if(!window.confirm(`${restore.dataset.year}년 ${restore.dataset.month}월 코멘트를 직전 저장본으로 되돌립니다. 지금 내용은 다시 되돌리기로 복구할 수 있습니다.`))return;easyRestorePresentationComment(restore.dataset.year,restore.dataset.month);return;}const retry=e.target.closest('[data-v10-action="presentationCommentRetry"]');if(!retry)return;const year=Number(retry.dataset.year),month=Number(retry.dataset.month),key=easyPresentationCommentKey(year,month);easyPresentationComments.loaded[key]=false;easyPresentationComments.error[key]='';easyPresentationComments.message[key]='';easyEnsurePresentationComment(year,month);render();});
+ document.addEventListener('click',e=>{if(!e.target.closest('[data-v10-action="reportMore"]'))return;easyReportMore.open=!easyReportMore.open;store.set('v10_reportMore',easyReportMore.open);render();});
  document.addEventListener('change',e=>{if(e.target.dataset.reportPart){easyReportOptions[e.target.dataset.reportPart]=e.target.checked;store.set('v10_reportParts',easyReportOptions);render();}});
  document.addEventListener('input',e=>{if(e.target.id==='v10ReportNote'){const output=document.querySelector('.easy-report-note');if(output)output.textContent=e.target.value;}});
  // Keep the automatic refresh options, without configuration URLs in the daily work surface.

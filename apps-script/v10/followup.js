@@ -85,7 +85,7 @@ function fuView(){
  +fuAdmin();
 }
 VIEWS.followup=fuView;
-EASY_NAV.splice(5,0,{k:'followup',label:'상담 후속관리',sub:'담당 상담 · 연락 일정 · 알림'});
+EASY_NAV.splice(EASY_NAV.findIndex(x=>x.k==='owner')+1,0,{k:'followup',label:'상담 후속관리',sub:'담당 상담 · 연락 일정 · 알림'});
 const fuOldRender=render;
 render=function(){fuOldRender();const bar=$('#periodbar');if(bar)bar.classList.toggle('fu-period-hidden',state.sect==='followup'&&FU.period==='all');const independent=['contract','followup'].includes(state.sect);$('#basisNote')?.classList.toggle('hide',independent);$('#easyFilterToggle')?.classList.toggle('hide',independent);if(independent)$('#easyConditions')?.classList.add('hide');if(state.sect==='contract')$('#easyPeriodNote').textContent=`${DB.year}년 ${periodLabel()} · ${contractBasisLabel()} 기준 · 아래 계약 전용 조건 적용`;const title=$('#sectTitle');if(title&&FU.data&&title.insertAdjacentHTML){document.querySelector('#fuBell')?.remove();const count=FU.data.rows.filter(r=>fuScope(r)&&fuAlert(r).key==='stale').length;title.insertAdjacentHTML('afterend',`<button id="fuBell" class="fu-bell" data-v10-section="followup">${FU.role==='own'?'필드':'컨설팅'} 미대응 확인 ${count}</button>`);}};
 document.addEventListener('submit',async e=>{

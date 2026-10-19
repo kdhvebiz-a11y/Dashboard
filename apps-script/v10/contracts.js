@@ -78,7 +78,7 @@ function contractView(){
  +v10Panel('계약 상세와 위치',`${a.rows.length}행 · 주소 기반 지도 검색 링크이며 현장 좌표를 검증한 것은 아닙니다.`,contractTable(a.rows))
  +`<details class="easy-details"><summary>계약 원본 확인 · 날짜 오류 ${issues.length}건 / 요약 대조</summary>${v10Table(['시트','행','발전소','확인 항목','원본 값'],issues)}${v10Table(['원본 파일','상세 행 수','요약표 건수','상세 용량','요약 용량','상세 공사금액','요약 공사금액'],CONTRACT_DATA.sources.map(s=>[esc(s.name),s.rows,v10Number(s.control.count),capS(s.detailCapacity),capS(s.control.capacity||0),contractMoney(s.detailAmount),contractMoney(s.control.amount??null)]))}<p>집계표의 수식 결과와 상세 원장에 차이가 있어도 원본을 수정하거나 행을 임의 삭제하지 않습니다. 파일명 날짜는 실제 계약일이나 데이터 마감일로 사용하지 않습니다.</p></details>`;
 }
-function contractReport(){const a=contractAggregate(selMonths(),{filtered:false});return v10Panel('실제 계약 실적','계약 원장 연도·보고 월 기준 · 문의·미팅 조건과 독립',contractSourceNote()+contractKpis(a)+contractGoalProgress());}
+function contractReport(){const a=contractAggregate(selMonths(),{filtered:false});return v10Panel('실제 계약 실적','계약 원장 연도·보고 월 기준 · 문의·미팅 조건과 독립',contractSourceNote()+contractKpis(a));}
 VIEWS.contract=contractView;
 const contractOldSecondary=easySecondary;
 easySecondary=function(a){
