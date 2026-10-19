@@ -243,10 +243,28 @@ function v10Meetings(basis){
  const rate=v10Line(exec?'실제 미팅 용량 추세':'문의 → 미팅 전환율',exec?'월별 총 용량 · kW':'접수월 미팅 ÷ 같은 달 전체 사업 문의',ax,[{name:exec?'미팅 용량':'미팅 전환율',color:V10.colors[5],values:vals.map(x=>exec?x.actualCap:x.power?pct(x.cohort,x.power):null)}],exec?'kW':'%');
  return v10Banner(exec?'실제 미팅 활동':'접수월별 미팅 성과',exec?a.actualSource:a.cohortSource)+v10Kpis(a)+`<div class="v10-grid">${graph}${rate}</div>`+v10PeoplePanel(exec?'own':'cons',basis)+v10PeriodTable()+v10Ledger(basis);
 }
+/* 컨설팅 실적 점수: 컨설팅 담당자(L열)와 제안서 작성자(K열)가 같은 사람이면 1점,
+   다른 사람이면 각 0.5점. 한쪽이 비어 있으면 적힌 사람이 1점. 둘 다 비면 '미지정' 1점. */
+function v10ConsultingCredits(rows){
+ const map=new Map(),get=name=>{if(!map.has(name))map.set(name,{name,score:0,solo:0,shared:0,asCons:0,asProp:0});return map.get(name);};
+ rows.forEach(r=>{
+  const cons=txt(r.cons),prop=txt(r.prop),names=[...new Set([cons,prop].filter(Boolean))];
+  if(cons)get(cons).asCons++;if(prop)get(prop).asProp++;
+  if(!names.length){const u=get('미지정');u.score+=1;u.solo++;return;}
+  if(names.length===1){const u=get(names[0]);u.score+=1;u.solo++;return;}
+  names.forEach(name=>{const u=get(name);u.score+=0.5;u.shared++;});
+ });
+ return map;
+}
 function v10PeopleData(role,basis,ms){
  const rows=v10Rows(ms,basis),map=new Map();
  rows.forEach(r=>{const nm=txt(r[role])||'미지정';if(!map.has(nm))map.set(nm,[]);map.get(nm).push(r);});
  let people=[...map].map(([name,rs])=>({name,...sumRows(rs)})).sort((a,b)=>b.n-a.n);
+ if(role==='cons'){
+  const credits=v10ConsultingCredits(rows);
+  credits.forEach((c,name)=>{if(!map.has(name))people.push({name,...sumRows([]),n:0,cap:0,mk:0,ref:0,avg:0});});
+  people=people.map(p=>({...p,...(credits.get(p.name)||{score:0,solo:0,shared:0,asCons:0,asProp:0})})).sort((a,b)=>b.score-a.score||b.n-a.n||a.name.localeCompare(b.name,'ko'));
+ }
  let source='미팅 원장';
  if(role==='own'&&basis==='exec'&&!DB.rawYear&&!v10ReportLedgerComplete(ms)&&state.cons==='전체'&&state.type==='전체'&&state.corp==='전체'&&!state.query&&(!state.region||state.region==='전체')){
   people=malOwnersFor(ms).filter(o=>state.owner==='전체'||o.name===state.owner).map(o=>{
@@ -268,9 +286,17 @@ function v10PeopleData(role,basis,ms){
  }
  return {people,source};
 }
+const v10Score=v=>Number.isInteger(v)?String(v):v.toFixed(1);
 function v10PeoplePanel(role,basis){
  const {people,source}=v10PeopleData(role,basis,selMonths());
- return v10Panel(role==='cons'?'미팅을 잡은 컨설팅 담당자':'현장 미팅 담당자',`${basis==='exec'?'보고 주차':'문의 접수월'} 기준 · ${source} · 이름을 누르면 해당 담당자로 조회`,v10Table(['담당자','미팅','마케팅','소개','미팅 용량','평균 용량'],people.map(p=>[
+ if(role==='cons'){
+  const total=people.reduce((s,p)=>s+(p.score||0),0);
+  return v10Panel('컨설팅 담당자 실적',`${basis==='exec'?'보고 주차':'문의 접수월'} 기준 · ${source} · 이름을 누르면 해당 담당자로 조회`,
+   v10Table(['담당자','실적 점수','단독 (1점)','분담 (0.5점)','컨설팅 담당','제안서 작성','미팅 용량','평균 용량'],people.map(p=>[
+    `<button data-v10-person="${role}" data-name="${esc(p.name)}">${esc(p.name)}</button>`,`<b>${v10Score(p.score||0)}점</b>`,i(p.solo||0)+'건',i(p.shared||0)+'건',i(p.asCons||0)+'건',i(p.asProp||0)+'건',capS(p.cap),d1(p.n?p.cap/p.n:0)+' kW'
+   ]))+`<p class="v10-note">점수 기준: 미팅 원장의 <b>컨설팅 담당자</b>와 <b>제안서 작성자</b>가 같은 사람이면 그 사람에게 1점, 서로 다르면 두 사람에게 0.5점씩. 한쪽만 적혀 있으면 적힌 사람이 1점. 점수 합계 ${v10Score(total)}점 = 미팅 ${i(Math.round(total))}건. 미팅 용량·평균은 컨설팅 담당자 기준입니다.</p>`);
+ }
+ return v10Panel('현장 미팅 담당자',`${basis==='exec'?'보고 주차':'문의 접수월'} 기준 · ${source} · 이름을 누르면 해당 담당자로 조회`,v10Table(['담당자','미팅','마케팅','소개','미팅 용량','평균 용량'],people.map(p=>[
  `<button data-v10-person="${role}" data-name="${esc(p.name)}">${esc(p.name)}</button>`,i(p.n),i(p.mk),i(p.ref),capS(p.cap),d1(p.n?p.cap/p.n:0)+' kW'
  ])));
 }

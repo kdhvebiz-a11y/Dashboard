@@ -34,6 +34,13 @@ run(`
  V10.current=DB;V10.selectedYear=2026;
  state.owner='전체';state.cons='전체';state.type='전체';state.src='전체';state.corp='전체';state.region='전체';state.query='';
 `);
+const credits=JSON.parse(run("JSON.stringify(Object.fromEntries(v10ConsultingCredits([{cons:'A',prop:'A'},{cons:'A',prop:'B'},{cons:'',prop:'C'},{cons:'',prop:''},{cons:'B',prop:''}])))"));
+assert.equal(credits.A.score,1.5,'same person on both roles earns 1, split earns 0.5');
+assert.equal(credits.B.score,1.5,'0.5 from the shared meeting plus 1 as sole consultant');
+assert.equal(credits.C.score,1,'proposal author alone earns the full point');
+assert.equal(credits['미지정'].score,1,'a meeting with no names goes to 미지정');
+assert.equal(credits.A.solo+credits.B.solo+credits.C.solo+credits['미지정'].solo+(credits.A.shared+credits.B.shared)/2,5,'points add up to one per meeting');
+assert.ok(run("v10PeoplePanel('cons','cohort')").includes('실적 점수'),'consulting table shows the score column');
 assert.equal(run('v10Aggregate([1]).cohort'),1,'Jan inquiry meeting remains in Jan cohort');
 assert.equal(run('v10Aggregate([7]).cohort'),1,'July cohort must not include Jan inquiry');
 assert.equal(run('v10Aggregate([7]).actual'),3,'actual month uses authoritative mal aggregate');
