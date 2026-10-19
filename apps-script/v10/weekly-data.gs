@@ -8,7 +8,7 @@ function collectWeeklyMeetingDataV10() {
       var m = sh.getName().match(/^(\d{2})\.(\d{2})$/);
       if (!m || Number(m[1]) < 25 || Number(m[2]) < 1 || Number(m[2]) > 12) return;
       try {
-        result.sheets.push({ sheet: sh.getName(), gid: sh.getSheetId(), year: 2000 + Number(m[1]), month: Number(m[2]), rows: sh.getRange('J1:O8').getDisplayValues() });
+        result.sheets.push({ sheet: sh.getName(), gid: sh.getSheetId(), year: 2000 + Number(m[1]), month: Number(m[2]), rows: sh.getRange('J1:Q8').getDisplayValues() });
       } catch (e) { result.errors.push(sh.getName() + ': ' + e.message); }
     });
   } catch (e) { result.errors.push(String(e.message || e)); }
