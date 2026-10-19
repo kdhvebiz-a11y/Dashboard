@@ -1,3 +1,4 @@
+.cw-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.cw-kpis .v10-kpi strong{font-size:34px}
 .cw-toolbar{display:contents}.cw-weekly .easy-spacer{display:none}
 .cw-pick{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:650;color:var(--ink2);white-space:nowrap}.cw-pick select{font:inherit;font-size:15px;font-weight:650;border:1px solid #adc9ee;padding:7px 10px;border-radius:8px;background:var(--surface);color:#1854b1;cursor:pointer}
 .cw-nav{display:inline-flex;gap:6px}.cw-nav .btn{font-size:14px;font-weight:650;padding:7px 13px;border-radius:8px}
