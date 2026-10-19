@@ -530,7 +530,8 @@ function easyInstall(){
  $('#easyMonth').addEventListener('change',e=>{if(e.target.value==='custom'){custom.classList.remove('hide');$('#easyCustomToggle').setAttribute('aria-expanded','true');return;}state.mode='month';state.months=[Number(e.target.value)];state.quarters=[];if(state.sect==='owner')state.owner='전체';if(state.sect==='cons')state.cons='전체';refreshFilters();render();});
  // The main team menu opens on field activity. The consultant subtab opens on
  // inquiry-cohort performance; users can still change the basis afterwards.
- $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-sect]');if(!b)return;if(b.dataset.sect==='owner')state.basis='exec';if(b.dataset.sect==='cons')state.basis='cohort';},true);
+ $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-sect]');if(!b)return;if(!DB){e.stopPropagation();e.preventDefault();return;} // menu is drawn before the data arrives
+  if(b.dataset.sect==='owner')state.basis='exec';if(b.dataset.sect==='cons')state.basis='cohort';},true);
  document.addEventListener('click',e=>{const b=e.target.closest('[data-easy-preset]');if(b)easyPreset(b.dataset.easyPreset);});
  document.addEventListener('change',e=>{if(e.target.id==='easyTeamBasis'){state.basis=e.target.value;render();}});
  document.addEventListener('change',e=>{if(e.target.id==='easyPresentationCommentMonth'){easyPresentationComments.months[DB.year]={month:Number(e.target.value),period:easyPresentationPeriodSig()};store.set('v10_presentation_comment_months',easyPresentationComments.months);render();}});

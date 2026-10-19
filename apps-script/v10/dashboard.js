@@ -472,6 +472,8 @@ loadViaRun=async function(fresh){setStatus('','시트를 읽는 중…');const d
 async function v10Boot(){
  try{
   setStatus('','시트를 읽는 중…');
+  // Show the menu and a clear wait message right away; a cold read of the source sheets can take minutes.
+  try{renderNav();skeleton('구글 시트에서 원본 자료를 읽는 중입니다');}catch(error){}
   if(window.__INLINE_DATA__?.tongye)v10AcceptPayload(window.__INLINE_DATA__,'구글 시트');
   else if(RUN_MODE){await loadViaRun(false);return;}
   else {const r=await fetch('/data.json',{cache:'no-store'});if(!r.ok)throw new Error('데이터 연결 실패');v10AcceptPayload(await r.json(),'로컬 미리보기 · 구글 시트');}

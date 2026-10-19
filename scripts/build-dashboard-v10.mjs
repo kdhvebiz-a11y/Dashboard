@@ -13,13 +13,16 @@ const contracts=(await read('contracts.js')).replace('__CONTRACT_DATA__',contrac
 const extension=(await read('dashboard.js')).replace('v10Boot();','')+'\n'+await read('source-audit.js')+'\n'+await read('easy-ui.js')+'\n'+await read('sales-meeting.js')+'\n'+contracts+'\n'+await read('followup.js')+'\n'+await read('weekly.js')+'\nv10Boot();';
 if(!html.includes('(function boot(){'))throw new Error('Template boot marker missing');
 html=html.replace('</head>',`<style>\n${css}\n</style>\n</head>`);
+html=html.replace('처음 열 때는 몇 초 걸립니다. 이후에는 훨씬 빠릅니다.','통계·말·문의 원장을 모두 읽습니다. 처음 열 때는 1~3분 걸릴 수 있고, 한 번 읽으면 30분 동안은 바로 열립니다. 새로고침을 누르면 바로 다시 읽습니다.');
 html=html.slice(0,html.indexOf('(function boot(){'))+'\n'+extension+'\n</script>\n<script>\n'+await read('business-parts.js')+'\n</script>\n</body>\n</html>\n';
 html=html.replace('const isContract = r => r.ct.indexOf(\'계약\') >= 0;',"const isContract = r => /계약/.test(r.ct) && !/미계약|계약\\s*(취소|예정|검토)|계약\\s*전/.test(r.ct);");
 html=html.replace("no.match(/^(?:sp)?(\\d{1,2})-/i)","no.match(/^(?:(?:sp|ugs)[- ]?)?(\\d{1,2})-/i)");
 html=html.replace("const s=String(v).replace(/[^0-9.\\-]/g,'');\nconst n=parseFloat(s);", "const hit=String(v).match(/-?\\d[\\d,]*(?:\\.\\d+)?/);\nconst n=hit?parseFloat(hit[0].replace(/,/g,'')):NaN;");
 let server=await read('template.gs');
 server=server.replace("'gsdash_v9'","'gsdash_v10'").replace('var CHUNK     = 90000','var CHUNK     = 24000');
-server=server.replace('var CACHE_SEC = 21600','var CACHE_SEC = 300');
+// A cold read of the source sheets takes minutes; keep the payload cached for 30 minutes.
+// 새로고침 and the client's timed refresh still force a fresh read (fresh=true).
+server=server.replace('var CACHE_SEC = 21600','var CACHE_SEC = 1800');
 server=server.replace('[  5,   0,   3,  14]','[  1,   0,   1,  14]');
 server=server.replace('var out = { at: new Date().toISOString() };','var out = { at: new Date().toISOString(), version: 10 };');
 server=server.replace('    return out;\n  } catch (err)',"    out.yearData = collectYearDataV10(SpreadsheetApp.openById(SHEET_ID));\n    return out;\n  } catch (err)");
