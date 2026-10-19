@@ -17,7 +17,9 @@ assert.ok(html.includes('text/html'),'clipboard keeps table formatting for Hangu
 assert.ok(source.includes('1. 유입별 문의건수')&&source.includes('2. 사업형태별 문의건수')&&source.includes('3. 미팅가망 및 특이사항'),'minutes preview follows the supplied meeting-note order');
 assert.ok(source.includes('후속 조치 · 담당/기한'),'minutes can append accountable next actions');
 assert.ok(source.includes("kind==='minutes'?'#salesMinutesCopy'"),'minutes copy is isolated from raw-detail tables');
-assert.ok(source.includes('월 전체는 달력월, 주차 합계는 보고 주차 기준'),'period distinction is explicit');
+assert.ok(source.includes('상단에서 선택한 연도·월의 문의 접수일을 기준'),'selected dashboard month controls the meeting report');
+assert.ok(source.includes('smParseInquiryLedger'),'historical months are rebuilt from inquiry dates');
+assert.ok(source.includes("같은 기간의 실제 미팅 원장"),'historical weeks use the matching meeting ledger range');
 assert.ok(source.includes('미팅26 시트의 N1:AE70'),'missing-source error is actionable');
 assert.ok(source.includes('보고 주차 선택'),'sales meeting report exposes week selection above the preview');
 assert.ok(source.includes('smDetailMeetingMatch'),'inquiry and meeting periods are paired by dates');

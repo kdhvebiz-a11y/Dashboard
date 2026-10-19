@@ -118,13 +118,13 @@ assert.equal(run('smParseMeetingReport(smMeetingFixture).entries.length'),2);
 assert.equal(run("smParseMeetingReport(smMeetingFixture).summary.source.find(x=>x[0]==='소개')[1]"),1);
 assert.equal(run("smPeriodBounds('2026/10/12(월)~2026/10/16(금)',2026,10).start"),'2026-10-12');
 assert.equal(run("smPeriodBounds('11/2~11/6',2026,10).end"),'2026-11-06');
-run('V10.payload.tongye=smInquiryFixture;V10.payload.meeting26=smMeetingFixture');
+run("state.mode='month';state.months=[9];state.quarters=[];V10.payload.tongye=smInquiryFixture;V10.payload.meeting26=smMeetingFixture");
 const salesMeetingView=run('easySalesMeeting()');
 assert.ok(salesMeetingView.includes('보고 주차 선택'));
-assert.ok(salesMeetingView.includes('문의 기준')&&salesMeetingView.includes('미팅 원본 기준'));
-assert.ok(salesMeetingView.includes('2026년 41주차'));
-assert.ok(salesMeetingView.includes('2026/10/05(월)~2026/10/09(금)'));
-assert.ok(salesMeetingView.includes('기간 확인 필요'),'different source periods are not silently merged');
+assert.ok(salesMeetingView.includes('문의 기준')&&salesMeetingView.includes('미팅 기준'));
+assert.ok(salesMeetingView.includes('2026년 36주차'));
+assert.ok(salesMeetingView.includes('2026/08/31(월)~2026/09/04(금)'));
+assert.ok(salesMeetingView.includes('날짜 일치'),'the selected inquiry week drives the historical meeting range');
 assert.ok(salesMeetingView.includes('월간 · 주차별 문의 현황'));
 assert.ok(salesMeetingView.includes('발전사업 (토지)'));
 assert.ok(salesMeetingView.includes('이번 주 사업주 미팅'));
@@ -133,6 +133,21 @@ assert.ok(salesMeetingView.includes('1. 유입별 문의건수'));
 assert.ok(salesMeetingView.includes('2. 사업형태별 문의건수'));
 assert.ok(salesMeetingView.includes('3. 미팅가망 및 특이사항'));
 assert.ok(salesMeetingView.includes('컨설팅-김동호'));
+run(`
+ V10.payload.yearData[2026]={records:[
+  {no:'02-0201',year:2026,cmo:2,inquiryDate:'2026-02-02',ct:'진행',src:'마케팅',type:'발전사업 (토지)',corp:'그랜드썬'},
+  {no:'sp02-0301',year:2026,cmo:2,inquiryDate:'2026-02-03',ct:'진행',src:'마케팅',type:'발전사업 (공장, 창고)',corp:'SP'},
+  {no:'02-0401',year:2026,cmo:2,inquiryDate:'2026-02-04',ct:'소개',src:'소개',type:'발전사업 (공장, 창고)',corp:'그랜드썬'}
+ ]};
+ state.mode='month';state.months=[2];salesMeetingState.detailKey='';
+`);
+assert.equal(run('smInquiryForSelection().month'),2,'sales report follows the selected dashboard month');
+assert.equal(run('smInquiryForSelection().details.length'),4,'February 2026 exposes four Monday-Friday reporting weeks');
+assert.equal(run("smInquiryForSelection().details[0].period"),'2/2~2/6');
+assert.equal(run("smInquiryForSelection().details[0].total[0].values[4]"),3,'selected week is rebuilt from inquiry dates');
+const februarySalesView=run('easySalesMeeting()');
+assert.ok(februarySalesView.includes('2026년 2월 1주차'));
+assert.ok(!februarySalesView.includes('문의 2026년 10월'),'February must never silently show October inquiry weeks');
 assert.equal(run("easyGroup('cons')"),'owner','consultant subtab keeps team navigation active');
 assert.equal(run("easyGroup('owner')"),'owner');
 run("state.sect='owner';state.basis='cohort'");
