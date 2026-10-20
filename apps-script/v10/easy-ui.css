@@ -51,6 +51,15 @@
 .v10-kpi strong{font-size:34px;line-height:1.6;font-weight:750}
 .v10-kpi .label{font-size:14px;font-weight:600;color:var(--ink2)}
 .v10-kpi small{font-size:13px;min-height:20px}
+/* KPI 카드의 마케팅/소개 분해: 얇은 두 색 막대 + 범례 칩 */
+.v10-kpis .v10-kpi{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
+.easy-split-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:10px 0 8px;background:var(--border)}
+.easy-split-bar i{display:block;min-width:3px}
+.easy-split-keys{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:auto;padding-top:6px;font-size:12.5px;color:var(--ink2)}
+.easy-split-keys span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.easy-split-keys i,.easy-src-key i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.easy-split-keys b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.easy-src-key{display:inline-flex;align-items:center;gap:7px}
 .easy-secondary{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:22px}
 .easy-secondary>div{padding:16px 22px;display:flex;justify-content:space-between;gap:12px;align-items:center;border-right:1px solid var(--border)}
 .easy-secondary>div:last-child{border-right:0}
