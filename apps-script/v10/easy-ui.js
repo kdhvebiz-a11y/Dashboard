@@ -80,12 +80,49 @@ function easySummaryBlocks(ms,a,g){
 }
 // The former overview screen is folded into the department report; keep the key for old links.
 function easyOverview(){return easyReport();}
+// 마케팅 · 소개 색: 주간 현황의 미팅 막대와 같은 색을 쓴다.
+const EASY_SRC={마케팅:V10.colors[0],소개:V10.colors[5]};
+// KPI 카드 + 마케팅/소개 분해 줄. parts=[{name,value(표시 문자열),share(막대용 숫자, 없으면 막대 생략),color}]
+function easyKpiSplit(label,value,note,color,section,parts){
+ const bar=parts.every(p=>Number.isFinite(p.share))&&parts.some(p=>p.share>0)?`<div class="easy-split-bar">${parts.map(p=>p.share>0?`<i style="flex:${p.share};background:${p.color}"></i>`:'').join('')}</div>`:'';
+ return `<button class="v10-kpi easy-kpi-split" style="--metric:${color}" data-v10-section="${section}"><span class="label">${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small>${bar}<div class="easy-split-keys">${parts.map(p=>`<span><i style="background:${p.color}"></i>${esc(p.name)} <b>${esc(p.value)}</b></span>`).join('')}</div></button>`;
+}
+// 문의 → 미팅 전환 화면 공통 몸통 (월별·주간이 같은 순서로 그려진다): 문의 추세 → 전환 건수 → 전환율(전체·마케팅·소개) + 분해표 → 담당자 실적
+function easyConversionBody(axis,points,opts){
+ const c=V10.colors,noun=opts.noun,src=name=>({name,color:EASY_SRC[name]});
+ return `<div class="v10-grid">${v10Line(`${noun}별 문의`,opts.inquirySub,axis,[{name:'전체 문의',color:c[0],values:points.map(p=>p.total)},{name:opts.powerName,color:c[1],values:points.map(p=>p.power)}])}${v10Line(`${noun}별 문의 → 미팅`,opts.cohortSub,axis,[{name:'미팅으로 이어진 건',color:c[2],values:points.map(p=>p.cohort)},{name:'그중 발전사업',color:c[4],values:points.map(p=>p.powerCohort)}])}</div>`
+ +`<div class="v10-grid">${v10Line(`${noun}별 발전사업 미팅 전환율`,opts.rateSub,axis,[{name:'전체',color:c[4],values:points.map(p=>p.rate)},{...src('마케팅'),values:points.map(p=>p.rateMk)},{...src('소개'),values:points.map(p=>p.rateRef)}],'%',{valueSeries:1})}${opts.splitPanel}</div>`
+ +opts.peoplePanel;
+}
+// 마케팅 · 소개 분해표: [이름, 발전사업 문의 수, 그 문의에서 이어진 미팅 원장 행]
+function easySourceSplit(groups,powerAll,rowsAll,sub){
+ const line=(name,pw,rows,bold)=>{const s=sumRows(rows),pm=rows.filter(r=>/^발전사업/.test(r.type)).length,w=v=>bold?`<b>${v}</b>`:v,key=EASY_SRC[name]?`<span class="easy-src-key"><i style="background:${EASY_SRC[name]}"></i>${esc(name)}</span>`:esc(name);return [w(key),w(v10Number(pw)),w(i(rows.length)),w(i(pm)),w(v10Rate(pm,pw)),w(capS(s.cap))];};
+ return v10Panel('마케팅 · 소개별 전환',sub,v10Table(['유입','발전사업 문의','미팅','그중 발전사업','전환율','미팅 용량'],[...groups.map(([name,pw,rows])=>line(name,pw,rows,false)),line('합계',powerAll,rowsAll,true)])+'<p class="v10-note">전환율 = 발전사업 미팅 ÷ 발전사업 문의 (각 유입 기준). 최근 접수분은 후속 미팅으로 계속 올라갑니다.</p>');
+}
+// 한 기간의 문의·미팅 집계에서 마케팅/소개 분해 숫자를 뽑는다 (월별은 v10Aggregate 결과, 주간은 cwWeekSet 결과를 같은 모양으로 맞춰 넘긴다).
+function easyConversionPoint(total,power,pwrMk,pwrRef,rows){
+ const by=name=>rows.filter(r=>v10Source(r.src)===name),pm=list=>list.filter(r=>/^발전사업/.test(r.type)).length;
+ const mk=by('마케팅'),ref=by('소개');
+ return {total,power,pwrMk,pwrRef,rows,mk,ref,cohort:rows.length,powerCohort:pm(rows),mkCohort:mk.length,refCohort:ref.length,
+  rate:power?pct(pm(rows),power):null,rateMk:pwrMk?pct(pm(mk),pwrMk):null,rateRef:pwrRef?pct(pm(ref),pwrRef):null,
+  rateMkText:v10Rate(pm(mk),pwrMk),rateRefText:v10Rate(pm(ref),pwrRef)};
+}
+function easyConversionKpis(p,totalNote,totalValue){
+ const c=V10.colors;
+ return `<div class="v10-kpis">${v10Card('전체 문의',totalValue,totalNote,c[0],'inquiry')}`
+ +easyKpiSplit('발전사업 문의',v10Number(p.power)+' 건',`전체 대비 ${v10Rate(p.power,p.total)}`,c[1],'inquiry',[{name:'마케팅',value:v10Number(p.pwrMk),share:p.pwrMk||0,color:EASY_SRC.마케팅},{name:'소개',value:v10Number(p.pwrRef),share:p.pwrRef||0,color:EASY_SRC.소개}])
+ +easyKpiSplit('미팅으로 이어진 건',i(p.cohort)+' 건',`그중 발전사업 ${i(p.powerCohort)}건`,c[2],'meetCoh',[{name:'마케팅',value:i(p.mkCohort),share:p.mkCohort,color:EASY_SRC.마케팅},{name:'소개',value:i(p.refCohort),share:p.refCohort,color:EASY_SRC.소개}])
+ +easyKpiSplit('발전사업 미팅 전환율',v10Rate(p.powerCohort,p.power),'발전사업 미팅 ÷ 발전사업 문의',c[4],'meetCoh',[{name:'마케팅',value:p.rateMkText,color:EASY_SRC.마케팅},{name:'소개',value:p.rateRefText,color:EASY_SRC.소개}])
+ +`</div>`;
+}
 function easyInquiry(){
  const a=v10Aggregate(selMonths()),axis=easyTrendAxis(),vals=axis.map(g=>v10Aggregate(g.months));
+ const point=x=>easyConversionPoint(x.total,x.power,x.pwrMk,x.pwrRef,x.rows),p=point(a),points=vals.map(point);
  return easyLead('이번에 들어온 문의가 미팅으로 이어졌나요?','선택한 달에 접수된 문의의 후속 성과입니다. 이후 다른 달에 진행한 미팅도 포함합니다.','문의 접수월 기준')
- +`<div class="v10-kpis">${v10Card('전체 문의',v10Number(a.total)+' 건','선택한 달에 접수된 문의',V10.colors[0],'inquiry')}${v10Card('전체 사업 문의',v10Number(a.power)+' 건',`전체 대비 ${v10Rate(a.power,a.total)}`,V10.colors[1],'inquiry')}${v10Card('미팅으로 이어진 건',i(a.cohort)+' 건',`전체 사업형태 · 발전사업 ${i(a.powerCohort)}건`,V10.colors[2],'meetCoh')}${v10Card('발전사업 미팅 전환율',v10Rate(a.powerCohort,a.power),'발전사업 미팅 ÷ 전체 사업 문의',V10.colors[4],'meetCoh')}</div>`
- +`<div class="v10-grid">${v10Line('접수월별 발전사업 미팅 전환율','분자와 분모 모두 발전사업 기준 · 최근 문의월은 후속 미팅으로 계속 늘어날 수 있습니다.',axis,[{name:'발전사업 미팅 전환율',color:V10.colors[4],values:vals.map(x=>x.power?pct(x.powerCohort,x.power):null)}],'%')}${v10PeoplePanel('cons','cohort')}</div>`
- +`<div class="v10-grid">${v10Line('월별 문의','전체 문의와 전체 사업 문의 · 접수월 기준',axis,[{name:'전체 문의',color:V10.colors[0],values:vals.map(x=>x.total)},{name:'전체 사업 문의',color:V10.colors[1],values:vals.map(x=>x.power)}])}${v10Line('월별 문의 → 미팅','접수월 기준 · 이후 다른 달에 진행한 미팅 포함 · 문의와 자릿수가 달라 따로 그립니다',axis,[{name:'미팅으로 이어진 건',color:V10.colors[2],values:vals.map(x=>x.cohort)},{name:'그중 발전사업',color:V10.colors[4],values:vals.map(x=>x.powerCohort)}])}</div>`
+ +easyConversionKpis(p,'선택한 달에 접수된 문의',v10Number(a.total)+' 건')
+ +easyConversionBody(axis,points,{noun:'월',powerName:'발전사업 문의',inquirySub:'전체 문의와 발전사업 문의 · 접수월 기준',cohortSub:'접수월 기준 · 이후 다른 달에 진행한 미팅 포함',rateSub:'분자·분모 모두 발전사업 기준 · 최근 문의월은 후속 미팅으로 계속 올라갑니다',
+   splitPanel:easySourceSplit([['마케팅',a.pwrMk,p.mk],['소개',a.pwrRef,p.ref]],a.power,a.rows,'선택한 달 접수 문의 · 발전사업 문의는 말 시트 집계, 미팅은 그 문의에서 이어진 미팅 원장'),
+   peoplePanel:v10PeoplePanel('cons','cohort')})
  +v10Breakdown('src').replace(/^.*?(?=<section class="v10-panel">)/s,'').replace(/<section class="v10-panel"><h3>비교 해석[\s\S]*/,'')
  +v10PeriodTable()+`<details class="easy-details"><summary>연결된 미팅 ${i(a.rows.length)}건 확인 · 내려받기</summary>${v10Ledger('cohort')}</details>`;
 }
