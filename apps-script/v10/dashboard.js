@@ -25,6 +25,26 @@ function v10Line(title,sub,axis,series,unit='건',options={}){
  // Series names live in the legend (or the title for a single line); end-of-line labels were cut off at the right edge and collided with value labels.
  return v10Panel(title,sub+(known.some(x=>!x)?' · 자료 없는 기간 제외':''),chartLine({labels:ix.map(i=>axis[i].label),series:usable.map(s=>({...s,values:ix.map(i=>s.values[i])})),unit,height:245,noLabels:true,...options}));
 }
+// Chart text size follows the chart's density: the visible font shrinks just enough that a point's value label fits between neighbouring points (never below 11px, never above 16px), so a half-width card with twelve months stays readable without overlapping numbers.
+function v10ChartFont(svg,widthPx){
+ const cfg=CH[svg.getAttribute('data-line')||svg.getAttribute('data-bar')];
+ if(!cfg||!Array.isArray(cfg.labels)||!cfg.labels.length)return 15;
+ const f=cfg.fmt||d1,u=cfg.unit||'',n=cfg.labels.length;
+ const longest=Math.max(3,...cfg.series.flatMap(s=>s.values.map(v=>v===null||v===undefined?0:String(f(v)+u).length)));
+ const slot=widthPx*0.8/Math.max(n-1,1),fit=slot/(longest*0.66);
+ return Math.max(11,Math.min(16,fit))*(cfg.series.length>2?0.84:cfg.series.length>1?0.94:1);
+}
+const v10WireChartsOriginal=wireCharts;
+wireCharts=function(root){
+ v10WireChartsOriginal(root);
+ if(typeof ResizeObserver==='undefined')return;
+ chartReadabilityObserver?.disconnect();
+ chartReadabilityObserver=new ResizeObserver(entries=>entries.forEach(({target})=>{
+  const box=target.getBoundingClientRect(),vb=target.viewBox.baseVal,scale=Math.min(box.width/vb.width,box.height/vb.height);
+  if(scale>0)target.style.setProperty('--chart-readable-font',`${v10ChartFont(target,box.width)/scale}px`);
+ }));
+ root.querySelectorAll('svg.chart').forEach(svg=>chartReadabilityObserver.observe(svg));
+};
 const v10OriginalRebuild = rebuild;
 function v10GroupedBars(title,sub,axis,series,unit='건'){
  const usable=series.filter(s=>s.values.some(v=>v!==null&&v!==undefined));

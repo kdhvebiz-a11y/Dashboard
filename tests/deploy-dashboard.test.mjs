@@ -32,7 +32,7 @@ function mock({failVersion=false,concurrentStage=false,failHealth=false,staleRea
  // A deployment update that the API reports late must not be treated as a failure (it was live and healthy).
  const m=mock({staleReads:3});const result=await deploy({...m,html,server,release});
  assert.equal(result.version,55);assert.equal(m.read().deployment.deploymentConfig.versionNumber,55,'late-visible deployment is kept');
- assert.equal(m.read().sleeps.length,3,'the version is polled instead of failing on the first stale read');
+ assert.ok(m.read().sleeps.length>=3,'the version is polled instead of failing on the first stale read');
 }
 {
  // Even when the API never catches up within the polling window, a healthy public release counts as deployed.

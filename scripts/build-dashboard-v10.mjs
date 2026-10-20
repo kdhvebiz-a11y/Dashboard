@@ -18,7 +18,26 @@ html=html.slice(0,html.indexOf('(function boot(){'))+'\n'+extension+'\n</script>
 html=html.replace('const isContract = r => r.ct.indexOf(\'계약\') >= 0;',"const isContract = r => /계약/.test(r.ct) && !/미계약|계약\\s*(취소|예정|검토)|계약\\s*전/.test(r.ct);");
 // Line charts: series names live in the legend, so the right margin shrinks when end labels are off, and the first `valueSeries` lines can carry value labels even with three series.
 html=html.replace('const P={l:100,r:Math.max(dlPad,150),t:32,b:42};','const P={l:100,r:showDL?Math.max(dlPad,150):48,t:32,b:42};');
-html=html.replace('if(!cfg.noVals && cfg.series.length<=2 && n<=13){\ncfg.series.forEach((sv,si)=>{\nconst multi=cfg.series.length>1;','const labelCount = cfg.noVals ? 0 : n<=13 ? (cfg.valueSeries || (cfg.series.length<=2 ? cfg.series.length : 0)) : 0;\nif(labelCount>0){\ncfg.series.forEach((sv,si)=>{\nif(si>=labelCount) return;\nconst multi=cfg.series.length>1;');
+{
+ // Value labels on up to three lines. At every x the highest point is labelled above, the lowest below and a middle one to the right, so crossing lines do not stack their labels.
+ const from=html.indexOf('if(!cfg.noVals && cfg.series.length<=2 && n<=13){'),to=html.indexOf('let hit=\'\';',from);
+ if(from<0||to<0)throw Error('chartLine value-label block not found');
+ html=html.slice(0,from)+`const labelCount = cfg.noVals ? 0 : n<=13 ? (cfg.valueSeries || (cfg.series.length<=3 ? cfg.series.length : 0)) : 0;
+if(labelCount>0){
+const multi=cfg.series.length>1;
+for(let k=0;k<n;k++){
+const pts=cfg.series.slice(0,labelCount).map((sv,si)=>({sv,si,v:sv.values[k]})).filter(p=>p.v>0).sort((a,b)=>b.v-a.v);
+pts.forEach((p,rank)=>{
+const y=Y(p.v);let ly,lx=X(k),anchor='middle';
+if(!multi||pts.length===1||rank===0)ly=y-10;
+else if(rank===pts.length-1){ly=y+17;if(ly>H-P.b-5)ly=y-10;}
+else {ly=y+4;lx=X(k)+8;anchor='start';}
+dl+=\`<text class="val\${multi?' vs':''}" x="\${lx.toFixed(1)}" y="\${ly.toFixed(1)}" text-anchor="\${anchor}"\${multi?\` style="fill:\${p.sv.color}"\`:''}>\${esc((cfg.fmt||d1)(p.v))}\${esc(cfg.unit||'')}</text>\`;
+});
+}
+}
+`+html.slice(to);
+}
 html=html.replace("no.match(/^(?:sp)?(\\d{1,2})-/i)","no.match(/^(?:(?:sp|ugs)[- ]?)?(\\d{1,2})-/i)");
 html=html.replace("const s=String(v).replace(/[^0-9.\\-]/g,'');\nconst n=parseFloat(s);", "const hit=String(v).match(/-?\\d[\\d,]*(?:\\.\\d+)?/);\nconst n=hit?parseFloat(hit[0].replace(/,/g,'')):NaN;");
 let server=await read('template.gs');

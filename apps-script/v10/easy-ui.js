@@ -90,8 +90,10 @@ function easyKpiSplit(label,value,note,color,section,parts){
 // 문의 → 미팅 전환 화면 공통 몸통 (월별·주간이 같은 순서로 그려진다): 문의 추세 → 전환 건수 → 전환율(전체·마케팅·소개) + 분해표 → 담당자 실적
 function easyConversionBody(axis,points,opts){
  const c=V10.colors,noun=opts.noun,src=name=>({name,color:EASY_SRC[name]});
- return `<div class="v10-grid">${v10Line(`${noun}별 문의`,opts.inquirySub,axis,[{name:'전체 문의',color:c[0],values:points.map(p=>p.total)},{name:opts.powerName,color:c[1],values:points.map(p=>p.power)}])}${v10Line(`${noun}별 문의 → 미팅`,opts.cohortSub,axis,[{name:'미팅으로 이어진 건',color:c[2],values:points.map(p=>p.cohort)},{name:'그중 발전사업',color:c[4],values:points.map(p=>p.powerCohort)}])}</div>`
- +`<div class="v10-grid">${v10Line(`${noun}별 발전사업 미팅 전환율`,opts.rateSub,axis,[{name:'전체',color:c[4],values:points.map(p=>p.rate)},{...src('마케팅'),values:points.map(p=>p.rateMk)},{...src('소개'),values:points.map(p=>p.rateRef)}],'%',{valueSeries:1})}${opts.splitPanel}</div>`
+ // 차트마다 값 표를 항상 펼쳐 두고(접힌 '값 표로 보기' 대신), 점 위 숫자는 세 선까지 모두 적는다.
+ const chart=(title,sub,series,unit)=>v10Line(title,sub,axis,series,unit,{tableAlwaysOpen:true}).replace('<section class="v10-panel">','<section class="v10-panel easy-chart-panel">').replace('월별 수치',`${noun}별 수치`);
+ return `<div class="v10-grid">${chart(`${noun}별 문의`,opts.inquirySub,[{name:'전체 문의',color:c[0],values:points.map(p=>p.total)},{name:opts.powerName,color:c[1],values:points.map(p=>p.power)}])}${chart(`${noun}별 문의 → 미팅`,opts.cohortSub,[{name:'미팅으로 이어진 건',color:c[2],values:points.map(p=>p.cohort)},{...src('마케팅'),values:points.map(p=>p.mkCohort)},{...src('소개'),values:points.map(p=>p.refCohort)}])}</div>`
+ +`<div class="v10-grid">${chart(`${noun}별 발전사업 미팅 전환율`,opts.rateSub,[{name:'전체',color:c[4],values:points.map(p=>p.rate)},{...src('마케팅'),values:points.map(p=>p.rateMk)},{...src('소개'),values:points.map(p=>p.rateRef)}],'%')}${opts.splitPanel}</div>`
  +opts.peoplePanel;
 }
 // 마케팅 · 소개 분해표: [이름, 발전사업 문의 수, 그 문의에서 이어진 미팅 원장 행]
@@ -528,8 +530,12 @@ renderPeriod=function(){
  $('#easyPeriodNote').textContent=`${DB.year}년 ${periodLabel()} · ${names.length?names.join(' / '):'부서 전체'}${partial?' · 이번 달은 진행 중인 실적입니다.':''}`;
  document.querySelectorAll('[data-easy-preset]').forEach(b=>{
   const p=b.dataset.easyPreset,now=Number(v10Today().slice(5,7));
-  b.classList.toggle('on',p==='this'&&state.mode==='month'&&state.months.length===1&&state.months[0]===now&&Number(DB.year)===Number(v10Today().slice(0,4))||p==='quarter'&&state.mode==='quarter'||p==='ytd'&&state.mode==='cumulative');
+  b.classList.toggle('on',p==='this'&&state.mode==='month'&&state.months.length===1&&state.months[0]===now&&Number(DB.year)===Number(v10Today().slice(0,4)));
  });
+ // 분기·연 누적 목록: 현재 조회 상태를 목록에 반영하고, 연 누적에는 자료가 있는 연도를 모두 보여 준다.
+ const quarter=$('#easyQuarter'),ytd=$('#easyYtd');
+ if(quarter){const q=state.mode==='quarter'&&state.quarters.length===1?String(state.quarters[0]):'';quarter.value=q;quarter.classList.toggle('on',!!q);if(quarter.options?.[0])quarter.options[0].textContent=q?`${q}분기 ▾`:'분기 ▾';}
+ if(ytd){const years=v10Years();ytd.innerHTML=`<option value="">연 누적 ▾</option>`+years.map(y=>`<option value="${y}">${y}년 누적</option>`).join('');const cur=state.mode==='cumulative'?String(DB.year):'';ytd.value=cur;ytd.classList.toggle('on',!!cur);if(ytd.options?.[0])ytd.options[0].textContent=cur?`${cur}년 누적 ▾`:'연 누적 ▾';}
  $('#basisNote').classList.add('hide');
 };
 function easyPreset(p){
@@ -546,11 +552,20 @@ function easyPreset(p){
  else if(p==='ytd'){state.mode='cumulative';state.months=[m];state.quarters=[];}
  refreshFilters();render();
 }
+// 분기 목록(1~4분기)과 연 누적 목록(연도별)에서 고르면 바로 그 기간으로 조회한다.
+function easyPickQuarter(q){
+ if(!q)return;state.mode='quarter';state.quarters=[Number(q)];state.months=[];refreshFilters();render();
+}
+function easyPickYtd(year){
+ if(!year)return;const y=Number(year),today=v10Today();
+ if(v10Years().includes(y)&&Number(DB.year)!==y)v10ActivateYear(y,false);
+ state.mode='cumulative';state.quarters=[];state.months=[y===Number(today.slice(0,4))?Number(today.slice(5,7)):12];refreshFilters();render();
+}
 function easyInstall(){
  const pbar=$('#periodbar'),oldTop=document.querySelector('.v10-top');
  const year=$('#v10Year'),reset=$('#v10ResetAll');
  const toolbar=document.createElement('div');toolbar.className='easy-toolbar';
- toolbar.innerHTML=`<div class="easy-period"><span id="easyYearSlot"></span><select id="easyMonth" aria-label="조회 월"><option value="custom">선택 기간</option>${Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}월</option>`).join('')}</select></div><button class="easy-preset easy-step" data-easy-preset="last">◀ 이전 달</button><button class="easy-preset easy-now" data-easy-preset="this">이번 달</button><button class="easy-preset easy-step" data-easy-preset="next">다음 달 ▶</button><button class="easy-preset" data-easy-preset="quarter">이번 분기</button><button class="easy-preset" data-easy-preset="ytd">연 누적</button><button class="easy-preset" id="easyCustomToggle" aria-expanded="false">기간 골라 비교</button><span class="easy-spacer"></span><button class="btn" id="easyFilterToggle" aria-expanded="false">상세 조건</button><span id="easyResetSlot"></span>`;
+ toolbar.innerHTML=`<div class="easy-period"><span id="easyYearSlot"></span><select id="easyMonth" aria-label="조회 월"><option value="custom">선택 기간</option>${Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}월</option>`).join('')}</select></div><button class="easy-preset easy-step" data-easy-preset="last">◀ 이전 달</button><button class="easy-preset easy-now" data-easy-preset="this">이번 달</button><button class="easy-preset easy-step" data-easy-preset="next">다음 달 ▶</button><select class="easy-preset easy-preset-select" id="easyQuarter" aria-label="분기 선택"><option value="">분기 ▾</option>${[1,2,3,4].map(q=>`<option value="${q}">${q}분기 · ${q*3-2}~${q*3}월</option>`).join('')}</select><select class="easy-preset easy-preset-select" id="easyYtd" aria-label="연 누적 선택"><option value="">연 누적 ▾</option></select><button class="easy-preset" id="easyCustomToggle" aria-expanded="false">기간 골라 비교</button><span class="easy-spacer"></span><button class="btn" id="easyFilterToggle" aria-expanded="false">상세 조건</button><span id="easyResetSlot"></span>`;
  pbar.prepend(toolbar);$('#easyYearSlot').appendChild(year);$('#easyResetSlot').appendChild(reset);reset.textContent='초기화';oldTop.classList.add('hide');
  const custom=document.createElement('div');custom.id='easyCustom';custom.className='easy-custom hide';
  custom.innerHTML='<p>비교할 월 또는 분기를 누르세요. 여러 개를 골라도 됩니다.</p>';
@@ -575,6 +590,7 @@ function easyInstall(){
  $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-sect]');if(!b)return;if(!DB){e.stopPropagation();e.preventDefault();return;} // menu is drawn before the data arrives
   if(b.dataset.sect==='owner')state.basis='exec';if(b.dataset.sect==='cons')state.basis='cohort';},true);
  document.addEventListener('click',e=>{const b=e.target.closest('[data-easy-preset]');if(b)easyPreset(b.dataset.easyPreset);});
+ document.addEventListener('change',e=>{if(e.target.id==='easyQuarter')easyPickQuarter(e.target.value);if(e.target.id==='easyYtd')easyPickYtd(e.target.value);});
  document.addEventListener('change',e=>{if(e.target.id==='easyTeamBasis'){state.basis=e.target.value;render();}});
  document.addEventListener('change',e=>{if(e.target.id==='easyPresentationCommentMonth'){easyPresentationComments.months[DB.year]={month:Number(e.target.value),period:easyPresentationPeriodSig()};store.set('v10_presentation_comment_months',easyPresentationComments.months);render();}});
  document.addEventListener('change',e=>{if(e.target.id==='v10GoalWeek'){easyGoalState.weeks[DB.year]=Number(e.target.value);store.set('v10_goalWeeks',easyGoalState.weeks);render();}});

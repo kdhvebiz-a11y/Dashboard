@@ -19,7 +19,10 @@ export function releaseFiles(published,html,server){
 export async function deploy({api,html,server,release,checkHealth,backup=async()=>{},warm=async()=>{},log=console.log,sleep=ms=>new Promise(r=>setTimeout(r,ms))}){
  if(!/^[a-f0-9]{40}$/i.test(release))throw Error('Deployment requires a Git commit identifier');
  if(!html.includes(`content="${release}"`)||!server.includes(`release:'${release}'`))throw Error('Build/release identifier mismatch');
- const prior=await api('deployments/'+DEPLOYMENT_ID);
+ // Right after another run updated the deployment, the API may still answer with the older record for a while;
+ // read until two consecutive answers agree so a stale first read is not mistaken for a concurrent change later.
+ let prior=await api('deployments/'+DEPLOYMENT_ID);
+ for(let n=0;n<8;n++){await sleep(3000);const again=await api('deployments/'+DEPLOYMENT_ID);const same=JSON.stringify(again.deploymentConfig)===JSON.stringify(prior.deploymentConfig);prior=again;if(same)break;}
  if(!Number.isInteger(prior.deploymentConfig?.versionNumber))throw Error('Existing versioned deployment is required');
  const published=await api('content?versionNumber='+prior.deploymentConfig.versionNumber);
  const head=await api('content');
