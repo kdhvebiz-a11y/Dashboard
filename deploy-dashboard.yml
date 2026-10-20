@@ -1,0 +1,40 @@
+name: Deploy dashboard
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consulting-dashboard-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'kdhvebiz-a11y/Dashboard' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout trusted main branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Build with private inputs
+        env:
+          CONTRACT_DATA_GZIP_BASE64: ${{ secrets.CONTRACT_DATA_GZIP_BASE64 }}
+          FOLLOWUP_ADMIN_HASH: ${{ secrets.FOLLOWUP_ADMIN_HASH }}
+        run: node scripts/build-dashboard-v10.mjs
+      - name: Test before publishing
+        run: node --test tests/*.test.mjs
+      - name: Deploy existing Apps Script URL and check health
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: node scripts/deploy-dashboard.mjs
