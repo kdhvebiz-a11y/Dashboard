@@ -22,7 +22,8 @@ function v10Line(title,sub,axis,series,unit='건',options={}){
  const known=axis.map((_,ix)=>usable.every(s=>s.values[ix]!==null));
  const ix=axis.map((_,i)=>i).filter(i=>known[i]);
  if(!ix.length)return v10Panel(title,sub,v10Empty('이 조건의 추세를 계산할 자료가 없습니다.'));
- return v10Panel(title,sub+(known.some(x=>!x)?' · 자료 없는 기간 제외':''),chartLine({labels:ix.map(i=>axis[i].label),series:usable.map(s=>({...s,values:ix.map(i=>s.values[i])})),unit,height:245,...options}));
+ // Series names live in the legend (or the title for a single line); end-of-line labels were cut off at the right edge and collided with value labels.
+ return v10Panel(title,sub+(known.some(x=>!x)?' · 자료 없는 기간 제외':''),chartLine({labels:ix.map(i=>axis[i].label),series:usable.map(s=>({...s,values:ix.map(i=>s.values[i])})),unit,height:245,noLabels:true,...options}));
 }
 const v10OriginalRebuild = rebuild;
 function v10GroupedBars(title,sub,axis,series,unit='건'){
