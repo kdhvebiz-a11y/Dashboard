@@ -6,12 +6,17 @@ const editor=structuredClone(published);editor.files[3].source='unpublished user
 assert.equal(releaseFiles(published,html,server).files[3].source,'published alert');
 assert.equal(published.files[1].source,'old html','release assembly must not mutate the published snapshot');
 assert.throws(()=>releaseFiles({files:[]},html,server),/missing/);
-function mock({failVersion=false,concurrentStage=false,failHealth=false}={}){
+function mock({failVersion=false,concurrentStage=false,failHealth=false,staleReads=0}={}){
  let head=structuredClone(editor),deployment={deploymentConfig:{scriptId:'script',versionNumber:54,manifestFileName:'appsscript',description:'existing'}};
- let staged=false,conflicted=false;const calls=[];
+ let staged=false,conflicted=false,stale=0,puts=0,previous=null;const calls=[],sleeps=[];
  const api=async(path,method='GET',body)=>{
   calls.push({path,method});
-  if(path==='deployments/'+DEPLOYMENT_ID){if(method==='PUT')deployment=structuredClone(body);return structuredClone(deployment);}
+  if(path==='deployments/'+DEPLOYMENT_ID){
+   if(method==='PUT'){previous=deployment;deployment=structuredClone(body);stale=puts++===0?staleReads:0;return structuredClone(deployment);}
+   // Simulate the API answering with the pre-update deployment for a few reads after a PUT.
+   if(stale>0&&previous){stale--;return structuredClone(previous);}
+   return structuredClone(deployment);
+  }
   if(path.startsWith('content?'))return structuredClone(published);
   if(path==='content'){
    if(method==='PUT'){head=structuredClone(body);staged=head.files[1].source===html;}
@@ -21,7 +26,22 @@ function mock({failVersion=false,concurrentStage=false,failHealth=false}={}){
   if(path==='versions'&&method==='POST'){if(failVersion)throw Error('version unavailable');return {versionNumber:55};}
   throw Error('Unexpected API operation');
  };
- return {api,checkHealth:async()=>!failHealth,log:()=>{},read:()=>({head,deployment,calls})};
+ return {api,checkHealth:async()=>!failHealth,log:()=>{},sleep:async ms=>{sleeps.push(ms);},read:()=>({head,deployment,calls,sleeps})};
+}
+{
+ // A deployment update that the API reports late must not be treated as a failure (it was live and healthy).
+ const m=mock({staleReads:3});const result=await deploy({...m,html,server,release});
+ assert.equal(result.version,55);assert.equal(m.read().deployment.deploymentConfig.versionNumber,55,'late-visible deployment is kept');
+ assert.equal(m.read().sleeps.length,3,'the version is polled instead of failing on the first stale read');
+}
+{
+ // Even when the API never catches up within the polling window, a healthy public release counts as deployed.
+ const m=mock({staleReads:99});const result=await deploy({...m,html,server,release});
+ assert.equal(result.version,55);assert.equal(m.read().deployment.deploymentConfig.versionNumber,55);
+}
+{
+ const m=mock({staleReads:99,failHealth:true});await assert.rejects(()=>deploy({...m,html,server,release}),/version verification failed/);
+ assert.equal(m.read().deployment.deploymentConfig.versionNumber,54,'unhealthy release is rolled back even when the API lags');
 }
 {
  const m=mock();const result=await deploy({...m,html,server,release});
