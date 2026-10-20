@@ -16,7 +16,7 @@ export function releaseFiles(published,html,server){
  }
  return next;
 }
-export async function deploy({api,html,server,release,checkHealth,backup=async()=>{},log=console.log}){
+export async function deploy({api,html,server,release,checkHealth,backup=async()=>{},warm=async()=>{},log=console.log}){
  if(!/^[a-f0-9]{40}$/i.test(release))throw Error('Deployment requires a Git commit identifier');
  if(!html.includes(`content="${release}"`)||!server.includes(`release:'${release}'`))throw Error('Build/release identifier mismatch');
  const prior=await api('deployments/'+DEPLOYMENT_ID);
@@ -61,6 +61,8 @@ export async function deploy({api,html,server,release,checkHealth,backup=async()
   throw e;
  }
  log('Deployment verified: version '+version.versionNumber+' / commit '+release.slice(0,12));
+ // Pre-read the sheets so the first visitor after a deploy gets a warm cache instead of a cold multi-minute read.
+ try{await warm();log('Cache warmed after deployment.');}catch(e){log('Cache warm-up skipped: '+(e.message||e));}
  return {version:version.versionNumber,previousVersion:prior.deploymentConfig.versionNumber,url:WEB_URL};
 }
 export async function main(){
@@ -88,7 +90,10 @@ export async function main(){
   const folder=new URL('../outputs/deployment-'+Date.now()+'/',import.meta.url);await mkdir(folder,{recursive:true});
   await writeFile(new URL('prior.json',folder),JSON.stringify(data),{mode:0o600});
  };
- const result=await deploy({api,html,server,release:env.GITHUB_SHA,checkHealth,backup});
+ const warm=async()=>{
+  for(const q of ['?data=1&fresh=1','?weekly=1']){const r=await fetch(WEB_URL+q,{signal:AbortSignal.timeout(330000)});if(!r.ok)throw Error('warm-up '+q+' HTTP '+r.status);await r.text();}
+ };
+ const result=await deploy({api,html,server,release:env.GITHUB_SHA,checkHealth,backup,warm});
  if(env.GITHUB_STEP_SUMMARY)await writeFile(env.GITHUB_STEP_SUMMARY,`## Dashboard deployed\n- Commit: ${env.GITHUB_SHA}\n- Version: ${result.version}\n- Previous version: ${result.previousVersion}\n- [Open dashboard](${WEB_URL})\n`,{flag:'a'});
  return result;
 }
