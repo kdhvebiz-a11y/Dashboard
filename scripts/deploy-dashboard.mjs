@@ -16,7 +16,7 @@ export function releaseFiles(published,html,server){
  }
  return next;
 }
-export async function deploy({api,html,server,release,checkHealth,backup=async()=>{},warm=async()=>{},log=console.log}){
+export async function deploy({api,html,server,release,checkHealth,backup=async()=>{},warm=async()=>{},log=console.log,sleep=ms=>new Promise(r=>setTimeout(r,ms))}){
  if(!/^[a-f0-9]{40}$/i.test(release))throw Error('Deployment requires a Git commit identifier');
  if(!html.includes(`content="${release}"`)||!server.includes(`release:'${release}'`))throw Error('Build/release identifier mismatch');
  const prior=await api('deployments/'+DEPLOYMENT_ID);
@@ -45,19 +45,25 @@ export async function deploy({api,html,server,release,checkHealth,backup=async()
  const target={...prior.deploymentConfig,versionNumber:version.versionNumber,description:'GitHub '+release.slice(0,12)};
  const latest=await api('deployments/'+DEPLOYMENT_ID);
  if(JSON.stringify(latest.deploymentConfig)!==JSON.stringify(prior.deploymentConfig))throw Error('Deployment changed concurrently; refusing to replace it');
+ // The Apps Script API can answer a GET with the pre-update deployment for a while after a PUT,
+ // so the version is polled and the public health check (which proves the live release) is decisive.
+ const settled=async want=>{
+  for(let n=0;n<12;n++){
+   const d=await api('deployments/'+DEPLOYMENT_ID);
+   if(d.deploymentConfig?.versionNumber===want)return true;
+   await sleep(5000);
+  }
+  return false;
+ };
  try{
   await api('deployments/'+DEPLOYMENT_ID,'PUT',{deploymentConfig:target});
-  const verified=await api('deployments/'+DEPLOYMENT_ID);
-  if(verified.deploymentConfig.versionNumber!==version.versionNumber)throw Error('Deployment version verification failed');
-  if(!await checkHealth(release))throw Error('Published health check failed');
+  const confirmed=await settled(version.versionNumber);
+  if(!confirmed)log('Deployment version not yet visible through the API; relying on the public health check.');
+  if(!await checkHealth(release))throw Error(confirmed?'Published health check failed':'Deployment version verification failed');
  }catch(e){
-  const current=await api('deployments/'+DEPLOYMENT_ID);
-  if(current.deploymentConfig.versionNumber===version.versionNumber){
-   await api('deployments/'+DEPLOYMENT_ID,'PUT',{deploymentConfig:prior.deploymentConfig});
-   const restored=await api('deployments/'+DEPLOYMENT_ID);
-   if(restored.deploymentConfig.versionNumber!==prior.deploymentConfig.versionNumber)throw Error('Rollback could not be verified; inspect deployment immediately');
-   log('Previous deployment restored after verification failure.');
-  }
+  await api('deployments/'+DEPLOYMENT_ID,'PUT',{deploymentConfig:prior.deploymentConfig});
+  if(!await settled(prior.deploymentConfig.versionNumber))throw Error('Rollback could not be verified; inspect deployment immediately');
+  log('Previous deployment restored after verification failure.');
   throw e;
  }
  log('Deployment verified: version '+version.versionNumber+' / commit '+release.slice(0,12));
