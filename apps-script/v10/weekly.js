@@ -98,7 +98,7 @@ function cwView(){
   +tile(V10.colors[3],'주간 미팅',`${cwLabel(r.meetingStart,r.meetingEnd)} · 금~목`,i(meeting.n),'건',`용량 <b>${esc(cwShow(meeting.cap,' kW'))}</b>${meeting.n&&meeting.cap?` · 건당 ${d1(meeting.cap/meeting.n)} kW`:''} · 마케팅 ${cwShow(meeting.marketing.n)} · 소개 ${cwShow(meeting.referral.n)}`,`${meetingSource}${meeting.scheduled?` · 예정 ${i(meeting.scheduled)}건 포함`:''}${ledgerNote}`)
   +`</div>`;
  const inquiryBody=(totals||biz)?v10Table(['구분','합계','그랜드썬','SP','유지에스','소개'],[
-  ['전체 주간문의',`<b>${cwShow(totals?totals.total:null)}</b>`,cwShow(totals?totals.gs:null),cwShow(totals?totals.sp:null),cwShow(totals?totals.ugs:null),'—'],
+  ['전체 주간문의',`<b>${cwShow(totals?totals.total:null)}</b>`,cwShow(totals?totals.gs:null),cwShow(totals?totals.sp:null),cwShow(totals?totals.ugs:null),'<span class="v10-note" title="말 시트 전체 문의 표에는 소개 구분이 없습니다">구분 없음</span>'],
   ['발전사업 주간 문의',`<b>${cwShow(biz?biz.all.total:null)}</b>`,cwShow(biz?biz.all.gs:null),cwShow(biz?biz.all.sp:null),cwShow(biz?biz.all.ugs:null),cwShow(biz?biz.all.ref:null)],
   ['발전사업 주간 진행',`<b>${cwShow(biz?biz.active.total:null)}</b>`,cwShow(biz?biz.active.gs:null),cwShow(biz?biz.active.sp:null),cwShow(biz?biz.active.ugs:null),cwShow(biz?biz.active.ref:null)]
  ]):v10Empty('이 주의 문의 원본 자료가 연결되지 않았습니다.');

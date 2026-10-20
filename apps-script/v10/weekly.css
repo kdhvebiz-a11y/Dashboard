@@ -4,9 +4,11 @@
 .cw-nav .cw-step{background:#e9f1ff;border-color:#adc9ee;color:#1854b1}.cw-nav .cw-step:hover:not(:disabled){background:#d6e5fb}.cw-nav .cw-step:disabled{opacity:.45;cursor:default}
 .cw-nav .cw-now{background:#fff3d6;border-color:#f0c66b;color:#8a5a00}.cw-nav .cw-now:hover{background:#ffe9b8}.cw-nav .cw-now.on{background:#2364d2;border-color:#2364d2;color:#fff}
 .cw-current{margin-left:auto;margin-right:6px;font-size:18px;white-space:nowrap}.cw-current small{display:block;font-size:12px;font-weight:500;color:var(--muted);text-align:right}
-html[data-theme="dark"] .cw-pick select{background:#192638;border-color:#3b5f8f;color:#bcd4f7}html[data-theme="dark"] .cw-nav .cw-step{background:#1f3a60;border-color:#3b5f8f;color:#cfe0fb}html[data-theme="dark"] .cw-nav .cw-now{background:#4a3a12;border-color:#8a6b22;color:#ffd98a}html[data-theme="dark"] .cw-nav .cw-now.on{background:#2364d2;border-color:#2364d2;color:#fff}.cw-panels{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}.cw-panels>section{min-width:0}.cw-selected{font-weight:800;background:#eaf2ff;border-radius:5px;padding:4px 8px}.cw-open{color:#1854b1;border-color:#adc9ee}
+html[data-theme="dark"] .cw-pick select{background:#192638;border-color:#3b5f8f;color:#bcd4f7}html[data-theme="dark"] .cw-nav .cw-step{background:#1f3a60;border-color:#3b5f8f;color:#cfe0fb}html[data-theme="dark"] .cw-nav .cw-now{background:#4a3a12;border-color:#8a6b22;color:#ffd98a}html[data-theme="dark"] .cw-nav .cw-now.on{background:#2364d2;border-color:#2364d2;color:#fff}.cw-panels{display:grid;grid-template-columns:1fr 1fr;gap:18px}.cw-panels>section{min-width:0}.cw-panels .v10-table{max-width:none}
+.cw-meet-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:22px;align-items:start}.cw-meet-grid>div{min-width:0}.cw-sub{margin:0 0 8px;font-size:13px;color:var(--muted)}.cw-sub b{color:var(--ink)}
+@media(max-width:1000px){.cw-meet-grid{grid-template-columns:1fr}}.cw-selected{font-weight:800;background:#eaf2ff;border-radius:5px;padding:4px 8px}.cw-open{color:#1854b1;border-color:#adc9ee}
 .cw-weekly #periodbar .easy-preset:not(.cw-open),.cw-weekly #easyMonth,.cw-weekly #easyFilterToggle,.cw-weekly #easyConditions,.cw-weekly #easyCustom,.cw-weekly #basisNote{display:none!important}.cw-weekly .cw-open{background:#2364d2;color:#fff}.cw-weekly .foot>div:first-child{display:none}
-@media(max-width:1000px){.cw-panels{grid-template-columns:1fr}}@media(max-width:1000px){.cw-current{margin-left:0;width:100%}.cw-current small{text-align:left}}
+@media(max-width:1000px){.cw-current{margin-left:0;width:100%}.cw-current small{text-align:left}}
 
 /* Weekly summary: three tiles side by side */
 .cw-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
@@ -16,3 +18,14 @@ html[data-theme="dark"] .cw-pick select{background:#192638;border-color:#3b5f8f;
 .cw-tile-line{font-size:14px;color:var(--ink2);margin:2px 0 6px}.cw-tile-line b{color:var(--ink)}
 .cw-tile small{display:block;font-size:12px;color:var(--muted);line-height:1.45}
 @media(max-width:1100px){.cw-tiles{grid-template-columns:1fr}}
+
+/* Stacked horizontal bars (weekly) */
+.cw-bars{display:grid;gap:12px;margin:6px 0 10px}
+.cw-bar-row{display:grid;grid-template-columns:118px 1fr 64px;grid-template-areas:"label track value" "label note note";column-gap:12px;row-gap:2px;align-items:center}
+.cw-bar-label{grid-area:label;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cw-bar-track{grid-area:track;height:22px;background:var(--grid);border-radius:5px;overflow:hidden}
+.cw-bar{display:flex;height:100%;gap:2px;border-radius:0 5px 5px 0;min-width:0}.cw-bar span{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;color:#fff;font-size:12px;font-weight:650;font-variant-numeric:tabular-nums}
+.cw-bar-value{grid-area:value;text-align:right;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cw-bar-note{grid-area:note;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cw-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin:4px 0 2px}.cw-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+@media(max-width:1100px){.cw-panels{grid-template-columns:1fr}}
