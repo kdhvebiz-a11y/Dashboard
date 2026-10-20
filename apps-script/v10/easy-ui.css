@@ -189,3 +189,9 @@ html[data-theme="dark"] .perf-next{background:#183453;color:#bdd4f5;border-color
 @media(max-width:900px){.easy-block-grid{grid-template-columns:1fr}.easy-stack{grid-template-columns:1fr 1fr;grid-template-rows:auto}.easy-bridge-row{grid-template-columns:1fr;gap:6px}.easy-bridge-row strong{text-align:left}}
 
 @media print{.easy-report-more{display:block!important}}
+
+/* Month stepper colours match the weekly picker: step = light blue, now = yellow (dark blue when selected) */
+.easy-preset.easy-step{background:#e9f1ff;border-color:#adc9ee;color:#1854b1;font-weight:650}.easy-preset.easy-step:hover{background:#d6e5fb}
+.easy-preset.easy-now{background:#fff3d6;border-color:#f0c66b;color:#8a5a00;font-weight:650}.easy-preset.easy-now:hover{background:#ffe9b8}.easy-preset.easy-now.on{background:#2364d2;border-color:#2364d2;color:#fff}
+.easy-preset[data-easy-preset="quarter"],.easy-preset[data-easy-preset="ytd"]{border-color:var(--border)}
+html[data-theme="dark"] .easy-preset.easy-step{background:#1f3a60;border-color:#3b5f8f;color:#cfe0fb}html[data-theme="dark"] .easy-preset.easy-now{background:#4a3a12;border-color:#8a6b22;color:#ffd98a}html[data-theme="dark"] .easy-preset.easy-now.on{background:#2364d2;color:#fff}

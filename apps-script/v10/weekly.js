@@ -148,11 +148,60 @@ function cwToolbarHTML(year){
  const options=Array.from({length:count},(_,n)=>{const w=cwRange(year,n+1);return `<option value="${n+1}" ${week===n+1?'selected':''}>${n+1}주차 · ${cwLabel(w.start,w.end)}${n+1===today?' · 이번 주':''}</option>`;}).join('');
  return `<label class="cw-pick">연간 주차<select id="consultingWeek" aria-label="연간 주차">${options}</select></label><div class="cw-nav" role="group" aria-label="주차 이동"><button class="btn cw-step" type="button" data-cw-step="-1" ${week===1?'disabled':''}>◀ 이전 주</button><button class="btn cw-now${week===today?' on':''}" type="button" data-cw-today ${week===today?'aria-current="true"':''}>이번 주</button><button class="btn cw-step" type="button" data-cw-step="1" ${week===count?'disabled':''}>다음 주 ▶</button></div><strong class="cw-current">${year}년 ${week}주차 <small>문의 ${cwLabel(range.start,range.end)} · 미팅 ${cwLabel(range.meetingStart,range.meetingEnd)}</small></strong>`;
 }
-renderPeriod=function(){cwOriginalPeriod();const weekly=state.sect==='weekly';document.body.classList.toggle('cw-weekly',weekly);
- const toolbar=document.querySelector('.easy-toolbar');let slot=document.getElementById('cwToolbarWeek');
+/* 주간 범위를 지원하는 화면: 문의·미팅 전환, 유입·법인·지역·용량. 월별 ↔ 주간 토글은 브라우저에 기억한다. */
+const CW_SCOPED=['inquiry','meetCoh','source','corp','region','capacity'];
+CW.scope=store.get('v10_cwScope','month');
+const cwScopeActive=()=>state.sect==='weekly'||(CW_SCOPED.includes(state.sect)&&CW.scope==='week');
+const cwScopeToggle=()=>`<div class="seg cw-scope" role="group" aria-label="조회 단위"><button type="button" data-cw-scope="month" class="${CW.scope==='month'?'on':''}">월별</button><button type="button" data-cw-scope="week" class="${CW.scope==='week'?'on':''}">주간</button></div>`;
+renderPeriod=function(){cwOriginalPeriod();const weekly=cwScopeActive(),scoped=CW_SCOPED.includes(state.sect);document.body.classList.toggle('cw-weekly',weekly);document.body.classList.toggle('cw-scoped',scoped);
+ const toolbar=document.querySelector('.easy-toolbar');let slot=document.getElementById('cwToolbarWeek'),toggle=document.getElementById('cwScopeToggle');
+ if(scoped&&toolbar){if(!toggle){toggle=document.createElement('div');toggle.id='cwScopeToggle';toggle.className='cw-toolbar';const period=toolbar.querySelector('.easy-period');period?period.before(toggle):toolbar.prepend(toggle);}toggle.innerHTML=cwScopeToggle();}
+ else toggle?.remove?.();
  if(weekly&&toolbar){if(!slot){slot=document.createElement('div');slot.id='cwToolbarWeek';slot.className='cw-toolbar';const period=toolbar.querySelector('.easy-period');period?period.after(slot):toolbar.prepend(slot);}slot.innerHTML=cwToolbarHTML(Number(DB.year));}
  else slot?.remove?.();
- if(weekly){$('#easyPeriodNote').textContent=`${DB.year}년 · 연간 주차 조회 · 문의 월~금 / 미팅 금~목 · 부서 전체`;} };
+ if(weekly){const w=cwSelected(Number(DB.year)),r=cwRange(Number(DB.year),w);$('#easyPeriodNote').textContent=`${DB.year}년 ${w}주차 · 문의 ${cwLabel(r.start,r.end)} (월~금) / 미팅 ${cwLabel(r.meetingStart,r.meetingEnd)} (금~목) · 부서 전체`;} };
+document.addEventListener('click',e=>{const b=e.target.closest('[data-cw-scope]');if(!b)return;CW.scope=b.dataset.cwScope;store.set('v10_cwScope',CW.scope);render();});
+
+/* ---- 주간 모드의 문의·상담 화면 ---- */
+function cwInquiryNoDate(no,year){const m=txt(no).match(/^(?:(?:sp|ugs)[- ]?)?(\d{1,2})-(\d{2})/i);return m?`${year}-${String(m[1]).padStart(2,'0')}-${m[2]}`:'';}
+function cwWeekSet(year,week){
+ const r=cwRange(year,week),totals=cwInquiryTotals(V10.payload,year,r),ledger=cwLedger(V10.payload,year)||[];
+ const inquiries=ledger.filter(x=>x.inquiryDate>=r.start&&x.inquiryDate<=r.end);
+ const meetings=DB.ledger.filter(x=>{const d=cwInquiryNoDate(x.no,year);return d>=r.start&&d<=r.end&&x.date;});
+ return {range:r,totals,inquiries,meetings,sum:sumRows(meetings),power:inquiries.filter(x=>/^발전사업/.test(x.type)),powerMeet:meetings.filter(x=>/^발전사업/.test(x.type))};
+}
+function cwWeekAxis(year,week,n=12){const out=[];for(let w=Math.max(1,week-n+1);w<=week;w++)out.push({label:`${w}주`,week:w});return out;}
+function cwWeeklyInquiry(){
+ const year=Number(DB.year),week=cwSelected(year),d=cwWeekSet(year,week),axis=cwWeekAxis(year,week),sets=axis.map(a=>cwWeekSet(year,a.week));
+ const credits=v10ConsultingCredits(d.meetings),people=[...credits.values()].sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'ko'));
+ const byName=name=>d.meetings.filter(x=>(txt(x.cons)||'미지정')===name);
+ return easyLead(`${week}주차에 들어온 문의가 미팅으로 이어졌나요?`,`${cwLabel(d.range.start,d.range.end)} 월~금에 접수된 문의의 후속 성과입니다. 이후 다른 주에 진행한 미팅도 포함합니다.`,'문의 접수일 기준')
+ +`<div class="v10-kpis">${v10Card('전체 문의',cwShow(d.totals?d.totals.total:null,' 건'),'말 시트 주차 표 · 월~금',V10.colors[0],'inquiry')}${v10Card('발전사업 문의',i(d.inquiries.length)+' 건',`문의 원장 접수일 기준 · 전체 대비 ${d.totals?v10Rate(d.inquiries.length,d.totals.total):'—'}`,V10.colors[1],'inquiry')}${v10Card('미팅으로 이어진 건',i(d.meetings.length)+' 건',`전체 사업형태 · 발전사업 ${i(d.powerMeet.length)}건 · ${capS(d.sum.cap)}`,V10.colors[2],'meetCoh')}${v10Card('발전사업 미팅 전환율',v10Rate(d.powerMeet.length,d.power.length),'발전사업 미팅 ÷ 발전사업 문의 · 최근 주는 계속 늘어납니다',V10.colors[4],'meetCoh')}</div>`
+ +`<div class="v10-grid">${v10Line('주차별 발전사업 미팅 전환율',`최근 ${axis.length}주 · 분자·분모 모두 발전사업 기준`,axis,[{name:'발전사업 미팅 전환율',color:V10.colors[4],values:sets.map(x=>x.power.length?pct(x.powerMeet.length,x.power.length):null)}],'%')}${v10Panel('컨설팅 담당자 실적',`${week}주차 접수 문의에서 이어진 미팅 · 통계 시트 미팅 원장 기준`,people.length?v10Table(['담당자','실적 점수','단독 (1점)','분담 (0.5점)','컨설팅 담당','제안서 작성','미팅 용량'],people.map(p=>[esc(p.name),`<b>${v10Score(p.score)}점</b>`,i(p.solo)+'건',i(p.shared)+'건',i(p.asCons)+'건',i(p.asProp)+'건',capS(sumRows(byName(p.name)).cap)]))+`<p class="v10-note">컨설팅 담당자와 제안서 작성자가 같으면 1점, 다르면 0.5점씩. 점수 합계 ${v10Score(people.reduce((s,p)=>s+p.score,0))}점 = 미팅 ${i(d.meetings.length)}건.</p>`:v10Empty('이 주 문의에서 이어진 미팅이 아직 없습니다.'))}</div>`
+ +`<div class="v10-grid">${v10Line('주차별 문의','전체 문의는 말 시트 주차 표, 발전사업 문의는 문의 원장 접수일 · 월~금',axis,[{name:'전체 문의',color:V10.colors[0],values:sets.map(x=>x.totals?x.totals.total:null)},{name:'발전사업 문의',color:V10.colors[1],values:sets.map(x=>x.inquiries.length)}])}${v10Line('주차별 문의 → 미팅','접수 주차 기준 · 이후에 진행한 미팅 포함 · 문의와 자릿수가 달라 따로 그립니다',axis,[{name:'미팅으로 이어진 건',color:V10.colors[2],values:sets.map(x=>x.meetings.length)},{name:'그중 발전사업',color:V10.colors[4],values:sets.map(x=>x.powerMeet.length)}])}</div>`;
+}
+function cwWeeklyMarket(k){
+ const year=Number(DB.year),week=cwSelected(year),d=cwWeekSet(year,week),label=`${week}주차 · 문의 ${cwLabel(d.range.start,d.range.end)}`;
+ const row=(name,inqAll,inqRows,mtRows)=>{const s=sumRows(mtRows),pw=inqRows.filter(x=>/^발전사업/.test(x.type)).length,pm=mtRows.filter(x=>/^발전사업/.test(x.type)).length;return [esc(name),inqAll===undefined?'—':cwShow(inqAll),i(inqRows.length),i(mtRows.length),v10Rate(pm,pw),capS(s.cap),d1(s.avg)+' kW'];};
+ const head=['구분','전체 문의 (말)','발전사업 문의','미팅','발전 미팅 전환율','미팅 용량','평균 용량'];
+ if(k==='source'){
+  const rows=[['마케팅','소개'].map(name=>row(name,undefined,d.inquiries.filter(x=>x.src===name),d.meetings.filter(x=>v10Source(x.src)===name)))].flat();
+  return v10Banner('마케팅 · 소개 성과',label)+v10Panel('문의부터 미팅까지','발전사업 문의는 문의 원장 접수일(월~금), 미팅은 그 문의에서 이어진 미팅 원장 기준. 말 시트 주차 표에는 유입 구분이 없어 전체 문의는 —.',v10Table(head,rows));
+ }
+ if(k==='corp'){
+  const map={그랜드썬:d.totals?.gs,SP:d.totals?.sp,UGS:d.totals?.ugs};
+  const rows=['그랜드썬','SP','UGS'].map(name=>row(name,map[name]===undefined?undefined:(map[name]??null),d.inquiries.filter(x=>v10Corp(x.corp)===name),d.meetings.filter(x=>v10Corp(x.corp)===name)));
+  return v10Banner('법인별 문의 성과',label)+v10Panel('문의부터 미팅까지','전체 문의는 말 시트 주차 표의 법인별 건수, 발전사업 문의는 문의 원장, 미팅은 그 문의에서 이어진 미팅 원장 기준.',v10Table(head,rows));
+ }
+ if(k==='region'){
+  const rows=RG_ORDER.map(name=>row(name,undefined,d.inquiries.filter(x=>regionOf(x.reg)===name||x.reg===name),d.meetings.filter(x=>regionOf(x.reg)===name||x.reg===name)));
+  return v10Banner('지역별 문의와 미팅',label)+v10Panel('권역별 실적','발전사업 문의는 문의 원장의 지역(접수일 기준), 미팅은 그 문의에서 이어진 미팅 원장 기준. 지역 미기재 건은 제외.',v10Table(head,rows));
+ }
+ const recorded=d.meetings.filter(r=>r.cap>0),bands=capBands(recorded),labels=['50 kW 미만','50~100 kW 미만','100~300 kW 미만','300~500 kW 미만','500~1,000 kW 미만','1,000~1,500 kW 미만','1,500~2,000 kW 미만','2,000 kW 이상'];
+ return v10Banner('미팅 용량 분석',label)+v10Panel('용량 구간별 비율',`${week}주차 문의에서 이어진 미팅 중 용량이 기록된 ${i(recorded.length)}건 기준`,v10Table(['용량 구간','미팅','건수 비중','미팅 용량','평균 용량'],bands.map((b,j)=>[labels[j],i(b.n),v10Rate(b.n,recorded.length),capS(b.cap),d1(b.n?b.cap/b.n:0)+' kW'])));
+}
+for(const key of ['inquiry','meetCoh']){const orig=VIEWS[key];VIEWS[key]=()=>cwScopeActive()?cwWeeklyInquiry():orig();}
+for(const key of ['source','corp','region','capacity']){const orig=VIEWS[key];VIEWS[key]=()=>cwScopeActive()?easySubnav([['source','마케팅 · 소개'],['corp','법인'],['region','지역'],['capacity','용량']],key)+cwWeeklyMarket(key):orig();}
 const cwToolbar=document.querySelector('.easy-toolbar');
 if(cwToolbar){const button=document.createElement('button');button.className='easy-preset cw-open';button.dataset.v10Section='weekly';button.textContent='주간 조회';cwToolbar.insertBefore(button,cwToolbar.firstChild);}
 document.addEventListener('change',e=>{if(e.target.id==='consultingWeek'){CW.weeks[DB.year]=Number(e.target.value);store.set('v10_consultingWeeks',CW.weeks);render();}});
