@@ -97,18 +97,36 @@ function cwView(){
   +tile(V10.colors[1],'발전사업 주간 문의',`${cwLabel(r.start,r.end)} · 월~금`,cwShow(biz?biz.all.total:null,''),biz?'건':'',biz?`진행 <b>${i(biz.active.total)}건</b> · 마케팅 ${i(biz.all.total-biz.all.ref)}건 · 소개 ${i(biz.all.ref)}건`:'—',esc(biz?'문의 원장 접수일 기준':bizSub))
   +tile(V10.colors[3],'주간 미팅',`${cwLabel(r.meetingStart,r.meetingEnd)} · 금~목`,i(meeting.n),'건',`용량 <b>${esc(cwShow(meeting.cap,' kW'))}</b>${meeting.n&&meeting.cap?` · 건당 ${d1(meeting.cap/meeting.n)} kW`:''} · 마케팅 ${cwShow(meeting.marketing.n)} · 소개 ${cwShow(meeting.referral.n)}`,`${meetingSource}${meeting.scheduled?` · 예정 ${i(meeting.scheduled)}건 포함`:''}${ledgerNote}`)
   +`</div>`;
- const inquiryBody=(totals||biz)?v10Table(['구분','합계','그랜드썬','SP','유지에스','소개'],[
-  ['전체 주간문의',`<b>${cwShow(totals?totals.total:null)}</b>`,cwShow(totals?totals.gs:null),cwShow(totals?totals.sp:null),cwShow(totals?totals.ugs:null),'<span class="v10-note" title="말 시트 전체 문의 표에는 소개 구분이 없습니다">구분 없음</span>'],
-  ['발전사업 주간 문의',`<b>${cwShow(biz?biz.all.total:null)}</b>`,cwShow(biz?biz.all.gs:null),cwShow(biz?biz.all.sp:null),cwShow(biz?biz.all.ugs:null),cwShow(biz?biz.all.ref:null)],
-  ['발전사업 주간 진행',`<b>${cwShow(biz?biz.active.total:null)}</b>`,cwShow(biz?biz.active.gs:null),cwShow(biz?biz.active.sp:null),cwShow(biz?biz.active.ugs:null),cwShow(biz?biz.active.ref:null)]
- ]):v10Empty('이 주의 문의 원본 자료가 연결되지 않았습니다.');
- const meetingSplit=v10Table(['구분','미팅 건수','미팅 용량','건당 평균'],[['<b>전체</b>',`<b>${i(meeting.n)}건</b>`,`<b>${cwShow(meeting.cap,' kW')}</b>`,meeting.n?d1(meeting.cap/meeting.n)+' kW':'—'],['마케팅',cwShow(meeting.marketing.n),cwShow(meeting.marketing.cap,' kW'),meeting.marketing.n&&meeting.marketing.cap?d1(meeting.marketing.cap/meeting.marketing.n)+' kW':'—'],['소개',cwShow(meeting.referral.n),cwShow(meeting.referral.cap,' kW'),meeting.referral.n&&meeting.referral.cap?d1(meeting.referral.cap/meeting.referral.n)+' kW':'—']]);
- const meetingOwners=meeting.owners.length?v10Table(['미팅담당자','건수','마케팅','소개','용량','건당'],meeting.owners.map(o=>[esc(o.name),`<b>${i(o.n)}건</b>`,i(o.mk)+'건',i(o.ref)+'건',cwShow(o.cap,' kW'),o.n?d1(o.cap/o.n)+' kW':'—'])):v10Empty(meeting.n?'원장에 담당자가 적힌 미팅이 없습니다.':'이 주에 기록된 미팅이 없습니다.');
- const meetingBody=`<div class="cw-meet-grid"><div><p class="cw-sub"><b>유입별</b> · ${esc(meetingSource)}</p>${meetingSplit}</div><div><p class="cw-sub"><b>담당자별</b> · 통계 시트 미팅 원장 기준</p>${meetingOwners}</div></div>`;
+ // Stacked horizontal bars: every row shares one scale so lengths compare directly.
+ const CW_CORP=[['gs','그랜드썬',V10.colors[0]],['sp','SP',V10.colors[2]],['ugs','유지에스',V10.colors[4]],['ref','소개',V10.colors[5]]];
+ const cwBar=(segments,total,max,label,valueText,note)=>{
+  const segs=segments.filter(x=>x.value>0).map(x=>`<span style="flex:${x.value};background:${x.color}" title="${esc(x.name)} ${i(x.value)}건">${x.value/max>0.09?i(x.value):''}</span>`).join('');
+  const width=max>0&&total!==null?Math.max(total/max*100,total>0?2:0):0;
+  return `<div class="cw-bar-row"><div class="cw-bar-label">${label}</div><div class="cw-bar-track"><div class="cw-bar" style="width:${width.toFixed(1)}%">${segs}</div></div><div class="cw-bar-value">${valueText}</div><div class="cw-bar-note">${note||''}</div></div>`;
+ };
+ const legend=items=>`<div class="cw-legend">${items.map(([name,color])=>`<span><i style="background:${color}"></i>${esc(name)}</span>`).join('')}</div>`;
+ const rate=(a,b)=>a!==null&&b?`${Math.round(a/b*100)}%`:'—';
+ const inqMax=Math.max(totals?totals.total:0,biz?biz.all.total:0,1);
+ const corpSegs=src=>CW_CORP.map(([k,name,color])=>({name,color,value:src?.[k]||0}));
+ const inquiryBody=(totals||biz)?`<div class="cw-bars">`
+  +cwBar(corpSegs(totals),totals?totals.total:null,inqMax,'전체 문의',`<b>${cwShow(totals?totals.total:null)}</b>`,totals?`그랜드썬 ${i(totals.gs)} · SP ${i(totals.sp)} · 유지에스 ${i(totals.ugs)}`:esc(totalSub))
+  +cwBar(corpSegs(biz?.all),biz?biz.all.total:null,inqMax,'발전사업 문의',`<b>${cwShow(biz?biz.all.total:null)}</b>`,biz&&totals?`전체의 ${rate(biz.all.total,totals.total)} · 소개 ${i(biz.all.ref)}건`:(biz?`소개 ${i(biz.all.ref)}건`:'문의 원장 미연결'))
+  +cwBar(corpSegs(biz?.active),biz?biz.active.total:null,inqMax,'발전사업 진행',`<b>${cwShow(biz?biz.active.total:null)}</b>`,biz?`발전사업 문의의 ${rate(biz.active.total,biz.all.total)} · 진행·계약 상태`:'')
+  +`</div>`+legend(CW_CORP.map(([k,name,color])=>[name,color]))
+  :v10Empty('이 주의 문의 원본 자료가 연결되지 않았습니다.');
+ const SRC_COLORS={마케팅:V10.colors[0],소개:V10.colors[5]};
+ const mtMax=Math.max(meeting.n,...meeting.owners.map(o=>o.n),1);
+ const srcSeg=(mk,ref)=>[{name:'마케팅',color:SRC_COLORS.마케팅,value:mk||0},{name:'소개',color:SRC_COLORS.소개,value:ref||0}];
+ const mkN=meeting.marketing.n,refN=meeting.referral.n,splitKnown=mkN!==null&&refN!==null;
+ const meetingBody=`<div class="cw-bars">`
+  +cwBar(splitKnown?srcSeg(mkN,refN):[{name:'전체',color:V10.colors[3],value:meeting.n}],meeting.n,mtMax,'<b>전체</b>',`<b>${i(meeting.n)}건</b>`,`${esc(cwShow(meeting.cap,' kW'))}${meeting.n&&meeting.cap?` · 건당 ${d1(meeting.cap/meeting.n)} kW`:''}${splitKnown?` · 마케팅 ${i(mkN)} / 소개 ${i(refN)}`:''}`)
+  +meeting.owners.map(o=>cwBar(srcSeg(o.mk,o.ref),o.n,mtMax,esc(o.name),`<b>${i(o.n)}건</b>`,`${esc(cwShow(o.cap,' kW'))}${o.n?` · 건당 ${d1(o.cap/o.n)} kW`:''}`)).join('')
+  +`</div>`+legend([['마케팅',SRC_COLORS.마케팅],['소개',SRC_COLORS.소개]])
+  +(meeting.owners.length?'':v10Empty(meeting.n?'원장에 담당자가 적힌 미팅이 없습니다.':'이 주에 기록된 미팅이 없습니다.'));
  const today=v10Today();
  const rows=Array.from({length:count},(_,n)=>{const d=cwData(year,n+1),futureInq=d.range.start>today,futureMt=d.range.meetingStart>today;return [`<button class="easy-link ${n+1===week?'cw-selected':''}" data-cw-week="${n+1}">${n+1}주차</button>`,cwLabel(d.range.start,d.range.end),cwShow(d.totals?d.totals.total:null),futureInq?'—':cwShow(d.biz?d.biz.all.total:null),futureInq?'—':cwShow(d.biz?d.biz.active.total:null),cwLabel(d.range.meetingStart,d.range.meetingEnd),futureMt&&!d.meeting.n?'—':i(d.meeting.n)+'건',futureMt&&!d.meeting.n?'—':cwShow(d.meeting.cap,' kW')];});
  return easyLead('컨설팅 주간 실적',`${year}년 ${week}주차 · 문의와 미팅의 원본 보고 기간을 각각 확인합니다. 주차는 위 조회 바에서 바꿉니다.`,`${year}년 ${week}주차${week===cwThisWeek(year)?' · 이번 주':''}`)+summary
- +`<div class="cw-panels">${v10Panel('유입별 주간 문의',`${cwLabel(r.start,r.end)} · 월~금 · 전체 문의는 말 시트 주차 표, 발전사업 문의·진행은 ${year}년 문의 원장 접수일 기준`,inquiryBody+`<p class="v10-note">빈칸은 —, 원본의 0은 0으로 표시합니다.</p><a class="easy-link" href="${SALES_MEETING_SOURCE.inquiry}" target="_blank" rel="noopener">문의 원본 열기 ↗</a>`)}${v10Panel('주간 미팅 실적',`${cwLabel(r.meetingStart,r.meetingEnd)} · 금~목`,meetingBody+`<p class="v10-note">미팅 원본: 주간 업무 진행사항 시트 월별 탭(${esc(sheet?.sheet||'26.MM')}) J~Q 주차 집계. 담당자별은 통계 시트 미팅 원장의 미팅날짜 기준이며 원장 집계는 ${i(meeting.ledger.n)}건 · ${cwShow(meeting.ledger.cap,' kW')}입니다.</p><a class="easy-link" href="https://docs.google.com/spreadsheets/d/1DkUE6SYR9uyS3TGzlRTq28yuGluYpnuF2yuyCt_2lx8/edit?gid=${sheet?.gid||1866167974}" target="_blank" rel="noopener">미팅 원본 열기 ↗</a>`)}</div>`
+ +`<div class="cw-panels">${v10Panel('유입별 주간 문의',`${cwLabel(r.start,r.end)} · 월~금 · 전체 → 발전사업 → 진행 순으로 좁아집니다`,inquiryBody+`<p class="v10-note">전체 문의는 말 시트 주차 표(법인별), 발전사업 문의·진행은 ${year}년 문의 원장 접수일 기준. 막대 길이는 세 줄이 같은 눈금입니다.</p><a class="easy-link" href="${SALES_MEETING_SOURCE.inquiry}" target="_blank" rel="noopener">문의 원본 열기 ↗</a>`)}${v10Panel('주간 미팅 실적',`${cwLabel(r.meetingStart,r.meetingEnd)} · 금~목 · 전체와 담당자별, 마케팅·소개로 나눔`,meetingBody+`<p class="v10-note">미팅 원본: 주간 업무 진행사항 시트 월별 탭(${esc(sheet?.sheet||'26.MM')}) J~Q 주차 집계. 담당자별은 통계 시트 미팅 원장의 미팅날짜 기준이며 원장 집계는 ${i(meeting.ledger.n)}건 · ${cwShow(meeting.ledger.cap,' kW')}입니다.</p><a class="easy-link" href="https://docs.google.com/spreadsheets/d/1DkUE6SYR9uyS3TGzlRTq28yuGluYpnuF2yuyCt_2lx8/edit?gid=${sheet?.gid||1866167974}" target="_blank" rel="noopener">미팅 원본 열기 ↗</a>`)}</div>`
  +((CW.error||V10.payload?.weeklyMeetings?.errors?.length)?`<div class="v10-callout" role="status">미팅 자료 연결 확인 필요: ${esc(CW.error||V10.payload.weeklyMeetings.errors.join(' / '))}</div>`:'')
  +`<p class="v10-note">주차는 ISO 연간 주차를 사용합니다.${count===53?' '+year+'년은 달력상 53주차가 있어 연말 누락 없이 표시합니다.':''} 서로 다른 기간의 문의와 미팅으로 전환율을 계산하지 않습니다. 전체 문의는 말 시트 주차 표, 발전사업 문의는 문의 원장, 미팅은 주간 업무 진행사항 시트의 월별 탭에서 가져옵니다.</p>`
  +v10Panel('연간 주차별 비교','주차를 누르면 해당 주의 상세 자료로 이동합니다.',v10Table(['주차','문의 기간 (월~금)','전체 문의','발전사업 문의','발전사업 진행','미팅 기간 (금~목)','미팅 건수','미팅 용량'],rows))
