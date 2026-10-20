@@ -16,6 +16,9 @@ html=html.replace('</head>',`<style>\n${css}\n</style>\n</head>`);
 html=html.replace('처음 열 때는 몇 초 걸립니다. 이후에는 훨씬 빠릅니다.','통계·말·문의 원장을 모두 읽습니다. 처음 열 때는 1~3분 걸릴 수 있고, 평소에는 미리 읽어 둔 자료로 바로 열립니다. 새로고침을 누르면 지금 바로 다시 읽습니다.');
 html=html.slice(0,html.indexOf('(function boot(){'))+'\n'+extension+'\n</script>\n<script>\n'+await read('business-parts.js')+'\n</script>\n</body>\n</html>\n';
 html=html.replace('const isContract = r => r.ct.indexOf(\'계약\') >= 0;',"const isContract = r => /계약/.test(r.ct) && !/미계약|계약\\s*(취소|예정|검토)|계약\\s*전/.test(r.ct);");
+// Line charts: series names live in the legend, so the right margin shrinks when end labels are off, and the first `valueSeries` lines can carry value labels even with three series.
+html=html.replace('const P={l:100,r:Math.max(dlPad,150),t:32,b:42};','const P={l:100,r:showDL?Math.max(dlPad,150):48,t:32,b:42};');
+html=html.replace('if(!cfg.noVals && cfg.series.length<=2 && n<=13){\ncfg.series.forEach((sv,si)=>{\nconst multi=cfg.series.length>1;','const labelCount = cfg.noVals ? 0 : n<=13 ? (cfg.valueSeries || (cfg.series.length<=2 ? cfg.series.length : 0)) : 0;\nif(labelCount>0){\ncfg.series.forEach((sv,si)=>{\nif(si>=labelCount) return;\nconst multi=cfg.series.length>1;');
 html=html.replace("no.match(/^(?:sp)?(\\d{1,2})-/i)","no.match(/^(?:(?:sp|ugs)[- ]?)?(\\d{1,2})-/i)");
 html=html.replace("const s=String(v).replace(/[^0-9.\\-]/g,'');\nconst n=parseFloat(s);", "const hit=String(v).match(/-?\\d[\\d,]*(?:\\.\\d+)?/);\nconst n=hit?parseFloat(hit[0].replace(/,/g,'')):NaN;");
 let server=await read('template.gs');
