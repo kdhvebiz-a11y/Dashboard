@@ -29,3 +29,14 @@ html[data-theme="dark"] .contract-basis button.on{background:#203c61}html[data-t
 .fu-days b{display:block;font-size:20px;font-weight:800;white-space:nowrap}.fu-days b i{font-style:normal;font-size:12px;font-weight:600;margin-left:1px}.fu-days small{font-size:10px;margin-top:2px;color:inherit;opacity:.8;white-space:nowrap}
 .main .v10-panel .v10-table table.fu-compact{font-size:13px}.main .v10-panel .fu-compact :is(th,td){padding:9px 7px;font-size:13px}
 .fu-days.warm{background:#fff1d6;color:#8a5a00}.fu-days.hot{background:#fde3e3;color:#9c1f2b}.fu-days.recent{background:#e6f5ef;color:#10744e}.fu-days.none{color:var(--muted)}
+
+/* 선택 항목을 한 패널에: 담당 구분(작은 토글) · 담당자 · 연도 · 범위 · 검색 · 상태 탭 */
+.fu-one{padding:16px 18px}
+.fu-filter-row{display:grid;grid-template-columns:auto minmax(150px,1fr) minmax(130px,.8fr) minmax(150px,1fr) minmax(220px,1.6fr) auto;gap:12px;align-items:end}
+.fu-filter-row label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--ink2)}
+.fu-filter-row select,.fu-filter-row input{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--plane);color:var(--ink)}
+.fu-role-seg button{padding:8px 16px;font-size:14px;font-weight:600}
+.fu-one .fu-tabs{margin:12px 0 6px}.fu-one .fu-tabs button{padding:7px 13px;font-size:13px}
+.fu-one .v10-note{margin:4px 0 0}
+@media(max-width:1150px){.fu-filter-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.fu-filter-row{grid-template-columns:1fr 1fr}}

@@ -27,14 +27,19 @@ function fuObserveNotes_(rows){
    var encoded='';for(var j=0;j<manifest.count;j++){var chunk=all['fu_note_'+manifest.generation+'_'+j];if(!chunk)throw Error('내용 변경 추적 저장소를 확인하세요.');encoded+=chunk;}
    map=JSON.parse(Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(encoded),'application/gzip')).getDataAsString());
   }
-  var today=fuToday_(),dirty=false;
+  var today=fuToday_(),dirty=false,next={};
+  // 계약·종료 상담은 추적하지 않고, 더 이상 없는 상담의 기록은 버려서 저장 공간을 아낀다.
   rows.forEach(function(r){
    if(r.duplicate||!r.noteFingerprint)return;
-   var key=fuHash_(r.id).slice(0,24),old=map[key],hash=r.noteFingerprint;
-   if(!old){old=[hash,today,''];map[key]=old;dirty=true;}
-   else if(old[0]!==hash){old=[hash,old[1],today];map[key]=old;dirty=true;}
+   if(r.status==='계약'||r.status==='종료')return;
+   var key=fuHash_(r.id).slice(0,16),old=map[key],hash=r.noteFingerprint.slice(0,16);
+   if(!old){old=[hash,today,''];dirty=true;}
+   else if(old[0]!==hash){old=[hash,old[1],today];dirty=true;}
+   next[key]=old;
    r.noteObserved={since:old[1],changed:old[2]};
   });
+  if(Object.keys(next).length!==Object.keys(map).length)dirty=true;
+  map=next;
   if(dirty){
    var data=Utilities.base64Encode(Utilities.gzip(Utilities.newBlob(JSON.stringify(map),'application/json')).getBytes());
    var existing=Object.keys(all).reduce(function(n,k){return n+Utilities.newBlob(k+all[k],'text/plain').getBytes().length;},0);

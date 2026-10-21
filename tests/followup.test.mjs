@@ -43,8 +43,8 @@ const c=vm.createContext({txt:x=>String(x||'').trim(),v10Today:()=> '2026-09-17'
 // HtmlService's script processing misread the previous arrow-expression URL.
 assert.equal(c.fuLink({gid:123,sourceRow:8}),'https://docs.google.com/spreadsheets/d/1PR1M6AfYkzmvYlzFKkV4KRhJWTWs0rzZBmroZ3CSwyc/edit#gid=123&range=A8%3AM8');
 const alert=(status,f,e={})=>c.fuAlert({status,followup:f,...e},'2026-09-17');
-assert.equal(alert('진행 중',{}).key,'unknown');assert.equal(alert('종료',{}).key,'unknown');assert.equal(alert('계약',{nextContact:'2026-09-15'}).key,'closed');
-assert.equal(alert('종료',{}, {noteEvidence:{date:'2026-08-18'}}).key,'stale','ended noncontracts remain included at 30 days');
+assert.equal(alert('진행 중',{}).key,'unknown');assert.equal(alert('종료',{}).key,'closed','ended consultations are excluded by default');assert.equal(alert('계약',{nextContact:'2026-09-15'}).key,'closed');
+assert.equal(alert('미계약',{}, {noteEvidence:{date:'2026-08-18'}}).key,'stale','non-contract rows remain included at 30 days');
 assert.equal(alert('진행 중',{}, {noteEvidence:{date:'2026-08-19'}}).key,'recent','29 days is not stale');
 {const a=alert('진행 중',{}, {noteEvidence:{date:'2026-08-18'},meetingISO:'2026-09-01'});assert.equal(a.key,'nofeedback','a meeting with no later note is missing feedback');assert.equal(a.days,16,'days are counted from the meeting');}
 assert.equal(alert('진행 중',{}, {noteEvidence:{date:'2026-09-02'},meetingISO:'2026-09-01'}).key,'recent','a note dated after the meeting is feedback');
@@ -59,7 +59,7 @@ assert.equal(alert('진행 중',{}, {noteEvidence:{date:'2026-10-01'}}).key,'unk
 assert.equal(c.fuScope({own:'박',meetingISO:'2026-09-18'},'own','2026-09-17'),false);
 assert.equal(c.fuScope({own:'박'},'own','2026-09-17'),false);
 assert.equal(c.fuScope({cons:'김'},'cons','2026-09-17'),true);
-vm.runInContext("FU.data={today:'2026-09-17',rows:[{id:'a',no:'01-1',year:2026,month:1,cons:'김',own:'박',meetingISO:'2026-01-01',status:'종료',noteEvidence:{date:'2026-01-01'},followup:{}},{id:'b',no:'01-2',year:2026,month:1,cons:'김',own:'박',meetingISO:'2026-01-01',status:'진행 중',followup:{}}]};",c);
+vm.runInContext("FU.data={today:'2026-09-17',rows:[{id:'a',no:'01-1',year:2026,month:1,cons:'김',own:'박',meetingISO:'2026-01-01',status:'미계약',noteEvidence:{date:'2026-01-01'},followup:{}},{id:'b',no:'01-2',year:2026,month:1,cons:'김',own:'박',meetingISO:'2026-01-01',status:'진행 중',followup:{}}]};",c);
 assert.equal(vm.runInContext('FU.role',c),'own');assert.equal(vm.runInContext('FU.status',c),'피드백 없음');assert.equal(vm.runInContext('fuRows().length',c),1,'row b: meeting with no later note');vm.runInContext("FU.status='미대응 확인'",c);assert.equal(vm.runInContext('fuRows().length',c),1,'row a: note on the meeting day counts as feedback, but is 30+ days old');vm.runInContext("FU.status='날짜 확인'",c);assert.equal(vm.runInContext('fuRows().length',c),0);
 vm.runInContext('FU.data=null;FU.autoTried=false;FU.loading=false',c);assert.match(vm.runInContext('fuView()',c),/불러오는 중/);assert.equal(vm.runInContext('FU.autoTried',c),true);
 assert.match(c.fuLogin(),/접속 종료 전까지/);assert.doesNotMatch(c.fuLogin(),/180일/);assert.equal(vm.runInContext("store.get('fu_access','')",c),'');
