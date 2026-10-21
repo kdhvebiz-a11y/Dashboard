@@ -251,3 +251,4 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .easy-rank-cell{display:block;width:max-content;margin:0 auto 2px;font-size:9px;padding:2px 5px}
 .main .easy-plain-table td:has(.easy-rank-1){background:#e3f5ec}.main .easy-plain-table td:has(.easy-rank-2){background:#e9f1ff}
 .easy-plain-table td em{display:block;font-style:normal;font-size:11px;color:var(--muted);line-height:1.2;margin-top:2px}
+.easy-chart-table.easy-tight{margin-top:4px}.easy-chart-table.easy-tight .tblwrap thead{display:none}
