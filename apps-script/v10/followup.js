@@ -1,5 +1,5 @@
 /* Contact details stay in memory and are loaded only through protected RPCs. */
-const FU={key:store.get('fu_access',''),data:null,detail:null,loading:false,detailLoading:false,detailToken:0,autoTried:false,error:'',message:'',role:'own',person:'전체',status:'미대응 확인',year:'전체',period:'all',query:'',selected:'',page:0,issued:null};
+const FU={key:store.get('fu_access',''),data:null,detail:null,loading:false,detailLoading:false,detailToken:0,autoTried:false,error:'',message:'',role:'own',person:'전체',status:'피드백 없음',year:'전체',period:'all',query:'',selected:'',page:0,issued:null};
 const fuStatus=raw=>{const s=txt(raw).replace(/\s/g,'');if(/종료|취소|거절|포기|실주/.test(s))return '종료';if(/계약/.test(s)&&!/미계약|계약전|계약예정|계약검토|계약대기/.test(s))return '계약';if(/진행|상담|미팅|검토|제안|대기|보류|예정/.test(s))return '진행 중';return /미계약/.test(s)?'미계약':'미분류';};
 const fuEnd=r=>r.status==='계약';
 function fuManualAlert(r,today=FU.data?.today||v10Today()){
@@ -17,18 +17,22 @@ function fuScope(r,role=FU.role,today=FU.data?.today||v10Today()){
  return !!r[role]&&r[role]!=='미지정'&&(role!=='own'||!!r.meetingISO&&r.meetingISO<=today);
 }
 function fuAlert(r,today=FU.data?.today||v10Today()){
- if(fuEnd(r))return {key:'closed',label:'계약 · 확인 제외',rank:5,days:null,date:'',basis:'B열 계약 상태'};
+ if(fuEnd(r))return {key:'closed',label:'계약 · 확인 제외',rank:9,days:null,date:'',basis:'B열 계약 상태'};
  const candidates=[{date:r.noteEvidence?.date,basis:'M열 상담기록 날짜'+(r.noteEvidence?.inferredYear?' (연도 추정)':'')},{date:r.noteObserved?.changed,basis:'M열 변경 감지일'},{date:r.followup?.lastContact,basis:'별도 등록한 실제 연락일'}].filter(x=>x.date&&x.date<=today).sort((a,b)=>b.date.localeCompare(a.date));
- if(!candidates.length)return {key:'unknown',label:'기록 날짜 확인 필요',rank:1,days:null,date:'',basis:'과거 수정일·연락일 확인 불가'};
+ const meetingDone=!!r.meetingISO&&r.meetingISO<=today,meetingDays=meetingDone?fuDays(r.meetingISO,today):null;
+ // 미팅을 다녀왔으면(J열 미팅일 ≤ 오늘) 그 이후 날짜의 기록·변경·연락이 하나는 있어야 한다. 없으면 '피드백 없음'으로 미팅 후 경과일을 센다.
+ if(meetingDone&&!candidates.some(x=>x.date>=r.meetingISO))return {key:'nofeedback',label:'미팅 피드백 없음',rank:0,days:meetingDays,date:r.meetingISO,basis:'J열 미팅일 이후 상담기록·연락 없음',since:'미팅 후'};
+ if(!candidates.length)return {key:'unknown',label:'기록 날짜 확인 필요',rank:2,days:null,date:'',basis:'과거 수정일·연락일 확인 불가'};
  const evidence=candidates[0],days=fuDays(evidence.date,today);
- // A later meeting is not a new note/contact, but should not be treated as 30 days overdue yet.
- const meetingRecent=r.meetingISO&&r.meetingISO<=today&&fuDays(r.meetingISO,today)<30;
- return {...evidence,days,key:days>=30&&!meetingRecent?'stale':'recent',label:days>=30&&!meetingRecent?'미대응 확인 대상':meetingRecent&&days>=30?'최근 미팅 · 후속 기록 확인':'최근 기록 있음',rank:days>=30&&!meetingRecent?0:3};
+ if(days>=30)return {...evidence,days,key:'stale',label:'후속 기록 멈춤',rank:1,since:'마지막 기록 후'};
+ return {...evidence,days,key:'recent',label:'최근 기록 있음',rank:3,since:'마지막 기록 후'};
 }
-function fuEvidence(r){const a=fuAlert(r);return `<div class="fu-evidence"><b>${esc(a.date||'날짜 미확인')}</b><small>${esc(a.basis)}</small>${a.days!==null?`<strong>${a.days}일 경과</strong>`:''}${r.meetingISO?`<small>미팅 후 ${fuDays(r.meetingISO,FU.data?.today||v10Today())}일</small>`:''}</div>`;}
+function fuEvidence(r){const a=fuAlert(r),today=FU.data?.today||v10Today();return `<div class="fu-evidence"><b>${esc(a.date||'날짜 미확인')}</b><small>${esc(a.basis)}</small>${r.meetingISO&&r.meetingISO<=today&&a.key!=='nofeedback'?`<small>미팅 후 ${fuDays(r.meetingISO,today)}일</small>`:''}</div>`;}
+// 경과일을 한눈에: 피드백 없음은 미팅 후 N일, 기록 멈춤은 마지막 기록 후 N일. 14일 이상은 빨강, 7일 이상은 주황.
+function fuDaysCell(r){const a=fuAlert(r);if(a.days===null)return '<span class="fu-days none">—</span>';const level=a.days>=14?'hot':a.days>=7?'warm':'';return `<span class="fu-days ${a.key} ${level}"><b>${a.days}<i>일</i></b><small>${esc(a.since||'경과')}</small></span>`;}
 function fuRows(ignoreStatus=false){
  const rows=(FU.data?.rows||[]).filter(r=>fuScope(r)&&(FU.person==='전체'||r[FU.role]===FU.person)&&(FU.year==='전체'||r.year===Number(FU.year))&&(FU.period!=='selected'||(r.year===Number(DB.year)&&selMonths().includes(r.month)))&&(!FU.query||[r.no,r.customer,r.phone,r.address,r.cons,r.own].join(' ').toLowerCase().includes(FU.query.toLowerCase())));
- return rows.filter(r=>ignoreStatus||FU.status==='전체'||FU.status==='미대응 확인'&&fuAlert(r).key==='stale'||FU.status==='날짜 확인'&&fuAlert(r).key==='unknown'||FU.status==='최근 기록'&&fuAlert(r).key==='recent'||FU.status==='미계약'&&!fuEnd(r)||r.status===FU.status).sort((a,b)=>fuAlert(a).rank-fuAlert(b).rank||(fuAlert(b).days||0)-(fuAlert(a).days||0)||b.year-a.year||b.month-a.month||a.no.localeCompare(b.no));
+ return rows.filter(r=>ignoreStatus||FU.status==='전체'||FU.status==='피드백 없음'&&fuAlert(r).key==='nofeedback'||FU.status==='미대응 확인'&&fuAlert(r).key==='stale'||FU.status==='날짜 확인'&&fuAlert(r).key==='unknown'||FU.status==='최근 기록'&&fuAlert(r).key==='recent'||FU.status==='미계약'&&!fuEnd(r)||r.status===FU.status).sort((a,b)=>fuAlert(a).rank-fuAlert(b).rank||(fuAlert(b).days||0)-(fuAlert(a).days||0)||b.year-a.year||b.month-a.month||a.no.localeCompare(b.no));
 }
 function fuRPC(name,...args){return new Promise((resolve,reject)=>{
  if(typeof google==='undefined'||!google.script?.run){reject(Error('상담 후속관리는 운영 대시보드에서 연결됩니다.'));return;}
@@ -37,7 +41,7 @@ function fuRPC(name,...args){return new Promise((resolve,reject)=>{
 function fuFlash(message,error=false){FU.message=error?'':message;FU.error=error?message:'';}
 async function fuLoad(){
  if(FU.loading)return;const key=FU.key;FU.loading=true;FU.error='';render();
- try{const data=await fuRPC('getFollowupWorkspace',key);if(FU.key!==key)return;FU.data=data;if(!FU.data.actor.admin){FU.role=FU.data.actor.role;FU.person=FU.data.actor.name;}FU.page=0;}
+ try{const data=await fuRPC('getFollowupWorkspace',key);if(FU.key!==key)return;FU.data=data;if(!FU.data.actor.admin){FU.role=FU.data.actor.role;FU.person=FU.data.actor.name;FU.status=FU.role==='own'?'피드백 없음':'미대응 확인';}FU.page=0;}
  catch(e){if(FU.key===key)fuFlash(e.message,true);}finally{if(FU.key===key){FU.loading=false;render();}}
 }
 async function fuOpen(r){
@@ -68,26 +72,29 @@ function fuView(){
   if(!FU.autoTried&&!FU.loading){FU.autoTried=true;setTimeout(()=>fuLoad(),0);return fuLoading();}
   return FU.loading?fuLoading():fuLogin();
  }
- const base=fuRows(true),rows=fuRows(),counts={stale:0,recent:0,unknown:0,closed:0};base.forEach(r=>{const k=fuAlert(r).key;if(k in counts)counts[k]++;});
+ const base=fuRows(true),rows=fuRows(),counts={nofeedback:0,stale:0,recent:0,unknown:0,closed:0},nofb=[];base.forEach(r=>{const a=fuAlert(r);if(a.key in counts)counts[a.key]++;if(a.key==='nofeedback')nofb.push(a.days);});
+ const nofbMax=nofb.length?Math.max(...nofb):0,nofbOver=nofb.filter(d=>d>=7).length;
  const people=[...new Set(FU.data.rows.map(r=>r[FU.role]).filter(n=>n&&n!=='미지정'))].sort(),years=[...new Set(FU.data.rows.map(r=>r.year))].sort((a,b)=>b-a),pages=Math.max(1,Math.ceil(rows.length/40));FU.page=Math.min(FU.page,pages-1);
- const tabs=['미대응 확인','날짜 확인','최근 기록','미계약','전체','진행 중','종료','계약','미분류'];
+ const tabs=['피드백 없음','미대응 확인','날짜 확인','최근 기록','미계약','전체','진행 중','종료','계약','미분류'];
  return `<div class="fu-role-tabs" role="group" aria-label="후속관리 담당 구분">${[['own','필드','H열 필드영업 담당 · J열 미팅 완료'],['cons','컨설팅','G열 컨설팅 담당 · 미팅 전 상담 포함']].map(([k,label,sub])=>`<button data-fu-role-tab="${k}" class="${FU.role===k?'on':''}" aria-pressed="${FU.role===k}" ${!FU.data.actor.admin&&FU.data.actor.role!==k?'disabled':''}><b>${label}</b><small>${sub}</small></button>`).join('')}</div>`
- +easyLead(FU.role==='own'?'미팅 이후, 후속 기록이 멈춘 상담':'담당 상담의 후속 기록을 확인하세요','계약을 제외한 상담을 확인합니다. 종료·보류도 포함하며, 실제 미연락 여부는 담당자 확인이 필요합니다.','상담일지 원본 기준')
+ +easyLead(FU.role==='own'?'미팅을 다녀온 뒤 피드백이 없는 상담':'담당 상담의 후속 기록을 확인하세요',FU.role==='own'?'J열 미팅일이 지났는데 그 이후 날짜의 상담기록(M열)·연락 등록이 없는 건을 미팅 후 경과일과 함께 보여 줍니다. 계약은 제외, 종료·보류는 포함합니다.':'계약을 제외한 상담을 확인합니다. 종료·보류도 포함하며, 실제 미연락 여부는 담당자 확인이 필요합니다.','상담일지 원본 기준')
  +`<div class="fu-toolbar"><span>${esc(FU.data.actor.name)} ${FU.data.actor.admin?'· 전체 조회':'· 담당 상담 조회'}</span><small>조회 ${esc(new Date(FU.data.at).toLocaleString('ko-KR'))}</small><button class="btn" data-fu-action="refresh" ${FU.loading?'disabled':''}>${FU.loading?'불러오는 중…':'상담 새로고침'}</button><button class="btn" data-fu-action="logout">접속 종료</button></div>`
  +(FU.error?`<p class="fu-error" role="alert">${esc(FU.error)}</p>`:'')+(FU.message?`<p class="fu-success" role="status">${esc(FU.message)}</p>`:'')
  +(FU.data.observationWarning?`<p class="fu-error" role="alert">${esc(FU.data.observationWarning)} · 상담기록 날짜로 확인하세요.</p>`:'')
- +`<div class="fu-metrics"><div class="request"><span>${FU.role==='own'?'미팅 후 미계약':'담당 미계약 상담'}</span><strong>${base.length-counts.closed}</strong><small>B열 계약 제외 · 종료 포함</small></div><div class="late"><span>30일 이상 미대응 확인</span><strong>${counts.stale}</strong><small>기록·변경·등록 연락이 오래된 상담</small></div><div class="today"><span>기록 날짜 확인 필요</span><strong>${counts.unknown}</strong><small>날짜 근거가 없어 별도 확인</small></div><div class="recent"><span>최근 기록·미팅</span><strong>${counts.recent}</strong><small>30일 이내 근거 있음 · 연락 완료와 다름</small></div></div>`
- +`<details class="fu-method"><summary>미대응은 어떻게 판단하나요? · 30일 기준</summary><p><b>필드:</b> H열 담당자가 있고 J열 미팅일이 오늘까지인 상담. <b>컨설팅:</b> G열 담당 상담 전체. B열 계약은 제외하고 종료·보류는 포함합니다.</p><p>M열의 날짜로 시작하는 문단에서 최근 날짜를 찾습니다. 문장 중간의 한전·예정일은 사용하지 않습니다. 연도 없는 날짜는 상담 시트 연도를 적용해 ‘연도 추정’으로 표시합니다. 과거 기록의 연도가 다르면 원본 확인이 필요합니다.</p><p>상담기록 날짜, 이후 감지한 M열 변경일, 별도 등록한 실제 연락일 중 최근 근거가 30일 이상 지났을 때 확인 대상으로 표시합니다. 최근 30일 이내 미팅은 별도 유예합니다. <b>내용 수정은 통화 증명이 아니며, 기록이 없다고 미연락으로 확정하지 않습니다.</b></p><p>구글의 과거 셀 ‘수정 기록 표시’는 자동으로 읽지 못합니다. 이 기능을 적용한 뒤 상담을 조회할 때 M열 내용의 변경을 비교합니다. 최초 조회일을 수정일로 처리하지 않으며, 조회 사이 변경·원복은 감지하지 못합니다. 정확한 과거 수정일은 원본 셀의 수정 기록에서 확인하세요.</p></details>`
+ +`<div class="fu-metrics"><div class="late"><span>미팅 피드백 없음</span><strong>${counts.nofeedback}</strong><small>${counts.nofeedback?`7일 이상 ${nofbOver}건 · 최장 ${nofbMax}일 경과`:'미팅 후 기록이 없는 건 없음'}</small></div><div class="today"><span>30일 이상 후속 기록 멈춤</span><strong>${counts.stale}</strong><small>마지막 기록·변경·연락이 30일 이상 지남</small></div><div class="request"><span>${FU.role==='own'?'미팅 후 미계약 전체':'담당 미계약 상담'}</span><strong>${base.length-counts.closed}</strong><small>B열 계약 제외 · 종료 포함</small></div><div class="recent"><span>최근 기록 있음</span><strong>${counts.recent}</strong><small>30일 이내 기록 · 날짜 확인 필요 ${counts.unknown}건 별도</small></div></div>`
+ +`<details class="fu-method"><summary>미대응은 어떻게 판단하나요? · 30일 기준</summary><p><b>필드:</b> H열 담당자가 있고 J열 미팅일이 오늘까지인 상담. <b>컨설팅:</b> G열 담당 상담 전체. B열 계약은 제외하고 종료·보류는 포함합니다.</p><p>M열의 날짜로 시작하는 문단에서 최근 날짜를 찾습니다. 문장 중간의 한전·예정일은 사용하지 않습니다. 연도 없는 날짜는 상담 시트 연도를 적용해 ‘연도 추정’으로 표시합니다. 과거 기록의 연도가 다르면 원본 확인이 필요합니다.</p><p><b>미팅 피드백 없음:</b> J열 미팅일이 오늘 이전인데, 미팅일 이후 날짜의 상담기록·M열 변경·등록 연락이 하나도 없는 상담입니다. 미팅 후 경과일을 셉니다.</p><p>그 밖에는 상담기록 날짜, 이후 감지한 M열 변경일, 별도 등록한 실제 연락일 중 최근 근거가 30일 이상 지났을 때 '후속 기록 멈춤'으로 표시합니다. <b>내용 수정은 통화 증명이 아니며, 기록이 없다고 미연락으로 확정하지 않습니다.</b></p><p>구글의 과거 셀 ‘수정 기록 표시’는 자동으로 읽지 못합니다. 이 기능을 적용한 뒤 상담을 조회할 때 M열 내용의 변경을 비교합니다. 최초 조회일을 수정일로 처리하지 않으며, 조회 사이 변경·원복은 감지하지 못합니다. 정확한 과거 수정일은 원본 셀의 수정 기록에서 확인하세요.</p></details>`
  +`<section class="fu-filter-panel"><div class="fu-filter-grid">${fuSelect('담당자','person',[['전체','전체 담당자'],...people.map(n=>[n,n])])}${fuSelect('문의 연도','year',[['전체','2025년 이후 전체'],...years.map(y=>[y,y+'년'])])}${fuSelect('조회 범위','period',[['all','과거 상담까지 전체'],['selected','상단에서 선택한 문의월']])}<label class="fu-search">상담 찾기<input data-fu-search value="${esc(FU.query)}" placeholder="상담번호 · 고객 · 전화 · 주소 (Enter)"></label><button class="btn" data-fu-action="reset">조건 초기화</button></div><p class="v10-note">계약 분류는 상담일지 B열 기준이며 RPS 계약 확정 실적과 별개입니다. 필드 목록은 미팅 미입력·미래 미팅을 제외합니다.</p></section>`
- +`<div class="fu-tabs" role="group" aria-label="상담 상태">${tabs.map(t=>`<button data-fu-status="${t}" class="${FU.status===t?'on':''}" aria-pressed="${FU.status===t}">${t}${t==='미대응 확인'?` ${counts.stale}`:t==='날짜 확인'?` ${counts.unknown}`:''}</button>`).join('')}</div>`
+ +`<div class="fu-tabs" role="group" aria-label="상담 상태">${tabs.map(t=>`<button data-fu-status="${t}" class="${FU.status===t?'on':''}" aria-pressed="${FU.status===t}">${t}${t==='피드백 없음'?` ${counts.nofeedback}`:t==='미대응 확인'?` ${counts.stale}`:t==='날짜 확인'?` ${counts.unknown}`:''}</button>`).join('')}</div>`
  +fuDetail()
- +v10Panel('담당 상담 목록',`${rows.length.toLocaleString()}건 · 상담번호 선택 → 연락처·주소·한전·지자체·전체 상담 내용 확인`,(rows.length?v10Table(['확인 상태','상담번호','B 진행 최종','담당자','J 미팅일','판정 근거 · 경과일','최근 상담기록 발췌','고객 / 전화'],rows.slice(FU.page*40,(FU.page+1)*40).map(r=>[fuBadge(r),`<button data-fu-open="${esc(r.id)}">${r.year} / ${esc(r.no)}</button>`,esc(r.statusRaw||'미기재'),esc(r[FU.role]),esc(r.meetingISO||'미입력'),fuEvidence(r),`<span class="fu-note-excerpt">${esc(r.noteEvidence?.excerpt||'날짜로 시작하는 기록 없음')}</span>`,`<div>${esc(r.customer||'미기재')}<br>${esc(r.phone||'미기재')}</div>`])):'<p class="fu-empty">이 조건에 해당하는 상담이 없습니다. ‘날짜 확인’ 또는 ‘전체’를 선택해 다른 상담을 확인하세요.</p>')+`<div class="fu-pagination"><button class="btn" data-fu-page="-1" ${FU.page===0?'disabled':''}>이전</button><span>${FU.page+1} / ${pages}</span><button class="btn" data-fu-page="1" ${FU.page>=pages-1?'disabled':''}>다음</button></div>`)
+ +v10Panel('담당 상담 목록',`${rows.length.toLocaleString()}건 · 상담번호 선택 → 연락처·주소·한전·지자체·전체 상담 내용 확인`,(rows.length?v10Table(['확인 상태','경과','상담번호','B 진행 최종','담당자','J 미팅일','마지막 근거','최근 상담기록 발췌','고객 / 전화'],rows.slice(FU.page*40,(FU.page+1)*40).map(r=>[fuBadge(r),fuDaysCell(r),`<button data-fu-open="${esc(r.id)}">${r.year} / ${esc(r.no)}</button>`,esc(r.statusRaw||'미기재'),esc(r[FU.role]),esc(r.meetingISO||'미입력'),fuEvidence(r),`<span class="fu-note-excerpt">${esc(r.noteEvidence?.excerpt||'날짜로 시작하는 기록 없음')}</span>`,`<div>${esc(r.customer||'미기재')}<br>${esc(r.phone||'미기재')}</div>`])):'<p class="fu-empty">이 조건에 해당하는 상담이 없습니다. ‘날짜 확인’ 또는 ‘전체’를 선택해 다른 상담을 확인하세요.</p>')+`<div class="fu-pagination"><button class="btn" data-fu-page="-1" ${FU.page===0?'disabled':''}>이전</button><span>${FU.page+1} / ${pages}</span><button class="btn" data-fu-page="1" ${FU.page>=pages-1?'disabled':''}>다음</button></div>`)
  +fuAdmin();
 }
-VIEWS.followup=fuView;
+// 목록 표는 열이 9개라 촘촘하게 그린다.
+const fuViewBase=fuView;fuView=function(){return fuViewBase().replace(/(<section class="v10-panel"><h3>담당 상담 목록[\s\S]*?<div class="v10-table"><table)/,'$1 class="fu-compact"');};
+VIEWS.followup=()=>fuView();
 EASY_NAV.splice(EASY_NAV.findIndex(x=>x.k==='owner')+1,0,{k:'followup',label:'상담 후속관리',sub:'담당 상담 · 연락 일정 · 알림'});
 const fuOldRender=render;
-render=function(){fuOldRender();const bar=$('#periodbar');if(bar)bar.classList.toggle('fu-period-hidden',state.sect==='followup'&&FU.period==='all');const independent=['contract','followup'].includes(state.sect);$('#basisNote')?.classList.toggle('hide',independent);$('#easyFilterToggle')?.classList.toggle('hide',independent);if(independent)$('#easyConditions')?.classList.add('hide');if(state.sect==='contract')$('#easyPeriodNote').textContent=`${DB.year}년 ${periodLabel()} · ${contractBasisLabel()} 기준 · 아래 계약 전용 조건 적용`;const title=$('#sectTitle');if(title&&FU.data&&title.insertAdjacentHTML){document.querySelector('#fuBell')?.remove();const count=FU.data.rows.filter(r=>fuScope(r)&&fuAlert(r).key==='stale').length;title.insertAdjacentHTML('afterend',`<button id="fuBell" class="fu-bell" data-v10-section="followup">${FU.role==='own'?'필드':'컨설팅'} 미대응 확인 ${count}</button>`);}};
+render=function(){fuOldRender();const bar=$('#periodbar');if(bar)bar.classList.toggle('fu-period-hidden',state.sect==='followup'&&FU.period==='all');const independent=['contract','followup'].includes(state.sect);$('#basisNote')?.classList.toggle('hide',independent);$('#easyFilterToggle')?.classList.toggle('hide',independent);if(independent)$('#easyConditions')?.classList.add('hide');if(state.sect==='contract')$('#easyPeriodNote').textContent=`${DB.year}년 ${periodLabel()} · ${contractBasisLabel()} 기준 · 아래 계약 전용 조건 적용`;const title=$('#sectTitle');if(title&&FU.data&&title.insertAdjacentHTML){document.querySelector('#fuBell')?.remove();const want=FU.role==='own'?'nofeedback':'stale',count=FU.data.rows.filter(r=>fuScope(r)&&fuAlert(r).key===want).length;title.insertAdjacentHTML('afterend',`<button id="fuBell" class="fu-bell" data-v10-section="followup">${FU.role==='own'?'필드 미팅 피드백 없음':'컨설팅 미대응 확인'} ${count}</button>`);}};
 document.addEventListener('submit',async e=>{
  if(e.target.id==='fuLogin'){e.preventDefault();FU.key=txt(new FormData(e.target).get('code'));FU.autoTried=true;await fuLoad();if(FU.data){try{const remembered=await fuRPC('rememberFollowupAccess',FU.key);FU.key=remembered.code;store.set('fu_access',FU.key);fuFlash('이 브라우저에서는 앞으로 바로 열립니다.');render();}catch(err){fuFlash('상담은 열렸지만 자동 접속 저장에 실패했습니다.',true);render();}}return;}
  if(e.target.id==='fuAccess'){e.preventDefault();if(FU.loading)return;FU.loading=true;const data=new FormData(e.target);try{FU.issued=await fuRPC('issueFollowupAccess',FU.key,{name:data.get('name'),role:FU.role});fuFlash('담당자 코드가 발급됐습니다.');}catch(err){fuFlash(err.message,true);}finally{FU.loading=false;render();}return;}
@@ -101,7 +108,7 @@ document.addEventListener('change',e=>{const k=e.target.dataset?.fuFilter;if(!k)
 document.addEventListener('keydown',e=>{if(e.target.hasAttribute?.('data-fu-search')&&e.key==='Enter'){FU.query=e.target.value.trim();FU.page=0;render();}});
 document.addEventListener('click',async e=>{
  const b=e.target.closest('[data-fu-action],[data-fu-status],[data-fu-open],[data-fu-page],[data-fu-person],[data-fu-role-tab]');if(!b||b.disabled)return;
- if(b.hasAttribute('data-fu-role-tab')){if(!FU.data.actor.admin&&b.dataset.fuRoleTab!==FU.data.actor.role)return;FU.role=b.dataset.fuRoleTab;FU.person=FU.data.actor.admin?'전체':FU.data.actor.name;FU.status='미대응 확인';FU.page=0;FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;FU.issued=null;render();return;}
+ if(b.hasAttribute('data-fu-role-tab')){if(!FU.data.actor.admin&&b.dataset.fuRoleTab!==FU.data.actor.role)return;FU.role=b.dataset.fuRoleTab;FU.person=FU.data.actor.admin?'전체':FU.data.actor.name;FU.status=FU.role==='own'?'피드백 없음':'미대응 확인';FU.page=0;FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;FU.issued=null;render();return;}
  if(b.dataset.fuPerson){FU.person=b.dataset.fuPerson;FU.role=b.dataset.fuRole||'cons';FU.status='전체';state.sect='followup';render();return;}
  if(b.hasAttribute('data-fu-open')){const r=FU.data.rows.find(r=>r.id===b.dataset.fuOpen);if(r)await fuOpen(r);return;}
  if(b.hasAttribute('data-fu-status')){FU.status=b.dataset.fuStatus;FU.page=0;FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;render();return;}
@@ -110,7 +117,7 @@ document.addEventListener('click',async e=>{
  if(action==='refresh'){await fuLoad();return;}
  if(action==='logout'){const old=FU.key;FU.key='';store.del('fu_access');FU.data=null;FU.detail=null;FU.detailLoading=false;FU.detailToken++;FU.issued=null;FU.selected='';FU.loading=false;FU.autoTried=true;fuFlash('');document.querySelector('#fuBell')?.remove();if(old)fuRPC('forgetFollowupAccess',old).catch(()=>{});}
  if(action==='close'){FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;}
- if(action==='reset'){FU.role=FU.data.actor.admin?'own':FU.data.actor.role;FU.person=FU.data.actor.admin?'전체':FU.data.actor.name;FU.year='전체';FU.period='all';FU.status='미대응 확인';FU.query='';FU.page=0;FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;}
+ if(action==='reset'){FU.role=FU.data.actor.admin?'own':FU.data.actor.role;FU.person=FU.data.actor.admin?'전체':FU.data.actor.name;FU.year='전체';FU.period='all';FU.status=FU.role==='own'?'피드백 없음':'미대응 확인';FU.query='';FU.page=0;FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;}
  render();
 });
 // Refresh the in-app alert badge while signed in. Never send emails or push messages.
