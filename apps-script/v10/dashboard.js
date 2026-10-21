@@ -363,7 +363,7 @@ function v10RegionMonthly(names){
  const inqSeries=names.map((name,j)=>({name,color:colors[j%colors.length],values:inquiries.map(f=>f(name))}));
  const cntSeries=names.map((name,j)=>({name,color:colors[j%colors.length],values:meetings.map(rows=>rows.filter(r=>inRegion(r,name)).length)}));
  const capSeries=names.map((name,j)=>({name,color:colors[j%colors.length],values:meetings.map(rows=>Math.round(rows.filter(r=>inRegion(r,name)).reduce((a,r)=>a+(Number(r.cap)||0),0)))}));
- return v10Panel('권역별 월별 비교','문의는 접수월, 미팅은 그 문의에서 이어진 미팅 원장 기준 · 줄마다 가장 많은 달은 1위, 가장 적은 달은 최저로 표시',`<h4 class="easy-subhead">문의 수</h4>${easyChartTable(axis,inqSeries,'건','월',partial)}<h4 class="easy-subhead">미팅 건수</h4>${easyChartTable(axis,cntSeries,'건','월',partial)}<h4 class="easy-subhead">미팅 용량 (kW)</h4>${easyChartTable(axis,capSeries,' kW','월',partial)}`);
+ return v10Panel('권역별 월별 비교','문의는 접수월, 미팅은 그 문의에서 이어진 미팅 원장 기준 · 줄마다 가장 많은 달은 1위, 가장 적은 달은 최저로 표시',(`<h4 class="easy-subhead">문의 수</h4>${easyChartTable(axis,inqSeries,'건','월',partial)}<h4 class="easy-subhead">미팅 건수</h4>${easyChartTable(axis,cntSeries,'건','월',partial)}<h4 class="easy-subhead">미팅 용량 (kW)</h4>${easyChartTable(axis,capSeries,' kW','월',partial)}`).replaceAll('class="easy-chart-table"','class="easy-chart-table easy-wide"'));
 }
 // 표 안 순위 배지: 건수 기준 1·2위 구간(권역)에 '1위'·'2위'를 붙인다. 건수 0은 순위에서 뺀다.
 function v10BandRank(bands,j){const order=bands.map((b,k)=>({k,n:b.n})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,2).map(x=>x.k);const r=order.indexOf(j);return r<0?0:r+1;}
@@ -390,7 +390,7 @@ function v10CapacityMonthly(labels){
  const colors=[...V10.colors,'#5c6b7a','#9aa5b1'];
  const rows=labels.map((label,j)=>({name:label,color:colors[j%colors.length],cells:monthly.map(m=>m[j].n?`<b>${i(m[j].n)}건</b><small>${capS(m[j].cap)}</small>`:'<span class="easy-dim">—</span>')}));
  const sub=`${state.basis==='exec'?'보고 주차':'문의 접수월'} 기준 · 용량이 기록된 미팅만 · 칸마다 건수와 미팅 용량`;
- return v10Panel('용량 구간별 월별 비교',sub,easyPlainTable(axis,rows));
+ return v10Panel('용량 구간별 월별 비교',sub,easyPlainTable(axis,rows).replace('class="easy-chart-table','class="easy-chart-table easy-wide'));
 }
 // 순위 표시 없는 월별 표. rows=[{name,color,cells:[html…]}]
 function easyPlainTable(axis,rows){
