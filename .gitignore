@@ -20,3 +20,4 @@ apps-script/v10/대시보드.gs
 *.hwp
 *.hwpx
 .DS_Store
+apps-script/v10/contracts-data.gzip.b64

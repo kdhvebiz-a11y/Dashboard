@@ -248,3 +248,5 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .main .easy-chart-table.easy-wide .tblwrap td.easy-max::before,.main .easy-chart-table.easy-wide .tblwrap td.easy-min::before{font-size:10px}
 .main .easy-plain-table.easy-wide td b{font-size:14.5px}.main .easy-plain-table.easy-wide td small{font-size:12px}
 .easy-chart-table.easy-wide .easy-chart-table-head{font-size:13px}.easy-chart-table.easy-wide .easy-chart-table-legend{font-size:12px}
+.easy-rank-cell{display:block;width:max-content;margin:0 auto 2px;font-size:9px;padding:2px 5px}
+.main .easy-plain-table td:has(.easy-rank-1){background:#e3f5ec}.main .easy-plain-table td:has(.easy-rank-2){background:#e9f1ff}

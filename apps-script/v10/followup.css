@@ -40,3 +40,5 @@ html[data-theme="dark"] .contract-basis button.on{background:#203c61}html[data-t
 .fu-one .v10-note{margin:4px 0 0}
 @media(max-width:1150px){.fu-filter-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:700px){.fu-filter-row{grid-template-columns:1fr 1fr}}
+.fu-sheet-link{font-weight:700;color:#1854b1;text-decoration:none;white-space:nowrap}.fu-sheet-link:hover{text-decoration:underline}
+.fu-mini{display:block;margin:4px auto 0;font:inherit;font-size:11px;padding:2px 8px;border:1px solid var(--border);border-radius:5px;background:var(--plane);color:var(--muted);cursor:pointer}.fu-mini:hover{color:var(--ink)}

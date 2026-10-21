@@ -388,8 +388,10 @@ function v10Capacity(){
 function v10CapacityMonthly(labels){
  const axis=v10TrendAxis(),monthly=axis.map(g=>capBands(v10Rows(g.months,state.basis).filter(r=>r.cap>0)));
  const colors=[...V10.colors,'#5c6b7a','#9aa5b1'];
- const rows=labels.map((label,j)=>({name:label,color:colors[j%colors.length],cells:monthly.map(m=>m[j].n?`<b>${i(m[j].n)}건</b><small>${capS(m[j].cap)}</small>`:'<span class="easy-dim">—</span>')}));
- const sub=`${state.basis==='exec'?'보고 주차':'문의 접수월'} 기준 · 용량이 기록된 미팅만 · 칸마다 건수와 미팅 용량`;
+ // 달마다 미팅 건수 1·2위 구간에 배지를 붙인다.
+ const rankByMonth=monthly.map(m=>{const order=m.map((b,k)=>({k,n:b.n})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,2).map(x=>x.k);return j=>{const r=order.indexOf(j);return r<0?0:r+1;};});
+ const rows=labels.map((label,j)=>({name:label,color:colors[j%colors.length],cells:monthly.map((m,mi)=>{if(!m[j].n)return '<span class="easy-dim">—</span>';const rank=rankByMonth[mi](j);return `${rank?`<span class="easy-rank easy-rank-${rank} easy-rank-cell">${rank}위</span>`:''}<b>${i(m[j].n)}건</b><small>${capS(m[j].cap)}</small>`;})}));
+ const sub=`${state.basis==='exec'?'보고 주차':'문의 접수월'} 기준 · 용량이 기록된 미팅만 · 칸마다 건수와 미팅 용량 · 달마다 건수 1·2위 구간 표시`;
  return v10Panel('용량 구간별 월별 비교',sub,easyPlainTable(axis,rows).replace('class="easy-chart-table','class="easy-chart-table easy-wide'));
 }
 // 순위 표시 없는 월별 표. rows=[{name,color,cells:[html…]}]
