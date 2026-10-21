@@ -347,11 +347,11 @@ function v10Breakdown(kind){
 function v10Region(){
  const ms=selMonths(),rows=v10Rows(ms,'cohort'),groups=regionFor(ms),inq=groups.find(g=>g.title==='문의');
  const names=RG_ORDER;
- return v10Banner('지역별 문의와 미팅','문의 접수월 기준 · 권역별 수요와 활동을 비교합니다.')+v10Panel('권역별 실적','지역 문의 집계는 부서 전체 기준입니다. 담당자·유입·법인 교차 필터가 있으면 문의는 —로 표시합니다.',v10Table(['권역','문의','미팅 건수','미팅 용량','평균 용량'],names.map(name=>{
+ return v10Banner('지역별 문의와 미팅','문의 접수월 기준 · 권역별 수요와 활동을 비교합니다.')+v10Panel('권역별 실적','미팅 건수가 많은 권역부터 · 지역 문의 집계는 부서 전체 기준입니다. 담당자·유입·법인 교차 필터가 있으면 문의는 —로 표시합니다.',v10Table(['권역','문의','미팅 건수','미팅 용량','평균 용량'],names.map(name=>{
   const rs=rows.filter(r=>regionOf(r.reg)===name||r.reg===name),s=sumRows(rs);
   const iq=DB.rawYear?DB.inquiries.filter(r=>ms.includes(r.cmo)&&v10Match(r)&&(regionOf(r.reg)===name||r.reg===name)).length:v10Scoped()?null:inq?.regions.find(r=>r.region===name)?.sum??null;
-  return [esc(name),v10Number(iq),i(s.n),capS(s.cap),d1(s.avg)+' kW'];
- })))+v10RegionMonthly(names)+v10RegionTrend(names);
+  return {n:s.n,cap:s.cap,iq:iq||0,cells:[esc(name),v10Number(iq),i(s.n),capS(s.cap),d1(s.avg)+' kW']};
+ }).sort((a,b)=>b.n-a.n||b.cap-a.cap||b.iq-a.iq).map(x=>x.cells)))+v10RegionMonthly(names)+v10RegionTrend(names);
 }
 // 권역 × 월 비교표: 문의 수 · 미팅 건수 · 미팅 용량을 1월부터 나란히 본다 (줄마다 1위·최저, 진행 중인 달 제외).
 function v10RegionMonthly(names){
