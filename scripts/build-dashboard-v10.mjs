@@ -17,6 +17,10 @@ html=html.replace('처음 열 때는 몇 초 걸립니다. 이후에는 훨씬 �
 html=html.slice(0,html.indexOf('(function boot(){'))+'\n'+extension+'\n</script>\n<script>\n'+await read('business-parts.js')+'\n</script>\n</body>\n</html>\n';
 html=html.replace('const isContract = r => r.ct.indexOf(\'계약\') >= 0;',"const isContract = r => /계약/.test(r.ct) && !/미계약|계약\\s*(취소|예정|검토)|계약\\s*전/.test(r.ct);");
 // Line charts: series names live in the legend, so the right margin shrinks when end labels are off, and the first `valueSeries` lines can carry value labels even with three series.
+// Optional end-of-line labels for chosen series only (cfg.endLabels = series indices; s.endLabel overrides the text), e.g. the top-ranked regions.
+html=html.replace('const showDL = cfg.series.length<=4 && cfg.labels.length>0 && !cfg.noLabels;','const showDL = (cfg.series.length<=4 || Array.isArray(cfg.endLabels)) && cfg.labels.length>0 && !cfg.noLabels;');
+html=html.replace('const pts=cfg.series.map((s,si)=>({s,si,y:Y(s.values[n-1])}))','const pts=cfg.series.map((s,si)=>({s,si,y:Y(s.values[n-1])})).filter(p=>!Array.isArray(cfg.endLabels)||cfg.endLabels.includes(p.si))');
+html=html.replace('text-anchor="start" style="fill:${p.s.color};font-weight:600">${esc(p.s.name)}</text>`;','text-anchor="start" style="fill:${p.s.color};font-weight:700">${esc(p.s.endLabel||p.s.name)}</text>`;');
 html=html.replace('const P={l:100,r:Math.max(dlPad,150),t:32,b:42};','const P={l:100,r:showDL?Math.max(dlPad,150):48,t:32,b:42};');
 {
  // Value labels on up to three lines. At every x the highest point is labelled above, the lowest below and a middle one to the right, so crossing lines do not stack their labels.

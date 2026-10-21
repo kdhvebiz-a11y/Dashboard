@@ -347,19 +347,40 @@ function v10Breakdown(kind){
 function v10Region(){
  const ms=selMonths(),rows=v10Rows(ms,'cohort'),groups=regionFor(ms),inq=groups.find(g=>g.title==='문의');
  const names=RG_ORDER;
- return v10Banner('지역별 문의와 미팅','문의 접수월 기준 · 권역별 수요와 활동을 비교합니다.')+v10Panel('권역별 실적','지역 문의 집계는 부서 전체 기준입니다. 담당자·유입·법인 교차 필터가 있으면 문의는 —로 표시합니다.',v10Table(['권역','문의','미팅 원장','미팅 용량','평균 용량'],names.map(name=>{
+ return v10Banner('지역별 문의와 미팅','문의 접수월 기준 · 권역별 수요와 활동을 비교합니다.')+v10Panel('권역별 실적','지역 문의 집계는 부서 전체 기준입니다. 담당자·유입·법인 교차 필터가 있으면 문의는 —로 표시합니다.',v10Table(['권역','문의','미팅 건수','미팅 용량','평균 용량'],names.map(name=>{
   const rs=rows.filter(r=>regionOf(r.reg)===name||r.reg===name),s=sumRows(rs);
   const iq=DB.rawYear?DB.inquiries.filter(r=>ms.includes(r.cmo)&&v10Match(r)&&(regionOf(r.reg)===name||r.reg===name)).length:v10Scoped()?null:inq?.regions.find(r=>r.region===name)?.sum??null;
   return [esc(name),v10Number(iq),i(s.n),capS(s.cap),d1(s.avg)+' kW'];
- })))+v10Line('권역별 월간 미팅 추세','문의 접수월 기준 · 권역이 미기재된 건은 미팅 원장에서 확인',v10TrendAxis(),names.map((name,j)=>({name,color:V10.colors[j%6],values:v10TrendAxis().map(g=>v10Rows(g.months,'cohort').filter(r=>regionOf(r.reg)===name||r.reg===name).length)})));
+ })))+v10RegionTrend(names);
+}
+// 표 안 순위 배지: 건수 기준 1·2위 구간(권역)에 '1위'·'2위'를 붙인다. 건수 0은 순위에서 뺀다.
+function v10BandRank(bands,j){const order=bands.map((b,k)=>({k,n:b.n})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,2).map(x=>x.k);const r=order.indexOf(j);return r<0?0:r+1;}
+function v10RankLabel(text,rank){return rank?`<span class="easy-rank easy-rank-${rank}">${rank}위</span><b>${esc(text)}</b>`:esc(text);}
+// 권역별 월간 미팅 추세: 기간 합계 기준 1·2위 권역은 범례 이름에 순위를 붙이고 선 끝에도 이름을 적어 바로 알아볼 수 있게 한다.
+function v10RegionTrend(names){
+ const axis=v10TrendAxis(),perMonth=axis.map(g=>v10Rows(g.months,'cohort'));
+ const series=names.map((name,j)=>({name,color:V10.colors[j%6],values:perMonth.map(rows=>rows.filter(r=>regionOf(r.reg)===name||r.reg===name).length)}));
+ const ranked=series.map((s,j)=>({j,total:s.values.reduce((a,b)=>a+b,0)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total).slice(0,2);
+ ranked.forEach((x,rank)=>{const s=series[x.j];s.endLabel=`${rank+1}위 ${s.name}`;s.name=`${rank+1}위 ${s.name} (${i(x.total)}건)`;});
+ return v10Line('권역별 월간 미팅 추세',`문의 접수월 기준 · 기간 합계 1·2위 권역은 선 끝에 표시 · 권역이 미기재된 건은 미팅 원장에서 확인`,axis,series,'건',{noLabels:false,endLabels:ranked.map(x=>x.j)});
 }
 function v10Capacity(){
  const ms=selMonths(),rows=v10Rows(ms,state.basis),a=v10Aggregate(ms),bands=capBands(rows);
  const labels=['50 kW 미만','50~100 kW 미만','100~300 kW 미만','300~500 kW 미만','500~1,000 kW 미만','1,000~1,500 kW 미만','1,500~2,000 kW 미만','2,000 kW 이상'];
  const recorded=rows.filter(r=>r.cap>0),valid=capBands(recorded),missing=rows.length-recorded.length;
  return v10Banner('미팅 용량 분석',`${state.basis==='exec'?'보고 주차':'문의 접수월'} 기준 · 총 용량과 건당 평균을 함께 확인합니다.`)+v10Kpis(a)
- +v10Panel('용량 구간별 비율',`용량이 기록된 ${i(recorded.length)}건 기준 · 용량 미기재 또는 0인 ${i(missing)}건 제외`,v10Table(['용량 구간','미팅','건수 비중','미팅 용량','평균 용량'],valid.map((b,j)=>[labels[j],i(b.n),v10Rate(b.n,recorded.length),capS(b.cap),d1(b.n?b.cap/b.n:0)+' kW'])))
- +`<div class="v10-grid">${v10PeoplePanel('own',state.basis)}${v10PeoplePanel('cons',state.basis)}</div>`+v10Ledger(state.basis);
+ +v10Panel('용량 구간별 비율',`용량이 기록된 ${i(recorded.length)}건 기준 · 용량 미기재 또는 0인 ${i(missing)}건 제외 · 미팅 건수 1·2위 구간 표시`,v10Table(['용량 구간','미팅','건수 비중','미팅 용량','평균 용량'],valid.map((b,j)=>[v10RankLabel(labels[j],v10BandRank(valid,j)),i(b.n),v10Rate(b.n,recorded.length),capS(b.cap),d1(b.n?b.cap/b.n:0)+' kW'])))
+ +v10CapacityMonthly(labels)+v10Ledger(state.basis);
+}
+// 용량 구간 × 월 비교표: 담당자 표 대신, 구간별로 매월 미팅 건수와 미팅 용량을 나란히 본다 (줄마다 1위·최저 표시, 진행 중인 달 제외).
+function v10CapacityMonthly(labels){
+ const axis=v10TrendAxis(),monthly=axis.map(g=>capBands(v10Rows(g.months,state.basis).filter(r=>r.cap>0)));
+ const partial=Number(DB.year)===Number(v10Today().slice(0,4))?axis.findIndex(g=>g.months.length===1&&g.months[0]===Number(v10Today().slice(5,7))):-1;
+ const colors=[...V10.colors,'#5c6b7a','#9aa5b1'];
+ const counts=labels.map((label,j)=>({name:label,color:colors[j%colors.length],values:monthly.map(m=>m[j].n)}));
+ const caps=labels.map((label,j)=>({name:label,color:colors[j%colors.length],values:monthly.map(m=>Math.round(m[j].cap))}));
+ const sub=`${state.basis==='exec'?'보고 주차':'문의 접수월'} 기준 · 용량이 기록된 미팅만 · 줄마다 가장 많은 달은 1위, 가장 적은 달은 최저로 표시`;
+ return v10Panel('용량 구간별 월별 비교',sub,`<h4 class="easy-subhead">미팅 건수</h4>${easyChartTable(axis,counts,'건','월',partial)}<h4 class="easy-subhead">미팅 용량 (kW)</h4>${easyChartTable(axis,caps,' kW','월',partial)}`);
 }
 function v10GoalView(){
  const ms=selMonths(),a=v10Aggregate(ms),g=v10Goals(ms),one=ms.length===1?v10GoalMonth(ms[0]):{};

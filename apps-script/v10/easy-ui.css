@@ -219,8 +219,11 @@ html[data-theme="dark"] .easy-preset.easy-step{background:#1f3a60;border-color:#
 .easy-chart-table .easy-key{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .easy-chart-table-legend b{display:inline-block;padding:1px 6px;border-radius:5px;font-weight:700}
 .main .easy-chart-table .tblwrap td.easy-max,.main .easy-chart-table .tblwrap td.easy-min{font-weight:800;position:relative}
-.main .easy-chart-table .tblwrap td.easy-max::before,.main .easy-chart-table .tblwrap td.easy-min::before{font-size:8px;margin-right:2px;vertical-align:1px}
-.main .easy-chart-table .tblwrap td.easy-max::before{content:'▲'}.main .easy-chart-table .tblwrap td.easy-min::before{content:'▼'}
+.main .easy-chart-table .tblwrap td.easy-max::before,.main .easy-chart-table .tblwrap td.easy-min::before,.easy-chart-table-legend b em{display:inline-block;font-style:normal;font-size:9px;line-height:1;padding:2px 4px;border-radius:4px;margin-right:4px;vertical-align:1px;color:#fff;letter-spacing:.02em}
+.main .easy-chart-table .tblwrap td.easy-max::before,.main .easy-chart-table .tblwrap td.easy-min::before{display:block;width:max-content;margin:0 auto 2px}
+.main .easy-chart-table .tblwrap td.easy-max,.main .easy-chart-table .tblwrap td.easy-min{padding-top:3px;padding-bottom:3px}
+.main .easy-chart-table .tblwrap td.easy-max::before{content:'1위';background:#0e6c4c}.main .easy-chart-table .tblwrap td.easy-min::before{content:'최저';background:#b3261e}
+.easy-chart-table-legend b.easy-max em{background:#0e6c4c}.easy-chart-table-legend b.easy-min em{background:#b3261e}
 .easy-max,.main .easy-chart-table .tblwrap td.easy-max{background:#e3f5ec;color:#0e6c4c}.easy-min,.main .easy-chart-table .tblwrap td.easy-min{background:#fdeaea;color:#b3261e}
 html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-table .tblwrap td.easy-max{background:#12694b;color:#d6f0e2}html[data-theme="dark"] .easy-min,html[data-theme="dark"] .main .easy-chart-table .tblwrap td.easy-min{background:#6b1f1f;color:#fbd5d5}
 /* 펼쳐 둔 미팅 원장: 열이 많아 글자·여백을 줄여 화면 폭 안에 들어오게 */
@@ -232,3 +235,8 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .main .easy-split-panel .v10-table table{font-size:13px}
 .main .easy-split-panel .v10-table :is(th,td){padding:9px 6px;font-size:13px;line-height:1.4}
 .main .easy-split-panel .v10-table th{font-size:12.5px}
+/* 표 안 순위 배지 (용량 구간 등): 1위 초록, 2위 파랑 */
+.easy-rank{display:inline-block;font-size:10px;font-weight:700;line-height:1;padding:3px 6px;border-radius:5px;color:#fff;margin-right:7px;vertical-align:1px;letter-spacing:.02em}
+.easy-rank-1{background:#0e6c4c}.easy-rank-2{background:#2364d2}
+.easy-subhead{margin:14px 0 0;font-size:13.5px;font-weight:700;color:var(--ink2)}.easy-subhead:first-child{margin-top:0}
+.v10-panel>.easy-subhead+.easy-chart-table{margin-top:6px}
