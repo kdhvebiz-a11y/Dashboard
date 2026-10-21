@@ -205,7 +205,7 @@ function cwWeeklyMarket(k){
  return v10Banner('미팅 용량 분석',label)+v10Panel('용량 구간별 비율',`${week}주차 문의에서 이어진 미팅 중 용량이 기록된 ${i(recorded.length)}건 기준`,v10Table(['용량 구간','미팅','건수 비중','미팅 용량','평균 용량'],bands.map((b,j)=>[v10RankLabel(labels[j],v10BandRank(bands,j)),i(b.n),v10Rate(b.n,recorded.length),capS(b.cap),d1(b.n?b.cap/b.n:0)+' kW'])));
 }
 for(const key of ['inquiry','meetCoh']){const orig=VIEWS[key];VIEWS[key]=()=>cwScopeActive()?cwWeeklyInquiry():orig();}
-for(const key of ['source','corp','region','capacity']){const orig=VIEWS[key];VIEWS[key]=()=>{const k=key==='source'?'region':key;return cwScopeActive()?easySubnav([['region','지역'],['capacity','용량'],['corp','법인']],k)+cwWeeklyMarket(k):orig();};}
+for(const key of ['source','corp','region','capacity']){const orig=VIEWS[key];VIEWS[key]=()=>{const k=key==='source'?'region':key;return cwScopeActive()?cwWeeklyMarket(k):orig();};}
 const cwToolbar=document.querySelector('.easy-toolbar');
 if(cwToolbar){const button=document.createElement('button');button.className='easy-preset cw-open';button.dataset.v10Section='weekly';button.textContent='주간 조회';cwToolbar.insertBefore(button,cwToolbar.firstChild);}
 document.addEventListener('change',e=>{if(e.target.id==='consultingWeek'){CW.weeks[DB.year]=Number(e.target.value);store.set('v10_consultingWeeks',CW.weeks);render();}});

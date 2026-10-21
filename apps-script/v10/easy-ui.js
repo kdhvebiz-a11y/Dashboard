@@ -16,7 +16,7 @@ const EASY_NAV=[
  */
 const EASY_MENU=[
  {k:'summary',label:'주간 현황',sub:'이번 주 문의와 미팅',open:'weekly',items:[]},
- {k:'inquiries',label:'문의 · 상담',sub:'문의 유입부터 미팅 전환까지',open:'inquiry',items:[['inquiry','문의 · 미팅 전환'],['source','지역 · 용량 · 법인']]},
+ {k:'inquiries',label:'문의 · 상담',sub:'문의 유입부터 미팅 전환까지',open:'inquiry',items:[['inquiry','문의 · 미팅 전환'],['region','지역'],['capacity','용량'],['corp','법인']]},
  {k:'meetings',label:'미팅실적',sub:'사업주 미팅과 담당자 성과',open:'meetExe',items:[['meetExe','사업주 미팅 현황'],['owner','담당자별 실적'],['records','미팅 원장']]},
  {k:'contracts',label:'계약실적',sub:'계약 건수 · 용량 · 위치',open:'contract',items:[['contract','실제 계약 실적']]},
  {k:'goals',label:'목표관리',sub:'목표와 남은 실적',open:'goal',items:[['goal','목표 관리']]},
@@ -173,7 +173,7 @@ function easyPeople(role){
 function easyMarket(k){
  // 마케팅·소개 분해는 '문의 · 미팅 전환' 화면으로 옮겨서, 이 탭은 법인·지역·용량만 보여 준다 ('source' 키는 메뉴 호환용으로 법인 화면을 연다).
  if(k==='source')k='region';
- const nav=easySubnav([['region','지역'],['capacity','용량'],['corp','법인']],k);
+ const nav='';
  let body=k==='corp'?v10Breakdown('corp'):k==='region'?v10Region():v10Capacity();
  if(k==='capacity'){
   body=body.replace(/<div class="v10-kpis">[\s\S]*?(?=<section class="v10-panel">)/,'');
