@@ -139,7 +139,7 @@ function easyInquiry(){
  +easyConversionBody(axis,points,{noun:'월',partial:Number(DB.year)===Number(v10Today().slice(0,4))?axis.findIndex(g=>g.months.length===1&&g.months[0]===Number(v10Today().slice(5,7))):-1,powerName:'발전사업 문의',inquirySub:'전체 문의와 발전사업 문의 · 접수월 기준',cohortSub:'접수월 기준 · 이후 다른 달에 진행한 미팅 포함',rateSub:'분자·분모 모두 발전사업 기준 · 최근 문의월은 후속 미팅으로 계속 올라갑니다',
    splitPanel:easySourceSplit([['마케팅',a.inqMk,a.pwrMk,p.mk],['소개',a.inqRef,a.pwrRef,p.ref]],a.total,a.power,a.rows,'선택한 달 접수 문의 · 전체 문의·발전사업 문의는 말 시트 집계, 미팅은 그 문의에서 이어진 미팅 원장'),
    peoplePanel:''})
- +v10PeriodTable()+v10PeoplePanel('cons','cohort')+`<details class="easy-details" open><summary>연결된 미팅 ${i(a.rows.length)}건 · 미팅 원장 (접으려면 클릭)</summary>${v10Ledger('cohort')}</details>`;
+ +v10PeriodTable()+easyConsultantMonthly(axis)+`<details class="easy-details" open><summary>연결된 미팅 ${i(a.rows.length)}건 · 미팅 원장 (접으려면 클릭)</summary>${v10Ledger('cohort')}</details>`;
 }
 function easyActivity(){
  const ms=selMonths(),a=v10Aggregate(ms),axis=easyTrendAxis(),vals=axis.map(g=>v10Aggregate(g.months));
@@ -151,6 +151,23 @@ function easyActivity(){
  +easyMeetingMonthlyTable(axis,vals)
  +(a.gap?`<div class="v10-callout">동일 보고 주차의 월별 집계 ${i(a.actual)}건과 원장 ${i(a.exeRows.length)}건이 일치하지 않습니다. 원본 집계 내용을 확인해 주세요.</div>`:'')
  +`<details class="easy-details" open><summary>실제 미팅 원장 ${i(a.exeRows.length)}건 (접으려면 클릭)</summary>${v10Ledger('exec')}</details>`;
+}
+// 컨설팅 담당자 월별 실적: 줄 = 담당자(기간 합계 점수 순), 칸 = 월, 칸마다 "N건 / S점". 점수는 컨설팅 담당자·제안서 작성자 동일 1점, 다르면 0.5점씩.
+function easyConsultantMonthly(axis){
+ const monthly=axis.map(g=>v10ConsultingCredits(v10Rows(g.months,'cohort')));
+ const names=new Map();
+ monthly.forEach(m=>m.forEach((c,name)=>{const t=names.get(name)||{name,score:0,n:0};t.score+=c.score;t.n+=c.asCons+Math.max(0,c.solo+c.shared-c.asCons);names.set(name,t);}));
+ // 건수: 그 사람이 컨설팅 담당 또는 제안서 작성으로 관여한 미팅 수 (단독 + 분담)
+ const totals=[...names.values()].map(t=>({name:t.name,score:t.score,n:monthly.reduce((a,m)=>a+((m.get(t.name)||{}).solo||0)+((m.get(t.name)||{}).shared||0),0)})).sort((a,b)=>b.score-a.score||b.n-a.n||a.name.localeCompare(b.name,'ko'));
+ if(!totals.length)return v10Panel('컨설팅 담당자 월별 실적','문의 접수월 기준',v10Empty('이 기간에 이어진 미팅이 없습니다.'));
+ const partial=Number(DB.year)===Number(v10Today().slice(0,4))?axis.findIndex(g=>g.months.length===1&&g.months[0]===Number(v10Today().slice(5,7))):-1;
+ const cell=(c)=>c&&(c.solo+c.shared)?`<b>${i(c.solo+c.shared)}건</b><small>${v10Score(c.score)}점</small>`:'<span class="easy-dim">—</span>';
+ // 달마다 점수 1·2위 표시
+ const rankByMonth=monthly.map(m=>{const top=[...m].filter(([,c])=>c.score>0).sort((a,b)=>b[1].score-a[1].score).slice(0,2).map(x=>x[0]);return name=>{const r=top.indexOf(name);return r<0?0:r+1;};});
+ const colors=[...V10.colors,'#5c6b7a','#9aa5b1'];
+ const rows=totals.map((t,j)=>({name:t.name,color:colors[j%colors.length],cells:[...monthly.map((m,mi)=>{const c=m.get(t.name);const rank=mi===partial?0:rankByMonth[mi](t.name);return (rank?`<span class="easy-rank easy-rank-${rank} easy-rank-cell">${rank}위</span>`:'')+cell(c);}),`<b>${i(t.n)}건</b><small>${v10Score(t.score)}점</small>`]}));
+ const axisPlus=[...axis,{label:'합계'}];
+ return v10Panel('컨설팅 담당자 월별 실적','문의 접수월 기준 · 칸마다 관여한 미팅 건수와 실적 점수 · 달마다 점수 1·2위 표시(진행 중인 달 제외) · 점수: 컨설팅 담당자와 제안서 작성자가 같으면 1점, 다르면 0.5점씩',easyPlainTable(axisPlus,rows).replace('class="easy-chart-table','class="easy-chart-table easy-wide'));
 }
 // 사업형태별 미팅: 원장의 사업형태(발전사업(공장, 창고) · 자가소비 · 토지 · 주차장 …)로 묶어 건수 많은 순. 막대는 건수 비중.
 function easyMeetingTypes(rows){
@@ -171,6 +188,7 @@ function easyMeetingMonthlyTable(axis,vals){
  return v10Panel('월별 미팅 요약','보고 주차 기준 · 건수(전체·마케팅·소개)와 용량·건당 평균을 한 표에 · 건수 줄은 가장 많은 달 1위, 가장 적은 달 최저 표시',easyChartTable(axis,counts,'건','월',partial).replace('class="easy-chart-table"','class="easy-chart-table easy-wide"')+easyPlainTable(axis,caps).replace('class="easy-chart-table','class="easy-chart-table easy-wide easy-tight'));
 }
 function easyPeople(role){
+ role='own'; // 컨설팅 담당자 실적은 문의·미팅 전환 화면(월별 표)으로 옮겼다. 이 화면은 현장 미팅 담당자만.
  const axis=easyTrendAxis(),current=v10PeopleData(role,state.basis,selMonths()).people;
  // Build the legend from every visible month. Using only the selected month
  // made the entire trend chart disappear when that month had no row for a
@@ -188,8 +206,8 @@ function easyPeople(role){
   return [`<span class="easy-person-key"><i style="background:${s.color}"></i>${esc(s.name)}</span>`,...months.map(p=>cell(p.n||0,p.mk||0,p.ref||0)),cell(total,mk,ref),d1(axis.length?total/axis.length:0)+'건'];
  });
  const total=current.reduce((s,p)=>s+p.n,0),capacity=current.reduce((s,p)=>s+p.cap,0),top=current[0],scored=role==='cons';
- return easyLead('담당자별로 무엇이 달라졌나요?','미팅을 잡은 컨설팅 담당자와 현장에 다녀온 미팅 담당자를 구분합니다.')
- +`<div class="easy-rolemenu">${easySubnav([['owner','현장 미팅 담당자'],['cons','컨설팅 담당자']],state.sect)}<label>보고 싶은 실적 <select id="easyTeamBasis"><option value="cohort" ${state.basis==='cohort'?'selected':''}>이번 문의에서 이어진 미팅</option><option value="exec" ${state.basis==='exec'?'selected':''}>이번 기간 실제로 한 미팅</option></select></label></div>`
+ return easyLead('현장 미팅 담당자별로 무엇이 달라졌나요?','현장에 다녀온 미팅 담당자 기준입니다. 컨설팅 담당자 실적은 문의 · 미팅 전환 화면에 있습니다.')
+ +`<div class="easy-rolemenu"><label>보고 싶은 실적 <select id="easyTeamBasis"><option value="cohort" ${state.basis==='cohort'?'selected':''}>이번 문의에서 이어진 미팅</option><option value="exec" ${state.basis==='exec'?'selected':''}>이번 기간 실제로 한 미팅</option></select></label></div>`
  +`<div class="v10-kpis">${v10Card('담당자 수',i(current.length)+' 명',periodLabel()+' 참여 인원',V10.colors[0],state.sect)}${v10Card('미팅 건수',i(total)+' 건',state.basis==='exec'?'실제 미팅월 기준':'문의 접수월 기준',V10.colors[3],state.sect)}${v10Card('미팅 용량',capS(capacity),'담당자 합계',V10.colors[4],state.sect)}${v10Card(scored?'최고 점수 담당자':'최다 담당자',top?top.name:'—',top?(scored?v10Score(top.score||0)+'점 · 컨설팅 '+i(top.asCons||0)+'건 · 제안서 '+i(top.asProp||0)+'건':i(top.n)+'건 · '+capS(top.cap)):'선택 기간 실적 없음',V10.colors[5],state.sect)}</div>`
  +v10PeoplePanel(role,state.basis)
  +v10Line('담당자별 월간 미팅 흐름','위 담당자 표와 같은 집계 기준으로 매월 실적을 비교합니다.',axis,series)
