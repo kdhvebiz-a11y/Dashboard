@@ -181,7 +181,7 @@ function cwWeeklyInquiry(){
  return easyLead(`${week}주차에 들어온 문의가 미팅으로 이어졌나요?`,`${cwLabel(d.range.start,d.range.end)} 월~금에 접수된 문의의 후속 성과입니다. 이후 다른 주에 진행한 미팅도 포함합니다.`,'문의 접수일 기준')
  +easyConversionKpis(p,'말 시트 주차 표 · 월~금',cwShow(d.totals?d.totals.total:null,' 건'))
  +easyConversionBody(axis,points,{noun:'주차',partial:year===Number(v10Today().slice(0,4))?axis.findIndex(a=>a.week===cwThisWeek(year)):-1,powerName:'발전사업 문의',inquirySub:'전체 문의는 말 시트 주차 표, 발전사업 문의는 문의 원장 접수일 · 월~금',cohortSub:'접수 주차 기준 · 이후에 진행한 미팅 포함',rateSub:`최근 ${axis.length}주 · 분자·분모 모두 발전사업 기준 · 최근 주는 계속 올라갑니다`,
-   splitPanel:easySourceSplit([['마케팅',p.pwrMk,p.mk],['소개',p.pwrRef,p.ref]],d.inquiries.length,d.meetings,`${week}주차 접수 문의 · 발전사업 문의는 문의 원장 접수일, 미팅은 그 문의에서 이어진 미팅 원장`),
+   splitPanel:easySourceSplit([['마케팅',null,p.pwrMk,p.mk],['소개',null,p.pwrRef,p.ref]],d.totals?d.totals.total:null,d.inquiries.length,d.meetings,`${week}주차 접수 문의 · 발전사업 문의는 문의 원장 접수일, 미팅은 그 문의에서 이어진 미팅 원장`),
    peoplePanel:v10Panel('컨설팅 담당자 실적',`${week}주차 접수 문의에서 이어진 미팅 · 통계 시트 미팅 원장 기준`,people.length?v10Table(['담당자','실적 점수','단독 (1점)','분담 (0.5점)','컨설팅 담당','제안서 작성','미팅 용량'],people.map(p=>[esc(p.name),`<b>${v10Score(p.score)}점</b>`,i(p.solo)+'건',i(p.shared)+'건',i(p.asCons)+'건',i(p.asProp)+'건',capS(sumRows(byName(p.name)).cap)]))+`<p class="v10-note">컨설팅 담당자와 제안서 작성자가 같으면 1점, 다르면 0.5점씩. 점수 합계 ${v10Score(people.reduce((s,p)=>s+p.score,0))}점 = 미팅 ${i(d.meetings.length)}건.</p>`:v10Empty('이 주 문의에서 이어진 미팅이 아직 없습니다.'))});
 }
 function cwWeeklyMarket(k){

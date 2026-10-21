@@ -108,9 +108,10 @@ function easyConversionBody(axis,points,opts){
  +opts.peoplePanel;
 }
 // 마케팅 · 소개 분해표: [이름, 발전사업 문의 수, 그 문의에서 이어진 미팅 원장 행]
-function easySourceSplit(groups,powerAll,rowsAll,sub){
- const line=(name,pw,rows,bold)=>{const s=sumRows(rows),pm=rows.filter(r=>/^발전사업/.test(r.type)).length,w=v=>bold?`<b>${v}</b>`:v,key=EASY_SRC[name]?`<span class="easy-src-key"><i style="background:${EASY_SRC[name]}"></i>${esc(name)}</span>`:esc(name);return [w(key),w(v10Number(pw)),w(i(rows.length)),w(i(pm)),w(v10Rate(pm,pw)),w(capS(s.cap))];};
- return v10Panel('마케팅 · 소개별 전환',sub,v10Table(['유입','발전사업 문의','미팅','그중 발전사업','전환율','미팅 용량'],[...groups.map(([name,pw,rows])=>line(name,pw,rows,false)),line('합계',powerAll,rowsAll,true)])+'<p class="v10-note">전환율 = 발전사업 미팅 ÷ 발전사업 문의 (각 유입 기준). 최근 접수분은 후속 미팅으로 계속 올라갑니다.</p>');
+// groups: [이름, 전체 문의(말 유입 분류, 없으면 null), 발전사업 문의 수, 그 문의에서 이어진 미팅 원장 행]. 옛 '문의부터 미팅까지' 표의 전체 문의·평균 용량 열을 여기에 합쳤다.
+function easySourceSplit(groups,totalAll,powerAll,rowsAll,sub){
+ const line=(name,inq,pw,rows,bold)=>{const s=sumRows(rows),pm=rows.filter(r=>/^발전사업/.test(r.type)).length,w=v=>bold?`<b>${v}</b>`:v,key=EASY_SRC[name]?`<span class="easy-src-key"><i style="background:${EASY_SRC[name]}"></i>${esc(name)}</span>`:esc(name);return [w(key),w(v10Number(inq)),w(v10Number(pw)),w(i(rows.length)),w(i(pm)),w(v10Rate(pm,pw)),w(capS(s.cap)),w(d1(s.avg)+' kW')];};
+ return v10Panel('마케팅 · 소개별 전환',sub,v10Table(['유입','전체 문의','발전사업 문의','미팅','그중 발전사업','전환율','미팅 용량','평균 용량'],[...groups.map(([name,inq,pw,rows])=>line(name,inq,pw,rows,false)),line('합계',totalAll,powerAll,rowsAll,true)])+'<p class="v10-note">전체 문의는 말 시트의 유입 분류(마케팅·소개가 겹칠 수 있어 합계는 전체 문의 수). 전환율 = 발전사업 미팅 ÷ 발전사업 문의 (각 유입 기준). 최근 접수분은 후속 미팅으로 계속 올라갑니다.</p>').replace('<section class="v10-panel">','<section class="v10-panel easy-split-panel">');
 }
 // 한 기간의 문의·미팅 집계에서 마케팅/소개 분해 숫자를 뽑는다 (월별은 v10Aggregate 결과, 주간은 cwWeekSet 결과를 같은 모양으로 맞춰 넘긴다).
 function easyConversionPoint(total,power,pwrMk,pwrRef,rows){
@@ -134,9 +135,8 @@ function easyInquiry(){
  return easyLead('이번에 들어온 문의가 미팅으로 이어졌나요?','선택한 달에 접수된 문의의 후속 성과입니다. 이후 다른 달에 진행한 미팅도 포함합니다.','문의 접수월 기준')
  +easyConversionKpis(p,'선택한 달에 접수된 문의',v10Number(a.total)+' 건')
  +easyConversionBody(axis,points,{noun:'월',partial:Number(DB.year)===Number(v10Today().slice(0,4))?axis.findIndex(g=>g.months.length===1&&g.months[0]===Number(v10Today().slice(5,7))):-1,powerName:'발전사업 문의',inquirySub:'전체 문의와 발전사업 문의 · 접수월 기준',cohortSub:'접수월 기준 · 이후 다른 달에 진행한 미팅 포함',rateSub:'분자·분모 모두 발전사업 기준 · 최근 문의월은 후속 미팅으로 계속 올라갑니다',
-   splitPanel:easySourceSplit([['마케팅',a.pwrMk,p.mk],['소개',a.pwrRef,p.ref]],a.power,a.rows,'선택한 달 접수 문의 · 발전사업 문의는 말 시트 집계, 미팅은 그 문의에서 이어진 미팅 원장'),
+   splitPanel:easySourceSplit([['마케팅',a.inqMk,a.pwrMk,p.mk],['소개',a.inqRef,a.pwrRef,p.ref]],a.total,a.power,a.rows,'선택한 달 접수 문의 · 전체 문의·발전사업 문의는 말 시트 집계, 미팅은 그 문의에서 이어진 미팅 원장'),
    peoplePanel:v10PeoplePanel('cons','cohort')})
- +v10Breakdown('src').replace(/^.*?(?=<section class="v10-panel">)/s,'').replace(/<section class="v10-panel"><h3>비교 해석[\s\S]*/,'')
  +v10PeriodTable()+`<details class="easy-details" open><summary>연결된 미팅 ${i(a.rows.length)}건 · 미팅 원장 (접으려면 클릭)</summary>${v10Ledger('cohort')}</details>`;
 }
 function easyActivity(){

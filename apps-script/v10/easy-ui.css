@@ -228,3 +228,7 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .main .easy-details .v10-table :is(th,td){padding:8px 6px;font-size:13px;line-height:1.4}
 .main .easy-details .v10-table th{font-size:12.5px}
 .easy-details>summary{font-size:13px;color:var(--ink2);cursor:pointer;margin-bottom:8px}
+/* 마케팅·소개별 전환 표: 열이 8개라 차트 옆 반폭 카드에 맞게 촘촘히 */
+.main .easy-split-panel .v10-table table{font-size:13px}
+.main .easy-split-panel .v10-table :is(th,td){padding:9px 6px;font-size:13px;line-height:1.4}
+.main .easy-split-panel .v10-table th{font-size:12.5px}
