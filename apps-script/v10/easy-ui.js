@@ -147,9 +147,17 @@ function easyActivity(){
  +`<div class="v10-kpis">${v10Card('보고 미팅',i(a.actual)+' 건',a.actualSource,V10.colors[3],'meetExe')}${v10Card('총 미팅 용량',capS(a.actualCap),'선택 보고 주차 사업주 미팅',V10.colors[0],'capacity')}${v10Card('건당 평균 용량',d1(a.avg)+' kW','총 용량 ÷ 보고 미팅 건수',V10.colors[5],'capacity')}${v10Card('보고 주차 내 예정',i(a.scheduled)+' 건','오늘 이후 날짜 · 해당 보고 주차 합계에 포함',V10.colors[1],'records')}</div>`
  +v10SourceAudit()
  +`<div class="v10-grid">${v10Line('월별 사업주 미팅 추세','마케팅과 소개 문의로 실제 진행한 미팅',axis,[{name:'마케팅',color:V10.colors[0],values:vals.map(x=>x.actualMk)},{name:'소개',color:V10.colors[5],values:vals.map(x=>x.actualRef)}])}${v10PeoplePanel('own','exec')}</div>`
- +v10Line('월별 사업주 미팅 용량','단위 kW · 건수와 용량의 흐름을 함께 확인하세요.',axis,[{name:'총 용량',color:V10.colors[3],values:vals.map(x=>x.actualCap)}],'kW')
+ +easyMeetingMonthlyTable(axis,vals)
  +(a.gap?`<div class="v10-callout">동일 보고 주차의 월별 집계 ${i(a.actual)}건과 원장 ${i(a.exeRows.length)}건이 일치하지 않습니다. 원본 집계 내용을 확인해 주세요.</div>`:'')
  +`<details class="easy-details" open><summary>실제 미팅 원장 ${i(a.exeRows.length)}건 (접으려면 클릭)</summary>${v10Ledger('exec')}</details>`;
+}
+// 월별 사업주 미팅 요약표 (용량 차트 대신): 줄 = 전체 미팅 / 마케팅 / 소개 / 미팅 용량 / 건당 평균, 칸 = 월. 건수 줄은 1위·최저 표시, 진행 중인 달 제외.
+function easyMeetingMonthlyTable(axis,vals){
+ const partial=Number(DB.year)===Number(v10Today().slice(0,4))?axis.findIndex(g=>g.months.length===1&&g.months[0]===Number(v10Today().slice(5,7))):-1;
+ const c=V10.colors;
+ const counts=[{name:'전체 미팅',color:c[3],values:vals.map(x=>x.actual)},{name:'마케팅',color:EASY_SRC.마케팅,values:vals.map(x=>x.actualMk)},{name:'소개',color:EASY_SRC.소개,values:vals.map(x=>x.actualRef)}];
+ const caps=[{name:'미팅 용량',color:c[3],cells:vals.map(x=>x.actual?`<b>${capS(x.actualCap)}</b>`:'<span class="easy-dim">—</span>')},{name:'건당 평균',color:c[4],cells:vals.map(x=>x.actual?`<b>${d1(x.actualCap/x.actual)} kW</b>`:'<span class="easy-dim">—</span>')}];
+ return v10Panel('월별 사업주 미팅 요약','보고 주차 기준 · 건수(전체·마케팅·소개)와 용량·건당 평균을 한 표에 · 건수 줄은 가장 많은 달 1위, 가장 적은 달 최저 표시',easyChartTable(axis,counts,'건','월',partial).replace('class="easy-chart-table"','class="easy-chart-table easy-wide"')+easyPlainTable(axis,caps).replace('class="easy-chart-table','class="easy-chart-table easy-wide easy-tight'));
 }
 function easyPeople(role){
  const axis=easyTrendAxis(),current=v10PeopleData(role,state.basis,selMonths()).people;
