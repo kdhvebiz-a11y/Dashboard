@@ -1,7 +1,7 @@
 /* A simpler navigation layer, keeping the verified reporting model underneath. */
 const EASY_NAV=[
  {k:'inquiry',label:'문의 · 미팅 전환',sub:'들어온 문의의 후속 성과'},
- {k:'meetExe',label:'사업주 미팅 현황',sub:'선택한 달에 사업주와 진행한 미팅'},
+ {k:'meetExe',label:'미팅 현황',sub:'선택한 달에 진행한 미팅'},
  {k:'contract',label:'실제 계약 실적',sub:'RPS 계약 · 용량 · 위치'},
  {k:'owner',label:'담당자별 실적',sub:'현장 · 컨설팅 담당'},
  {k:'source',label:'지역 · 용량 · 법인',sub:'어느 지역·용량·법인의 문의인가'},
@@ -17,7 +17,7 @@ const EASY_NAV=[
 const EASY_MENU=[
  {k:'summary',label:'주간 현황',sub:'이번 주 문의와 미팅',open:'weekly',items:[]},
  {k:'inquiries',label:'문의 · 상담',sub:'문의 유입부터 미팅 전환까지',open:'inquiry',items:[['inquiry','문의 · 미팅 전환'],['region','지역'],['capacity','용량'],['corp','법인']]},
- {k:'meetings',label:'미팅실적',sub:'사업주 미팅과 담당자 성과',open:'meetExe',items:[['meetExe','사업주 미팅 현황'],['owner','담당자별 실적'],['records','미팅 원장']]},
+ {k:'meetings',label:'미팅실적',sub:'사업주 미팅과 담당자 성과',open:'meetExe',items:[['meetExe','미팅 현황'],['owner','담당자별 실적'],['records','미팅 원장']]},
  {k:'contracts',label:'계약실적',sub:'계약 건수 · 용량 · 위치',open:'contract',items:[['contract','실제 계약 실적']]},
  {k:'goals',label:'목표관리',sub:'목표와 남은 실적',open:'goal',items:[['goal','목표 관리']]},
  {k:'reports',label:'보고자료',sub:'보고서 · 발표 · 회의자료',open:'report',items:[['report','부서 보고서'],['presentation','실적발표'],['salesMeeting','영업회의 자료']]},
@@ -143,10 +143,10 @@ function easyInquiry(){
 }
 function easyActivity(){
  const ms=selMonths(),a=v10Aggregate(ms),axis=easyTrendAxis(),vals=axis.map(g=>v10Aggregate(g.months));
- return easyLead(`${periodLabel()} 사업주 미팅 현황`,`${periodLabel()}에 배정된 보고 주차 전체의 미팅 실적입니다. 앞뒤 달의 날짜도 해당 주차에 속하면 이 달 실적으로 집계합니다.`,v10ReportPeriodLabel(ms))
+ return easyLead(`${periodLabel()} 미팅 현황`,`${periodLabel()}에 배정된 보고 주차 전체의 미팅 실적입니다. 앞뒤 달의 날짜도 해당 주차에 속하면 이 달 실적으로 집계합니다.`,v10ReportPeriodLabel(ms))
  +`<div class="v10-kpis">${v10Card('보고 미팅',i(a.actual)+' 건',a.actualSource,V10.colors[3],'meetExe')}${v10Card('총 미팅 용량',capS(a.actualCap),'선택 보고 주차 사업주 미팅',V10.colors[0],'capacity')}${v10Card('건당 평균 용량',d1(a.avg)+' kW','총 용량 ÷ 보고 미팅 건수',V10.colors[5],'capacity')}${v10Card('보고 주차 내 예정',i(a.scheduled)+' 건','오늘 이후 날짜 · 해당 보고 주차 합계에 포함',V10.colors[1],'records')}</div>`
  +v10SourceAudit()
- +`<div class="v10-grid">${v10Line('월별 사업주 미팅 추세','마케팅과 소개 문의로 실제 진행한 미팅',axis,[{name:'마케팅',color:V10.colors[0],values:vals.map(x=>x.actualMk)},{name:'소개',color:V10.colors[5],values:vals.map(x=>x.actualRef)}])}${v10PeoplePanel('own','exec')}</div>`
+ +`<div class="v10-grid">${v10Line('월별 미팅 추세','마케팅과 소개 문의로 실제 진행한 미팅',axis,[{name:'마케팅',color:V10.colors[0],values:vals.map(x=>x.actualMk)},{name:'소개',color:V10.colors[5],values:vals.map(x=>x.actualRef)}])}${v10PeoplePanel('own','exec')}</div>`
  +easyMeetingMonthlyTable(axis,vals)
  +(a.gap?`<div class="v10-callout">동일 보고 주차의 월별 집계 ${i(a.actual)}건과 원장 ${i(a.exeRows.length)}건이 일치하지 않습니다. 원본 집계 내용을 확인해 주세요.</div>`:'')
  +`<details class="easy-details" open><summary>실제 미팅 원장 ${i(a.exeRows.length)}건 (접으려면 클릭)</summary>${v10Ledger('exec')}</details>`;
@@ -157,7 +157,7 @@ function easyMeetingMonthlyTable(axis,vals){
  const c=V10.colors;
  const counts=[{name:'전체 미팅',color:c[3],values:vals.map(x=>x.actual)},{name:'마케팅',color:EASY_SRC.마케팅,values:vals.map(x=>x.actualMk)},{name:'소개',color:EASY_SRC.소개,values:vals.map(x=>x.actualRef)}];
  const caps=[{name:'미팅 용량',color:c[3],cells:vals.map(x=>x.actual?`<b>${capS(x.actualCap)}</b>`:'<span class="easy-dim">—</span>')},{name:'건당 평균',color:c[4],cells:vals.map(x=>x.actual?`<b>${d1(x.actualCap/x.actual)} kW</b>`:'<span class="easy-dim">—</span>')}];
- return v10Panel('월별 사업주 미팅 요약','보고 주차 기준 · 건수(전체·마케팅·소개)와 용량·건당 평균을 한 표에 · 건수 줄은 가장 많은 달 1위, 가장 적은 달 최저 표시',easyChartTable(axis,counts,'건','월',partial).replace('class="easy-chart-table"','class="easy-chart-table easy-wide"')+easyPlainTable(axis,caps).replace('class="easy-chart-table','class="easy-chart-table easy-wide easy-tight'));
+ return v10Panel('월별 미팅 요약','보고 주차 기준 · 건수(전체·마케팅·소개)와 용량·건당 평균을 한 표에 · 건수 줄은 가장 많은 달 1위, 가장 적은 달 최저 표시',easyChartTable(axis,counts,'건','월',partial).replace('class="easy-chart-table"','class="easy-chart-table easy-wide"')+easyPlainTable(axis,caps).replace('class="easy-chart-table','class="easy-chart-table easy-wide easy-tight'));
 }
 function easyPeople(role){
  const axis=easyTrendAxis(),current=v10PeopleData(role,state.basis,selMonths()).people;
