@@ -88,10 +88,21 @@ function easyKpiSplit(label,value,note,color,section,parts){
  return `<button class="v10-kpi easy-kpi-split" style="--metric:${color}" data-v10-section="${section}"><span class="label">${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small>${bar}<div class="easy-split-keys">${parts.map(p=>`<span><i style="background:${p.color}"></i>${esc(p.name)} <b>${esc(p.value)}</b></span>`).join('')}</div></button>`;
 }
 // 문의 → 미팅 전환 화면 공통 몸통 (월별·주간이 같은 순서로 그려진다): 문의 추세 → 전환 건수 → 전환율(전체·마케팅·소개) + 분해표 → 담당자 실적
+// 차트 아래 수치표. 줄마다 최고값(▲ 초록)과 최저값(▼ 빨강)을 표시한다. 아직 진행 중인 기간(partial 인덱스)은 비교에서 뺀다.
+function easyChartTable(axis,series,unit,noun,partial){
+ const fmt=v=>v===null||v===undefined?'—':(unit==='%'?d1(v):i(v))+unit;
+ const rows=series.map(s=>{
+  const known=s.values.map((v,k)=>({v,k})).filter(x=>x.v!==null&&x.v!==undefined&&x.k!==partial);
+  const max=known.length>1?Math.max(...known.map(x=>x.v)):null,min=known.length>1?Math.min(...known.map(x=>x.v)):null;
+  const cells=s.values.map((v,k)=>{const text=fmt(v);if(k===partial||v===null||v===undefined||max===min)return `<td>${text}</td>`;if(v===max)return `<td class="easy-max" title="최고">${text}</td>`;if(v===min)return `<td class="easy-min" title="최저">${text}</td>`;return `<td>${text}</td>`;});
+  return `<tr><td><i class="easy-key" style="background:${s.color}"></i>${esc(s.name)}</td>${cells.join('')}</tr>`;
+ });
+ return `<div class="easy-chart-table"><div class="easy-chart-table-head"><span>${esc(noun)}별 수치</span><span class="easy-chart-table-legend"><b class="easy-max">▲ 최고</b><b class="easy-min">▼ 최저</b>${partial>=0?'<small>진행 중인 '+esc(axis[partial].label)+'은 제외</small>':''}</span></div><div class="tblwrap"><table><thead><tr><th>구분</th>${axis.map(a=>`<th>${esc(a.label)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
+}
 function easyConversionBody(axis,points,opts){
- const c=V10.colors,noun=opts.noun,src=name=>({name,color:EASY_SRC[name]});
+ const c=V10.colors,noun=opts.noun,src=name=>({name,color:EASY_SRC[name]}),partial=Number.isInteger(opts.partial)?opts.partial:-1;
  // 차트마다 값 표를 항상 펼쳐 두고(접힌 '값 표로 보기' 대신), 점 위 숫자는 세 선까지 모두 적는다.
- const chart=(title,sub,series,unit)=>v10Line(title,sub,axis,series,unit,{tableAlwaysOpen:true}).replace('<section class="v10-panel">','<section class="v10-panel easy-chart-panel">').replace('월별 수치',`${noun}별 수치`);
+ const chart=(title,sub,series,unit='건')=>{const panel=v10Line(title,sub,axis,series,unit,{noTable:true});return panel.includes('chartbox')?panel.replace('<section class="v10-panel">','<section class="v10-panel easy-chart-panel">').replace(/<\/section>$/,easyChartTable(axis,series,unit,noun,partial)+'</section>'):panel;};
  return `<div class="v10-grid">${chart(`${noun}별 문의`,opts.inquirySub,[{name:'전체 문의',color:c[0],values:points.map(p=>p.total)},{name:opts.powerName,color:c[1],values:points.map(p=>p.power)}])}${chart(`${noun}별 문의 → 미팅`,opts.cohortSub,[{name:'미팅으로 이어진 건',color:c[2],values:points.map(p=>p.cohort)},{...src('마케팅'),values:points.map(p=>p.mkCohort)},{...src('소개'),values:points.map(p=>p.refCohort)}])}</div>`
  +`<div class="v10-grid">${chart(`${noun}별 발전사업 미팅 전환율`,opts.rateSub,[{name:'전체',color:c[4],values:points.map(p=>p.rate)},{...src('마케팅'),values:points.map(p=>p.rateMk)},{...src('소개'),values:points.map(p=>p.rateRef)}],'%')}${opts.splitPanel}</div>`
  +opts.peoplePanel;
@@ -122,11 +133,11 @@ function easyInquiry(){
  const point=x=>easyConversionPoint(x.total,x.power,x.pwrMk,x.pwrRef,x.rows),p=point(a),points=vals.map(point);
  return easyLead('이번에 들어온 문의가 미팅으로 이어졌나요?','선택한 달에 접수된 문의의 후속 성과입니다. 이후 다른 달에 진행한 미팅도 포함합니다.','문의 접수월 기준')
  +easyConversionKpis(p,'선택한 달에 접수된 문의',v10Number(a.total)+' 건')
- +easyConversionBody(axis,points,{noun:'월',powerName:'발전사업 문의',inquirySub:'전체 문의와 발전사업 문의 · 접수월 기준',cohortSub:'접수월 기준 · 이후 다른 달에 진행한 미팅 포함',rateSub:'분자·분모 모두 발전사업 기준 · 최근 문의월은 후속 미팅으로 계속 올라갑니다',
+ +easyConversionBody(axis,points,{noun:'월',partial:Number(DB.year)===Number(v10Today().slice(0,4))?axis.findIndex(g=>g.months.length===1&&g.months[0]===Number(v10Today().slice(5,7))):-1,powerName:'발전사업 문의',inquirySub:'전체 문의와 발전사업 문의 · 접수월 기준',cohortSub:'접수월 기준 · 이후 다른 달에 진행한 미팅 포함',rateSub:'분자·분모 모두 발전사업 기준 · 최근 문의월은 후속 미팅으로 계속 올라갑니다',
    splitPanel:easySourceSplit([['마케팅',a.pwrMk,p.mk],['소개',a.pwrRef,p.ref]],a.power,a.rows,'선택한 달 접수 문의 · 발전사업 문의는 말 시트 집계, 미팅은 그 문의에서 이어진 미팅 원장'),
    peoplePanel:v10PeoplePanel('cons','cohort')})
  +v10Breakdown('src').replace(/^.*?(?=<section class="v10-panel">)/s,'').replace(/<section class="v10-panel"><h3>비교 해석[\s\S]*/,'')
- +v10PeriodTable()+`<details class="easy-details"><summary>연결된 미팅 ${i(a.rows.length)}건 확인 · 내려받기</summary>${v10Ledger('cohort')}</details>`;
+ +v10PeriodTable()+`<details class="easy-details" open><summary>연결된 미팅 ${i(a.rows.length)}건 · 미팅 원장 (접으려면 클릭)</summary>${v10Ledger('cohort')}</details>`;
 }
 function easyActivity(){
  const ms=selMonths(),a=v10Aggregate(ms),axis=easyTrendAxis(),vals=axis.map(g=>v10Aggregate(g.months));
@@ -136,7 +147,7 @@ function easyActivity(){
  +`<div class="v10-grid">${v10Line('월별 사업주 미팅 추세','마케팅과 소개 문의로 실제 진행한 미팅',axis,[{name:'마케팅',color:V10.colors[0],values:vals.map(x=>x.actualMk)},{name:'소개',color:V10.colors[5],values:vals.map(x=>x.actualRef)}])}${v10PeoplePanel('own','exec')}</div>`
  +v10Line('월별 사업주 미팅 용량','단위 kW · 건수와 용량의 흐름을 함께 확인하세요.',axis,[{name:'총 용량',color:V10.colors[3],values:vals.map(x=>x.actualCap)}],'kW')
  +(a.gap?`<div class="v10-callout">동일 보고 주차의 월별 집계 ${i(a.actual)}건과 원장 ${i(a.exeRows.length)}건이 일치하지 않습니다. 원본 집계 내용을 확인해 주세요.</div>`:'')
- +`<details class="easy-details"><summary>실제 미팅 원장 ${i(a.exeRows.length)}건 확인 · 내려받기</summary>${v10Ledger('exec')}</details>`;
+ +`<details class="easy-details" open><summary>실제 미팅 원장 ${i(a.exeRows.length)}건 (접으려면 클릭)</summary>${v10Ledger('exec')}</details>`;
 }
 function easyPeople(role){
  const axis=easyTrendAxis(),current=v10PeopleData(role,state.basis,selMonths()).people;
@@ -155,7 +166,7 @@ function easyPeople(role){
  +v10PeoplePanel(role,state.basis)
  +v10Line('담당자별 월간 미팅 흐름','위 담당자 표와 같은 집계 기준으로 매월 실적을 비교합니다.',axis,series)
  +v10Panel('담당자별 월간 미팅 수치','위 차트와 같은 기준 · 월별 건수, 기간 합계와 월평균을 바로 확인합니다.',v10Table(['담당자',...axis.map(g=>g.label),'합계','월평균'],trendRows))
- +`<details class="easy-details"><summary>담당자별 미팅 용량과 원장 확인</summary>${v10Ledger(state.basis)}</details>`;
+ +`<details class="easy-details" open><summary>담당자별 미팅 원장 (접으려면 클릭)</summary>${v10Ledger(state.basis)}</details>`;
 }
 function easyMarket(k){
  const nav=easySubnav([['source','마케팅 · 소개'],['corp','법인'],['region','지역'],['capacity','용량']],k);

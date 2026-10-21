@@ -206,13 +206,25 @@ html[data-theme="dark"] .perf-next{background:#183453;color:#bdd4f5;border-color
 .easy-preset-select{appearance:none;-webkit-appearance:none;border-color:var(--border);padding-right:10px;cursor:pointer;text-overflow:ellipsis}#easyQuarter{width:128px}#easyYtd{width:122px}.easy-preset-select.on{background:#e9f1ff;border-color:#adc9ee;color:#1854b1;font-weight:650}
 html[data-theme="dark"] .easy-preset.easy-step{background:#1f3a60;border-color:#3b5f8f;color:#cfe0fb}html[data-theme="dark"] .easy-preset.easy-now{background:#4a3a12;border-color:#8a6b22;color:#ffd98a}html[data-theme="dark"] .easy-preset.easy-now.on{background:#8a6b22;border-color:#ffd98a;color:#fff;box-shadow:inset 0 0 0 1px #ffd98a}html[data-theme="dark"] .easy-preset-select.on{background:#25446c;color:#dbe8fc}
 
-/* 문의 → 미팅 전환 차트 카드: 값 라벨이 카드 밖으로 나가도 스크롤바가 생기지 않게 하고, 차트 아래 수치표는 촘촘하게 */
+/* 문의 → 미팅 전환 차트 카드: 값 라벨이 카드 밖으로 나가도 스크롤바가 생기지 않게 하고, 차트 아래 수치표는 촘촘하게. 최고 ▲ 초록 / 최저 ▼ 빨강 */
 .easy-chart-panel .chartbox{overflow:visible}
-.easy-chart-panel .perf-values-always{margin-top:12px}
-.easy-chart-panel .perf-values-always>.v10-note{margin:0 0 6px;font-size:12px}
-.easy-chart-panel .perf-values-always .tblwrap{border-radius:7px}
-.main .easy-chart-panel .perf-values-always .tblwrap table{font-size:12px;min-width:0!important;width:100%;table-layout:fixed}
-.main .easy-chart-panel .perf-values-always .tblwrap th:first-child,.main .easy-chart-panel .perf-values-always .tblwrap td:first-child{width:21%;white-space:normal;word-break:keep-all}
-.main .easy-chart-panel .perf-values-always .tblwrap :is(th,td){padding:5px 6px;font-size:12px;line-height:1.4}
-.main .easy-chart-panel .perf-values-always .tblwrap td:first-child{font-weight:600;color:var(--ink2);text-align:left!important}
-.main .easy-chart-panel .perf-values-always .tblwrap th:first-child{text-align:left!important}
+.easy-chart-table{margin-top:12px}
+.easy-chart-table-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 6px;font-size:12px;color:var(--muted)}
+.easy-chart-table-legend{display:inline-flex;gap:8px;align-items:center;font-size:11px}.easy-chart-table-legend small{color:var(--muted)}
+.easy-chart-table .tblwrap{border-radius:7px}
+.main .easy-chart-table .tblwrap table{font-size:12px;min-width:0!important;width:100%;table-layout:fixed}
+.main .easy-chart-table .tblwrap th:first-child,.main .easy-chart-table .tblwrap td:first-child{width:21%;white-space:normal;word-break:keep-all;text-align:left!important}
+.main .easy-chart-table .tblwrap :is(th,td){padding:5px 4px;font-size:12px;line-height:1.4}
+.main .easy-chart-table .tblwrap td:first-child{font-weight:600;color:var(--ink2)}
+.easy-chart-table .easy-key{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.easy-chart-table-legend b{display:inline-block;padding:1px 6px;border-radius:5px;font-weight:700}
+.main .easy-chart-table .tblwrap td.easy-max,.main .easy-chart-table .tblwrap td.easy-min{font-weight:800;position:relative}
+.main .easy-chart-table .tblwrap td.easy-max::before,.main .easy-chart-table .tblwrap td.easy-min::before{font-size:8px;margin-right:2px;vertical-align:1px}
+.main .easy-chart-table .tblwrap td.easy-max::before{content:'▲'}.main .easy-chart-table .tblwrap td.easy-min::before{content:'▼'}
+.easy-max,.main .easy-chart-table .tblwrap td.easy-max{background:#e3f5ec;color:#0e6c4c}.easy-min,.main .easy-chart-table .tblwrap td.easy-min{background:#fdeaea;color:#b3261e}
+html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-table .tblwrap td.easy-max{background:#12694b;color:#d6f0e2}html[data-theme="dark"] .easy-min,html[data-theme="dark"] .main .easy-chart-table .tblwrap td.easy-min{background:#6b1f1f;color:#fbd5d5}
+/* 펼쳐 둔 미팅 원장: 열이 많아 글자·여백을 줄여 화면 폭 안에 들어오게 */
+.main .easy-details .v10-table table{font-size:13px}
+.main .easy-details .v10-table :is(th,td){padding:8px 6px;font-size:13px;line-height:1.4}
+.main .easy-details .v10-table th{font-size:12.5px}
+.easy-details>summary{font-size:13px;color:var(--ink2);cursor:pointer;margin-bottom:8px}
