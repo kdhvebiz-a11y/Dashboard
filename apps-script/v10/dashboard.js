@@ -353,17 +353,17 @@ function v10Region(){
   return {n:s.n,cap:s.cap,iq:iq||0,cells:[esc(name),v10Number(iq),i(s.n),capS(s.cap),d1(s.avg)+' kW']};
  }).sort((a,b)=>b.n-a.n||b.cap-a.cap||b.iq-a.iq).map(x=>x.cells)))+v10RegionMonthly(names)+v10RegionTrend(names);
 }
-// 권역 × 월 비교표: 문의 수 · 미팅 건수 · 미팅 용량을 1월부터 나란히 본다 (줄마다 1위·최저, 진행 중인 달 제외).
+// 권역 × 월 비교표: 한 표에 칸마다 "미팅 건수 / 미팅 용량 / 문의 수"를 적고, 달마다 미팅 건수 1·2위 권역에 배지를 붙인다. 권역 순서는 기간 합계 미팅 건수 순.
 function v10RegionMonthly(names){
  const axis=v10TrendAxis(),colors=[...V10.colors,'#5c6b7a','#9aa5b1'];
- const partial=Number(DB.year)===Number(v10Today().slice(0,4))?axis.findIndex(g=>g.months.length===1&&g.months[0]===Number(v10Today().slice(5,7))):-1;
  const inRegion=(r,name)=>regionOf(r.reg)===name||r.reg===name;
  const inquiries=axis.map(g=>{if(DB.rawYear)return name=>DB.inquiries.filter(r=>g.months.includes(r.cmo)&&v10Match(r)&&inRegion(r,name)).length;if(v10Scoped())return ()=>null;const inq=regionFor(g.months).find(x=>x.title==='문의');return name=>inq?.regions.find(r=>r.region===name)?.sum??null;});
  const meetings=axis.map(g=>v10Rows(g.months,'cohort'));
- const inqSeries=names.map((name,j)=>({name,color:colors[j%colors.length],values:inquiries.map(f=>f(name))}));
- const cntSeries=names.map((name,j)=>({name,color:colors[j%colors.length],values:meetings.map(rows=>rows.filter(r=>inRegion(r,name)).length)}));
- const capSeries=names.map((name,j)=>({name,color:colors[j%colors.length],values:meetings.map(rows=>Math.round(rows.filter(r=>inRegion(r,name)).reduce((a,r)=>a+(Number(r.cap)||0),0)))}));
- return v10Panel('권역별 월별 비교','문의는 접수월, 미팅은 그 문의에서 이어진 미팅 원장 기준 · 줄마다 가장 많은 달은 1위, 가장 적은 달은 최저로 표시',(`<h4 class="easy-subhead">문의 수</h4>${easyChartTable(axis,inqSeries,'건','월',partial)}<h4 class="easy-subhead">미팅 건수</h4>${easyChartTable(axis,cntSeries,'건','월',partial)}<h4 class="easy-subhead">미팅 용량 (kW)</h4>${easyChartTable(axis,capSeries,' kW','월',partial)}`).replaceAll('class="easy-chart-table"','class="easy-chart-table easy-wide"'));
+ const cells=names.map(name=>meetings.map((rows,mi)=>{const rs=rows.filter(r=>inRegion(r,name));return {n:rs.length,cap:rs.reduce((a,r)=>a+(Number(r.cap)||0),0),iq:inquiries[mi](name)};}));
+ const order=names.map((name,j)=>({j,total:cells[j].reduce((a,c)=>a+c.n,0)})).sort((a,b)=>b.total-a.total).map(x=>x.j);
+ const rankByMonth=axis.map((_,mi)=>{const top=names.map((_,j)=>({j,n:cells[j][mi].n})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,2).map(x=>x.j);return j=>{const r=top.indexOf(j);return r<0?0:r+1;};});
+ const rows=order.map(j=>({name:names[j],color:colors[j%colors.length],cells:cells[j].map((c,mi)=>{if(!c.n&&!c.iq)return '<span class="easy-dim">—</span>';const rank=rankByMonth[mi](j);return `${rank?`<span class="easy-rank easy-rank-${rank} easy-rank-cell">${rank}위</span>`:''}<b>${i(c.n)}건</b><small>${c.n?capS(c.cap):'—'}</small><em>문의 ${v10Number(c.iq)}</em>`;})}));
+ return v10Panel('권역별 월별 비교','칸마다 미팅 건수 · 미팅 용량 · 문의 수 (접수월 기준, 미팅은 그 문의에서 이어진 미팅 원장) · 달마다 미팅 건수 1·2위 권역 표시 · 권역은 기간 합계 미팅 건수 순',easyPlainTable(axis,rows).replace('class="easy-chart-table','class="easy-chart-table easy-wide'));
 }
 // 표 안 순위 배지: 건수 기준 1·2위 구간(권역)에 '1위'·'2위'를 붙인다. 건수 0은 순위에서 뺀다.
 function v10BandRank(bands,j){const order=bands.map((b,k)=>({k,n:b.n})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,2).map(x=>x.k);const r=order.indexOf(j);return r<0?0:r+1;}
