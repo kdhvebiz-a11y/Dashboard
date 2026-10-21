@@ -50,6 +50,12 @@ function forgetFollowupAccess(code){
  if(typeof code==='string'&&code.length>=20&&code.length<=100)fuProps_().deleteProperty('fu_session_'+fuHash_(code));
  return true;
 }
+// 목록용 상담 내용 요약: 빈 줄을 정리해 앞 320자. 전체 내용은 상세에서 읽는다.
+function fuPreview_(notes){
+ var lines=String(notes||'').split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean);
+ var text=lines.join('\n');
+ return text.length>320?text.slice(0,320)+'…':text;
+}
 function fuText_(s,max){return String(s||'').trim().slice(0,max||500);}
 function fuStatus_(s){
  s=String(s||'').replace(/\s/g,'');
@@ -80,7 +86,7 @@ function fuRows_(actor){
    if(!m||Number(m[1])<1||Number(m[1])>12||(!v[2]&&!v[3]&&!v[12]))return;
    var r={id:year+':'+no.toLowerCase(),no:no,year:year,month:Number(m[1]),sourceRow:ix+3,sourceSheet:sh.getName(),gid:sh.getSheetId(),
     statusRaw:String(v[1]||''),status:fuStatus_(v[1]),type:String(v[2]||''),cons:String(v[6]||'').trim()||'미지정',own:String(v[7]||'').trim()||'미지정',meetingDate:String(v[9]||''),capacity:String(v[10]||'')};
-   if(fuAllowed_(actor,r))out.push(Object.assign(r,fuContact_(v),{meetingISO:fuSourceDate_(v[9],year),noteEvidence:fuNoteEvidence_(v[12],year,fuToday_()),noteFingerprint:fuHash_(String(v[12]||'')).slice(0,24)}));
+   if(fuAllowed_(actor,r))out.push(Object.assign(r,fuContact_(v),{meetingISO:fuSourceDate_(v[9],year),noteEvidence:fuNoteEvidence_(v[12],year,fuToday_()),notePreview:fuPreview_(v[12]),noteFingerprint:fuHash_(String(v[12]||'')).slice(0,24)}));
   });
  });
  var counts={};out.forEach(function(r){counts[r.id]=(counts[r.id]||0)+1;});out.forEach(function(r){r.duplicate=counts[r.id]>1;});return out;

@@ -42,3 +42,17 @@ html[data-theme="dark"] .contract-basis button.on{background:#203c61}html[data-t
 @media(max-width:700px){.fu-filter-row{grid-template-columns:1fr 1fr}}
 .fu-sheet-link{font-weight:700;color:#1854b1;text-decoration:none;white-space:nowrap}.fu-sheet-link:hover{text-decoration:underline}
 .fu-mini{display:block;margin:4px auto 0;font:inherit;font-size:11px;padding:2px 8px;border:1px solid var(--border);border-radius:5px;background:var(--plane);color:var(--muted);cursor:pointer}.fu-mini:hover{color:var(--ink)}
+
+/* 후속관리 목록: 고객 칸(이름/전화/주소)과 내용 칸은 줄바꿈 허용, 내용은 클릭해서 펼침 */
+.main .fu-list td{vertical-align:top;text-align:left!important}
+.main .fu-list th{text-align:left!important}
+.main .fu-list td:first-child,.main .fu-list th:first-child{text-align:center!important}
+.fu-customer{white-space:normal;min-width:170px;max-width:230px;line-height:1.45}.fu-customer b{display:block;font-size:14px}.fu-customer a{display:block;color:#1854b1;text-decoration:none;font-variant-numeric:tabular-nums}.fu-customer span{display:block;color:var(--muted)}.fu-customer small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.fu-note-cell{white-space:normal;min-width:320px;max-width:560px}
+.fu-note-toggle{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;line-height:1.5;color:var(--ink2);background:var(--plane);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;white-space:pre-line;max-height:5.3em;overflow:hidden;position:relative}
+.fu-note-toggle:hover{border-color:#adc9ee;background:#f4f8ff}
+.fu-note-toggle.open{max-height:none;color:#1854b1;font-weight:600;text-align:center}
+.fu-row.open td{background:#f4f8ff}
+.fu-expand>td{padding:0 0 18px!important;background:#f4f8ff}
+.fu-expand .fu-detail{margin:0 10px;border-radius:12px}
+.main .fu-list td.fu-note-cell,.main .fu-list td.fu-customer{padding-top:8px;padding-bottom:8px}
