@@ -252,3 +252,7 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .main .easy-plain-table td:has(.easy-rank-1){background:#e3f5ec}.main .easy-plain-table td:has(.easy-rank-2){background:#e9f1ff}
 .easy-plain-table td em{display:block;font-style:normal;font-size:11px;color:var(--muted);line-height:1.2;margin-top:2px}
 .easy-chart-table.easy-tight{margin-top:4px}.easy-chart-table.easy-tight .tblwrap thead{display:none}
+/* 사업형태별 미팅 표: 이름 왼쪽 정렬, 막대 칸 */
+.main .easy-types table{font-size:14px}.main .easy-types :is(th,td){padding:8px 8px;font-size:14px}
+.main .easy-types td:first-child,.main .easy-types th:first-child{text-align:left!important;white-space:nowrap}
+.easy-bar-cell{width:28%;min-width:160px}.easy-bar{height:12px;border-radius:6px;background:var(--border);overflow:hidden}.easy-bar span{display:block;height:100%;background:#2364d2;border-radius:6px}

@@ -146,10 +146,21 @@ function easyActivity(){
  return easyLead(`${periodLabel()} 미팅 현황`,`${periodLabel()}에 배정된 보고 주차 전체의 미팅 실적입니다. 앞뒤 달의 날짜도 해당 주차에 속하면 이 달 실적으로 집계합니다.`,v10ReportPeriodLabel(ms))
  +`<div class="v10-kpis">${v10Card('보고 미팅',i(a.actual)+' 건',a.actualSource,V10.colors[3],'meetExe')}${v10Card('총 미팅 용량',capS(a.actualCap),'선택 보고 주차 사업주 미팅',V10.colors[0],'capacity')}${v10Card('건당 평균 용량',d1(a.avg)+' kW','총 용량 ÷ 보고 미팅 건수',V10.colors[5],'capacity')}${v10Card('보고 주차 내 예정',i(a.scheduled)+' 건','오늘 이후 날짜 · 해당 보고 주차 합계에 포함',V10.colors[1],'records')}</div>`
  +v10SourceAudit()
+ +easyMeetingTypes(a.exeRows)
  +`<div class="v10-grid">${v10Line('월별 미팅 추세','마케팅과 소개 문의로 실제 진행한 미팅',axis,[{name:'마케팅',color:V10.colors[0],values:vals.map(x=>x.actualMk)},{name:'소개',color:V10.colors[5],values:vals.map(x=>x.actualRef)}])}${v10PeoplePanel('own','exec')}</div>`
  +easyMeetingMonthlyTable(axis,vals)
  +(a.gap?`<div class="v10-callout">동일 보고 주차의 월별 집계 ${i(a.actual)}건과 원장 ${i(a.exeRows.length)}건이 일치하지 않습니다. 원본 집계 내용을 확인해 주세요.</div>`:'')
  +`<details class="easy-details" open><summary>실제 미팅 원장 ${i(a.exeRows.length)}건 (접으려면 클릭)</summary>${v10Ledger('exec')}</details>`;
+}
+// 사업형태별 미팅: 원장의 사업형태(발전사업(공장, 창고) · 자가소비 · 토지 · 주차장 …)로 묶어 건수 많은 순. 막대는 건수 비중.
+function easyMeetingTypes(rows){
+ const map=new Map();
+ rows.forEach(r=>{const key=txt(r.type)||'미기재';if(!map.has(key))map.set(key,[]);map.get(key).push(r);});
+ const groups=[...map].map(([name,rs])=>{const s=sumRows(rs);return {name,n:rs.length,cap:s.cap,avg:s.avg,mk:rs.filter(r=>v10Source(r.src)==='마케팅').length,ref:rs.filter(r=>v10Source(r.src)==='소개').length};}).sort((a,b)=>b.n-a.n||b.cap-a.cap);
+ if(!groups.length)return v10Panel('사업형태별 미팅','선택 기간 · 보고 주차 기준',v10Empty('이 기간에 기록된 미팅이 없습니다.'));
+ const max=groups[0].n,total=rows.length;
+ const body=groups.map((g,j)=>`<tr><td>${j<2?`<span class="easy-rank easy-rank-${j+1}">${j+1}위</span>`:''}${esc(g.name)}</td><td class="easy-bar-cell"><div class="easy-bar"><span style="width:${(g.n/max*100).toFixed(1)}%"></span></div></td><td><b>${i(g.n)}건</b></td><td>${v10Rate(g.n,total)}</td><td>${i(g.mk)} / ${i(g.ref)}</td><td>${capS(g.cap)}</td><td>${d1(g.avg)} kW</td></tr>`).join('');
+ return v10Panel('사업형태별 미팅',`${periodLabel()} · 보고 주차 기준 · 미팅 원장의 사업형태 그대로, 건수 많은 순`,`<div class="v10-table easy-types"><table><thead><tr><th>사업형태</th><th></th><th>미팅</th><th>비중</th><th>마케팅 / 소개</th><th>미팅 용량</th><th>평균 용량</th></tr></thead><tbody>${body}</tbody></table></div>`);
 }
 // 월별 사업주 미팅 요약표 (용량 차트 대신): 줄 = 전체 미팅 / 마케팅 / 소개 / 미팅 용량 / 건당 평균, 칸 = 월. 건수 줄은 1위·최저 표시, 진행 중인 달 제외.
 function easyMeetingMonthlyTable(axis,vals){
