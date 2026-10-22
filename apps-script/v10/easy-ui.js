@@ -17,7 +17,7 @@ const EASY_NAV=[
 const EASY_MENU=[
  {k:'summary',label:'주간 현황',sub:'이번 주 문의와 미팅',open:'weekly',items:[]},
  {k:'inquiries',label:'문의 · 상담',sub:'문의 유입부터 미팅 전환까지',open:'inquiry',items:[['inquiry','문의 · 미팅 전환'],['region','지역'],['capacity','용량'],['corp','법인']]},
- {k:'meetings',label:'미팅실적',sub:'사업주 미팅과 담당자 성과',open:'meetExe',items:[['meetExe','미팅 현황'],['owner','담당자별 실적'],['records','미팅 원장']]},
+ {k:'meetings',label:'미팅실적',sub:'사업주 미팅과 담당자 성과',open:'meetExe',items:[['meetExe','미팅 현황'],['owner','담당자별 실적']]},
  {k:'contracts',label:'계약실적',sub:'계약 건수 · 용량 · 위치',open:'contract',items:[['contract','실제 계약 실적']]},
  {k:'goals',label:'목표관리',sub:'목표와 남은 실적',open:'goal',items:[['goal','목표 관리']]},
  {k:'reports',label:'보고자료',sub:'보고서 · 발표 · 회의자료',open:'report',items:[['report','부서 보고서'],['presentation','실적발표'],['salesMeeting','영업회의 자료']]},
@@ -144,7 +144,7 @@ function easyInquiry(){
 function easyActivity(){
  const ms=selMonths(),a=v10Aggregate(ms),axis=easyTrendAxis(),vals=axis.map(g=>v10Aggregate(g.months));
  return easyLead(`${periodLabel()} 미팅 현황`,`${periodLabel()}에 배정된 보고 주차 전체의 미팅 실적입니다. 앞뒤 달의 날짜도 해당 주차에 속하면 이 달 실적으로 집계합니다.`,v10ReportPeriodLabel(ms))
- +`<div class="v10-kpis">${v10Card('보고 미팅',i(a.actual)+' 건',a.actualSource,V10.colors[3],'meetExe')}${v10Card('총 미팅 용량',capS(a.actualCap),'선택 보고 주차 사업주 미팅',V10.colors[0],'capacity')}${v10Card('건당 평균 용량',d1(a.avg)+' kW','총 용량 ÷ 보고 미팅 건수',V10.colors[5],'capacity')}${v10Card('보고 주차 내 예정',i(a.scheduled)+' 건','오늘 이후 날짜 · 해당 보고 주차 합계에 포함',V10.colors[1],'records')}</div>`
+ +`<div class="v10-kpis">${v10Card('보고 미팅',i(a.actual)+' 건',a.actualSource,V10.colors[3],'meetExe')}${v10Card('총 미팅 용량',capS(a.actualCap),'선택 보고 주차 사업주 미팅',V10.colors[0],'capacity')}${v10Card('건당 평균 용량',d1(a.avg)+' kW','총 용량 ÷ 보고 미팅 건수',V10.colors[5],'capacity')}${v10Card('보고 주차 내 예정',i(a.scheduled)+' 건','오늘 이후 날짜 · 해당 보고 주차 합계에 포함',V10.colors[1],'meetExe')}</div>`
  +v10SourceAudit()
  +easyMeetingTypes(a.exeRows)
  +`<div class="v10-grid">${v10Line('월별 미팅 추세','마케팅과 소개 문의로 실제 진행한 미팅',axis,[{name:'마케팅',color:V10.colors[0],values:vals.map(x=>x.actualMk)},{name:'소개',color:V10.colors[5],values:vals.map(x=>x.actualRef)}])}${v10PeoplePanel('own','exec')}</div>`

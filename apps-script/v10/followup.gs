@@ -77,7 +77,7 @@ function fuExtract_(v,headers){
  return Object.assign(base,{contactRaw:contact,content:notes,kepco:field(/한전|선로|계통/,/한전|선로|계통/),municipality:field(/지자체|개발행위|인허가/,/지자체|개발행위|인허가/)});
 }
 function fuRows_(actor){
- var ss=SpreadsheetApp.openById(SHEET_ID),out=[];
+ var ss=SpreadsheetApp.openById(SHEET_ID),out=[],today=fuToday_();
  ss.getSheets().forEach(function(sh){
   var year=Number(sh.getName());if(!/^20\d{2}$/.test(sh.getName())||year<2025||sh.getLastRow()<3)return;
   var values=sh.getRange(3,1,sh.getLastRow()-2,13).getDisplayValues();
@@ -86,7 +86,10 @@ function fuRows_(actor){
    if(!m||Number(m[1])<1||Number(m[1])>12||(!v[2]&&!v[3]&&!v[12]))return;
    var r={id:year+':'+no.toLowerCase(),no:no,year:year,month:Number(m[1]),sourceRow:ix+3,sourceSheet:sh.getName(),gid:sh.getSheetId(),
     statusRaw:String(v[1]||''),status:fuStatus_(v[1]),type:String(v[2]||''),cons:String(v[6]||'').trim()||'미지정',own:String(v[7]||'').trim()||'미지정',meetingDate:String(v[9]||''),capacity:String(v[10]||'')};
-   if(fuAllowed_(actor,r))out.push(Object.assign(r,fuContact_(v),{meetingISO:fuSourceDate_(v[9],year),noteEvidence:fuNoteEvidence_(v[12],year,fuToday_()),notePreview:fuPreview_(v[12]),noteFingerprint:fuHash_(String(v[12]||'')).slice(0,24)}));
+   if(!fuAllowed_(actor,r))return;
+   // 계약·종료 상담은 기본 목록에서 빠지므로 무거운 해시·날짜 분석을 건너뛴다 (상태 탭에서 고르면 기본 정보만 보인다).
+   var closed=r.status==='계약'||r.status==='종료';
+   out.push(Object.assign(r,fuContact_(v),{meetingISO:fuSourceDate_(v[9],year),noteEvidence:closed?{date:'',excerpt:'',inferredYear:false,futureHeadings:0}:fuNoteEvidence_(v[12],year,today),notePreview:fuPreview_(v[12]),noteFingerprint:closed?'':fuHash_(String(v[12]||'')).slice(0,24)}));
   });
  });
  var counts={};out.forEach(function(r){counts[r.id]=(counts[r.id]||0)+1;});out.forEach(function(r){r.duplicate=counts[r.id]>1;});return out;

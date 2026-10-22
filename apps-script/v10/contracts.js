@@ -28,6 +28,33 @@ function contractGoalProgress(){
  };
  return `<div class="contract-goal-progress">${progress(period+' 목표, 얼마나 달성했나요?',selected.capacity,periodGoal,period,V10.colors[0])}${progress(year+'년 연간 목표, 얼마나 달성했나요?',all.capacity,annual,'연간',V10.colors[4])}<p class="v10-note">위는 원본의 월별 목표 합계와 선택 기간 실적을, 아래는 ${year}년 원장 전체와 연간 목표를 비교합니다.<br>부서 전체 · 계약 원장 연도·보고 월 기준${all.missingCapacity?' · 용량 미기재 '+all.missingCapacity+'건 제외':''}${!CONTRACT_DATA.sources.some(s=>s.reportYear===year)?' · 해당 연도 전체 원장 미연결':''}</p></div>`;
 }
+// 월별 목표 대비 달성: 전체·직영·외주·입찰 각 줄에 "목표 / 계약 / 달성률". 목표는 원본 정리base 시트, 계약은 원장(보고 월) 집계.
+function contractMonthlyGoalTable(){
+ const src=contractSourceForYear(DB.year);if(!src?.goals?.전체)return '';
+ const months=Array.from({length:12},(_,j)=>j+1),nowM=Number(v10Today().slice(5,7)),thisYear=Number(DB.year)===Number(v10Today().slice(0,4));
+ const cats=[['전체','전체',V10.colors[4]],['직영','직영',V10.colors[0]],['외주','외주',V10.colors[1]],['입찰','입찰',V10.colors[2]]];
+ const mw=n=>n>=1000?d1(n/1000)+'MW':i(Math.round(n))+'kW';
+ const body=cats.map(([cat,label,color])=>{
+  const goals=src.goals[cat]||[],cells=months.map(m=>{
+   const goal=Number(goals[m-1])||0,act=contractCategoryAggregate([m],cat).capacity,future=thisYear&&m>nowM;
+   if(!goal&&!act)return '<td><span class="easy-dim">—</span></td>';
+   const rate=goal?act/goal*100:null,cls=future?'':rate===null?'':rate>=100?'ok':rate>=70?'warm':'low';
+   return `<td class="ct-cell ${cls}"><small>목표 ${mw(goal)}</small><b>${act?mw(act):'—'}</b><em>${rate===null||(!act&&future)?'':d1(rate)+'%'}</em></td>`;
+  }).join('');
+  const goalSum=goals.reduce((a,b)=>a+(Number(b)||0),0),actSum=contractCategoryAggregate(months,cat).capacity,rate=goalSum?actSum/goalSum*100:null;
+  return `<tr><td><i class="easy-key" style="background:${color}"></i>${esc(label)}</td>${cells}<td class="ct-cell total"><small>목표 ${mw(goalSum)}</small><b>${mw(actSum)}</b><em>${rate===null?'':d1(rate)+'%'}</em></td></tr>`;
+ }).join('');
+ return v10Panel('월별 목표 대비 계약 달성','원본 정리base 시트의 월별 목표(전체·직영·외주·입찰)와 원장 계약 용량 · 칸마다 목표 / 계약 / 달성률 · 100% 이상 초록, 70% 이상 노랑, 그 아래 빨강',`<div class="easy-chart-table easy-wide ct-goal"><div class="tblwrap"><table><thead><tr><th>구분</th>${months.map(m=>`<th>${m}월</th>`).join('')}<th>연간</th></tr></thead><tbody>${body}</tbody></table></div></div>`);
+}
+// 사업 분류(상세 시트)별 계약: 발전사업(A)·자가소비(B)… 시트 이름 그대로, 건수 많은 순. 선택 기간 기준.
+function contractSheetTable(rows){
+ const map=new Map();rows.forEach(r=>{const k=r.sheet||r.business;if(!map.has(k))map.set(k,[]);map.get(k).push(r);});
+ const groups=[...map].map(([name,rs])=>({name,n:rs.length,cap:v10Sum(rs,'capacity'),amount:rs.some(r=>r.amount!==null)?v10Sum(rs,'amount'):null,missing:rs.filter(r=>r.amount===null).length})).sort((a,b)=>b.n-a.n||b.cap-a.cap);
+ if(!groups.length)return '';
+ const total=rows.length,totalCap=v10Sum(rows,'capacity'),max=groups[0].n;
+ const body=groups.map((g,j)=>`<tr><td>${j<2?`<span class="easy-rank easy-rank-${j+1}">${j+1}위</span>`:''}${esc(g.name)}</td><td class="easy-bar-cell"><div class="easy-bar"><span style="width:${(g.n/max*100).toFixed(1)}%;background:${V10.colors[4]}"></span></div></td><td><b>${i(g.n)}건</b></td><td>${v10Rate(g.n,total)}</td><td>${contractCap(g.cap)}</td><td>${v10Rate(g.cap,totalCap)}</td><td>${contractMoney(g.amount)}${g.missing?`<br><small>미기재 ${g.missing}건</small>`:''}</td></tr>`).join('');
+ return v10Panel('사업 분류별 계약',`${periodLabel()} · 원본 상세 시트(발전사업(A) ~ 기타(Z)) 기준 · 건수 많은 순`,`<div class="v10-table easy-types"><table><thead><tr><th>분류 (시트)</th><th></th><th>건수</th><th>건수 비중</th><th>계약 용량</th><th>용량 비중</th><th>공사금액 (VAT 제외)</th></tr></thead><tbody>${body}</tbody></table></div>`);
+}
 const contractMap=r=>r.address?'https://map.kakao.com/link/search/'+encodeURIComponent(r.address):'';
 function contractMatch(r){
  return ['business','source','consultant','owner','corporation','region'].every(k=>contractFilter[k]==='전체'||r[k]===contractFilter[k])&&(!contractFilter.query||[r.plant,r.inquiryNo,r.address,r.consultant,r.owner].join(' ').toLowerCase().includes(contractFilter.query.toLowerCase()));
@@ -72,6 +99,8 @@ function contractView(){
  +(partial?'<div class="v10-callout">선택 연도의 전체 계약 파일이 없습니다. 다른 연도 원장에 포함된 계약만 표시되므로 연간 전체 실적으로 사용하지 마세요.</div>':'')
  +contractKpis(a)+(contractGoalProgress()?v10Panel('실제 계약 목표 달성','선택 기간과 연간 계약 용량',contractGoalProgress()):'')
  +`<p class="v10-note">계약서 수가 아닌 발전소별 원장 행을 셉니다. 동일 상담번호의 여러 발전소를 합치지 않습니다. 취소 ${a.cancelled}건 제외. 계약일이 과거 연도이거나 형식 오류여도 ${DB.year}년 원장과 보고 월이 있으면 ${DB.year}년 실적에 포함합니다.</p>`
+ +contractMonthlyGoalTable()
+ +contractSheetTable(a.rows)
  +`<div class="v10-grid">${v10Line('계약 건수 추세',contractBasisLabel()+' 기준',axis,[{name:'계약',color:V10.colors[4],values:vals.map(x=>x.count)}])}${v10Line('계약 용량 추세','원본 계약용량 · 단위 kWp',axis,[{name:'계약 용량',color:V10.colors[3],values:vals.map(x=>x.capacity)}],'kWp')}</div>`
  +v10Line('공사금액 추세','VAT 제외 · 금액 기재분만 합산',axis,[{name:'공사금액',color:V10.colors[0],values:vals.map(x=>x.amount===null?null:x.amount/100000000)}],'억원')
  +`<div class="v10-grid">${v10Panel('컨설팅 담당자별 계약','원본 M열 컨설팅',v10Table(['담당자','건수','용량','공사금액'],contractGroup(a.rows,'consultant')))}${v10Panel('사업형태별 계약','사업별 상세 시트 기준',v10Table(['사업형태','건수','용량','공사금액'],contractGroup(a.rows,'business')))}</div>`
