@@ -11,10 +11,14 @@ if(!Array.isArray(parsedContracts.sources))throw Error('Contract build data is m
 const contractData=JSON.stringify(parsedContracts).replaceAll('<','\\u003c').replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
 const contracts=(await read('contracts.js')).replace('__CONTRACT_DATA__',contractData);
 const extension=(await read('dashboard.js')).replace('v10Boot();','')+'\n'+await read('source-audit.js')+'\n'+await read('easy-ui.js')+'\n'+await read('sales-meeting.js')+'\n'+contracts+'\n'+await read('followup.js')+'\n'+await read('weekly.js')+'\nv10Boot();';
+// Apps Script strips JS comments before serving, and its scanner can lose track of quotes around nested template literals,
+// so a "//" inside a string may be cut off as if it were a comment (this broke contractMap's Kakao link and the whole page).
+// Writing every "https://" as "https:\/\/" in the v10 scripts keeps the same value but never looks like a comment.
+const guardSlashes=s=>s.replace(/(https?:)\/\//g,'$1\\/\\/');
 if(!html.includes('(function boot(){'))throw new Error('Template boot marker missing');
 html=html.replace('</head>',`<style>\n${css}\n</style>\n</head>`);
 html=html.replace('처음 열 때는 몇 초 걸립니다. 이후에는 훨씬 빠릅니다.','통계·말·문의 원장을 모두 읽습니다. 처음 열 때는 1~3분 걸릴 수 있고, 평소에는 미리 읽어 둔 자료로 바로 열립니다. 새로고침을 누르면 지금 바로 다시 읽습니다.');
-html=html.slice(0,html.indexOf('(function boot(){'))+'\n'+extension+'\n</script>\n<script>\n'+await read('business-parts.js')+'\n</script>\n</body>\n</html>\n';
+html=html.slice(0,html.indexOf('(function boot(){'))+'\n'+guardSlashes(extension)+'\n</script>\n<script>\n'+guardSlashes(await read('business-parts.js'))+'\n</script>\n</body>\n</html>\n';
 html=html.replace('const isContract = r => r.ct.indexOf(\'계약\') >= 0;',"const isContract = r => /계약/.test(r.ct) && !/미계약|계약\\s*(취소|예정|검토)|계약\\s*전/.test(r.ct);");
 // Line charts: series names live in the legend, so the right margin shrinks when end labels are off, and the first `valueSeries` lines can carry value labels even with three series.
 // Optional end-of-line labels for chosen series only (cfg.endLabels = series indices; s.endLabel overrides the text), e.g. the top-ranked regions.
