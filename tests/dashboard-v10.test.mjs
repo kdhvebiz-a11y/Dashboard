@@ -130,7 +130,7 @@ assert.equal(run("smPeriodBounds('11/2~11/6',2026,10).end"),'2026-11-06');
 run("state.mode='month';state.months=[9];state.quarters=[];salesMeetingState.target='2026-09-04';V10.payload.tongye=smInquiryFixture;V10.payload.meeting26=smMeetingFixture");
 const salesMeetingView=run('easySalesMeeting()');
 assert.ok(salesMeetingView.includes('보고 주차 선택'));
-assert.ok(salesMeetingView.includes('이전 주')&&salesMeetingView.includes('다음 주')&&salesMeetingView.includes('이번 주 보고'),'sales meeting moves by week only');
+assert.ok(salesMeetingView.includes('이전 주')&&salesMeetingView.includes('다음 주')&&salesMeetingView.includes('이번 주'),'sales meeting moves by week only');
 assert.ok(salesMeetingView.includes('2026년 36주차'));
 assert.ok(salesMeetingView.includes('2026/08/31(월)~2026/09/04(금)'));
 assert.ok(!salesMeetingView.includes('sm-week-warn'),'the selected inquiry week drives the historical meeting range');

@@ -68,6 +68,9 @@ server=server.replace('var warm = fresh ? null : readCache();','var warm = null;
 server=server.replace("t.DATA = warm ? warm : 'null';","t.DATA = 'null';");
 server=server.replace('  writeCache(json);','  if (!JSON.parse(json).error) writeCache(json);');
 server+='\n'+await read('year-data.gs');
+// 30분 캐시채우기 트리거가 상담 후속관리 목록 캐시도 함께 채운다(메뉴를 누르면 바로 열리게).
+if(!server.includes('  var json = getPayloadJson(true);\n'))throw new Error('캐시채우기 marker missing');
+server=server.replace('  var json = getPayloadJson(true);\n',"  var json = getPayloadJson(true);\n  try { fuWarmCache(); } catch (e) { Logger.log('상담 후속관리 캐시 실패: ' + e.message); }\n");
 server+='\n'+await read('followup.gs');
 server+='\n'+await read('followup-source.gs');
 server+='\n'+await read('presentation-comments.gs');

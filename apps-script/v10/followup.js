@@ -43,9 +43,9 @@ function fuRPC(name,...args){return new Promise((resolve,reject)=>{
  google.script.run.withSuccessHandler(resolve).withFailureHandler(e=>reject(Error(e?.message||String(e))))[name](...args);
 });}
 function fuFlash(message,error=false){FU.message=error?'':message;FU.error=error?message:'';}
-async function fuLoad(){
+async function fuLoad(fresh=false){
  if(FU.loading)return;const key=FU.key;FU.loading=true;FU.error='';render();
- try{const data=await fuRPC('getFollowupWorkspace',key);if(FU.key!==key)return;FU.data=data;if(!FU.data.actor.admin){FU.role=FU.data.actor.role;FU.person=FU.data.actor.name;FU.status=FU.role==='own'?'피드백 없음':'미대응 확인';}FU.page=0;}
+ try{const data=await fuRPC('getFollowupWorkspace',key,fresh===true);if(FU.key!==key)return;FU.data=data;if(!FU.data.actor.admin){FU.role=FU.data.actor.role;FU.person=FU.data.actor.name;FU.status=FU.role==='own'?'피드백 없음':'미대응 확인';}FU.page=0;}
  catch(e){if(FU.key===key)fuFlash(e.message,true);}finally{if(FU.key===key){FU.loading=false;render();}}
 }
 async function fuOpen(r){
@@ -56,7 +56,7 @@ async function fuOpen(r){
 const fuBadge=r=>`<span class="fu-badge ${fuAlert(r).key}">${esc(fuAlert(r).label)}</span>`;
 const fuSelect=(label,key,options)=>`<label>${esc(label)}<select data-fu-filter="${key}">${options.map(v=>`<option value="${esc(v[0])}" ${String(FU[key])===String(v[0])?'selected':''}>${esc(v[1])}</option>`).join('')}</select></label>`;
 function fuLink(r){return 'https:'+'/'+'/docs.google.com/spreadsheets/d/1PR1M6AfYkzmvYlzFKkV4KRhJWTWs0rzZBmroZ3CSwyc/edit#gid='+encodeURIComponent(r.gid)+'&range='+encodeURIComponent('A'+r.sourceRow+':M'+r.sourceRow);}
-function fuLoading(){return `<section class="fu-lock" role="status"><div class="fu-lock-icon">상담 후속관리</div><h2>담당 상담과 연락 일정을 불러오는 중입니다.</h2><p>이 브라우저에 확인된 관리 권한을 불러오고 있습니다.</p></section>`;}
+function fuLoading(){return `<section class="fu-lock" role="status"><div class="fu-lock-icon">상담 후속관리</div><h2>담당 상담과 연락 일정을 불러오는 중입니다.</h2><p>상담일지 전체(900여 행)를 읽고 있습니다. 보통 몇 초면 열리고, 30분 넘게 아무도 안 열었으면 처음 한 번은 1분 정도 걸릴 수 있습니다.</p></section>`;}
 function fuLogin(){return `<section class="fu-lock"><div class="fu-lock-icon">상담 후속관리</div><h2>이 브라우저는 최초 한 번만 담당자 확인이 필요합니다.</h2><p>확인이 끝나면 접속 종료 전까지 이 메뉴를 누르는 즉시 상담 목록이 열립니다.<br>팀 담당자는 관리자에게 받은 본인 전용 코드를 입력하면 배정된 상담만 볼 수 있습니다.</p><form id="fuLogin"><label>최초 확인용 접속 코드<input name="code" type="password" autocomplete="off" required minlength="20" placeholder="관리자 또는 담당자 접속 코드"></label><button class="btn primary" ${FU.loading?'disabled':''}>${FU.loading?'불러오는 중…':'이 브라우저에서 바로 보기'}</button></form><p class="v10-note">고객 전화번호와 주소를 보호하기 위한 최초 확인입니다. 확인 코드는 저장하지 않고 이 브라우저 전용 권한만 안전하게 기억하며, 접속 종료를 누르면 해제됩니다.</p>${FU.error?`<p class="fu-error" role="alert">${esc(FU.error)}</p>`:''}</section>`;}
 function fuDetail(){
  const base=FU.data.rows.find(r=>r.id===FU.selected);if(!base)return '';
@@ -127,7 +127,7 @@ document.addEventListener('click',async e=>{
  if(b.hasAttribute('data-fu-status')){FU.status=b.dataset.fuStatus;FU.page=0;FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;render();return;}
  if(b.hasAttribute('data-fu-page')){FU.page+=Number(b.dataset.fuPage);render();return;}
  const action=b.dataset.fuAction;
- if(action==='refresh'){await fuLoad();return;}
+ if(action==='refresh'){await fuLoad(true);return;}
  if(action==='logout'){const old=FU.key;FU.key='';store.del('fu_access');FU.data=null;FU.detail=null;FU.detailLoading=false;FU.detailToken++;FU.issued=null;FU.selected='';FU.loading=false;FU.autoTried=true;fuFlash('');document.querySelector('#fuBell')?.remove();if(old)fuRPC('forgetFollowupAccess',old).catch(()=>{});}
  if(action==='close'){FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;}
  if(action==='reset'){FU.role=FU.data.actor.admin?'own':FU.data.actor.role;FU.person=FU.data.actor.admin?'전체':FU.data.actor.name;FU.year='전체';FU.period='all';FU.status=FU.role==='own'?'피드백 없음':'미대응 확인';FU.query='';FU.page=0;FU.selected='';FU.detail=null;FU.detailLoading=false;FU.detailToken++;}

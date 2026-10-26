@@ -1,6 +1,9 @@
 /* Private follow-up workspace. No personal fields are added to public JSON/cache. */
 var FOLLOWUP_ADMIN_HASH_ = '__FOLLOWUP_ADMIN_HASH__';
-function fuHash_(s) { return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(s),Utilities.Charset.UTF_8).map(function(b){return ('0'+((b+256)%256).toString(16)).slice(-2);}).join(''); }
+// 같은 실행 안에서 같은 값은 한 번만 해시한다(상담 900여 행 × 3회 SHA-256이 로딩 시간의 대부분이었다).
+var FU_HASH_MEMO={};
+function fuHash_(s) { s=String(s); if(Object.prototype.hasOwnProperty.call(FU_HASH_MEMO,s))return FU_HASH_MEMO[s]; return FU_HASH_MEMO[s]=fuHashRaw_(s); }
+function fuHashRaw_(s) { return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(s),Utilities.Charset.UTF_8).map(function(b){return ('0'+((b+256)%256).toString(16)).slice(-2);}).join(''); }
 function fuProps_(){return PropertiesService.getScriptProperties();}
 function fuToday_(){return Utilities.formatDate(new Date(),'Asia/Seoul','yyyy-MM-dd');}
 function fuDate_(s){s=String(s||'');if(!s)return '';if(!/^20\d{2}-\d{2}-\d{2}$/.test(s)||isNaN(new Date(s+'T00:00:00Z').getTime())||new Date(s+'T00:00:00Z').toISOString().slice(0,10)!==s)throw Error('날짜 형식을 확인하세요.');return s;}
@@ -95,11 +98,33 @@ function fuRows_(actor){
  var counts={};out.forEach(function(r){counts[r.id]=(counts[r.id]||0)+1;});out.forEach(function(r){r.duplicate=counts[r.id]>1;});return out;
 }
 function fuStateKey_(id){return 'fu_record_'+fuHash_(id);}
-function getFollowupWorkspace(code){
- var actor=fuActor_(code),rows=fuRows_(actor),observationWarning=fuObserveNotes_(rows),props=fuProps_().getProperties();
- rows.forEach(function(r){r.followup=props[fuStateKey_(r.id)]?JSON.parse(props[fuStateKey_(r.id)]):{version:0,lastContact:'',nextContact:'',note:'',history:[]};});
- rows.forEach(function(r){delete r.noteFingerprint;});
- return {actor:actor,rows:rows,at:new Date().toISOString(),today:fuToday_(),observationWarning:observationWarning};
+// 상담 목록(전체)은 서버 캐시에 40분 보관한다. 30분마다 도는 캐시채우기 트리거가 미리 채워 두므로
+// 메뉴를 누르면 바로 열린다. 후속 기록(연락일·메모)은 캐시와 별개로 매번 새로 읽어 저장 즉시 반영된다.
+var FU_CACHE_KEY='fu_rows_v1',FU_CACHE_SEC=2400;
+function fuCache_(){try{return typeof CacheService!=='undefined'?CacheService.getScriptCache():null;}catch(e){return null;}}
+function fuCacheRead_(){
+ var c=fuCache_();if(!c)return null;
+ try{var head=c.get(FU_CACHE_KEY);if(!head)return null;head=JSON.parse(head);var keys=[];for(var k=0;k<head.n;k++)keys.push(FU_CACHE_KEY+'_'+k);
+  var parts=c.getAll(keys),enc='';for(var z=0;z<keys.length;z++){if(!parts[keys[z]])return null;enc+=parts[keys[z]];}
+  return JSON.parse(Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(enc),'application/gzip')).getDataAsString());}catch(e){return null;}
+}
+function fuCacheWrite_(obj){
+ var c=fuCache_();if(!c)return;
+ try{var enc=Utilities.base64Encode(Utilities.gzip(Utilities.newBlob(JSON.stringify(obj),'application/json')).getBytes()),size=90000,n=Math.ceil(enc.length/size),put={};
+  if(n>90)return;for(var k=0;k<n;k++)put[FU_CACHE_KEY+'_'+k]=enc.slice(k*size,(k+1)*size);
+  c.putAll(put,FU_CACHE_SEC);c.put(FU_CACHE_KEY,JSON.stringify({n:n,at:obj.at}),FU_CACHE_SEC);}catch(e){}
+}
+function fuWorkspaceRows_(fresh){
+ if(!fresh){var hit=fuCacheRead_();if(hit&&hit.rows)return hit;}
+ var rows=fuRows_({admin:true,name:'',role:''}),warning=fuObserveNotes_(rows);
+ rows.forEach(function(r){r.stateKey=fuStateKey_(r.id);delete r.noteFingerprint;});
+ var out={rows:rows,warning:warning,at:new Date().toISOString()};fuCacheWrite_(out);return out;
+}
+function fuWarmCache(){var t0=Date.now(),out=fuWorkspaceRows_(true);Logger.log('상담 후속관리 캐시 '+out.rows.length+'행 · '+(Date.now()-t0)+'ms');}
+function getFollowupWorkspace(code,fresh){
+ var actor=fuActor_(code),base=fuWorkspaceRows_(fresh===true),props=fuProps_().getProperties();
+ var rows=base.rows.filter(function(r){return fuAllowed_(actor,r);}).map(function(r){var o=Object.assign({},r);o.followup=props[o.stateKey]?JSON.parse(props[o.stateKey]):{version:0,lastContact:'',nextContact:'',note:'',history:[]};delete o.stateKey;return o;});
+ return {actor:actor,rows:rows,at:base.at,today:fuToday_(),observationWarning:base.warning};
 }
 function getFollowupDetail(code,input){
  var actor=fuActor_(code);input=input||{};
