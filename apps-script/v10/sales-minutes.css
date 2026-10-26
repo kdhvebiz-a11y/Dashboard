@@ -193,18 +193,7 @@
 
 /* 영업회의: 주차만 — 기간 막대 숨김 + 눈에 띄는 주차 이동 막대 */
 body.sm-mode #periodbar,body.sm-mode #basisNote{display:none!important}
-.sm-weekbar{display:flex;align-items:center;flex-wrap:wrap;gap:14px 28px;margin:2px 0 14px;padding:14px 20px;border:2px solid #2364d2;border-left-width:8px;border-radius:14px;background:#f3f7ff}
-.sm-week-now{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 16px;color:#0f2a5c}
-.sm-week-now b{font-size:28px;line-height:1.15;font-weight:800;white-space:nowrap}
-.sm-week-now strong{font-size:26px;line-height:1.15;font-weight:800;color:#1849a9;white-space:nowrap}
-.sm-week-now strong em{font-style:normal;font-size:15px;font-weight:600;color:#4f6b96}
-.sm-week-now span{font-size:14px;font-weight:600;color:#4f6b96;white-space:nowrap}
-.sm-week-seg{display:inline-flex;margin-left:auto;border:2px solid #2364d2;border-radius:12px;overflow:hidden;background:#fff}
-.sm-week-btn{border:0;border-right:1px solid #c6d6f3;padding:0 18px;min-height:44px;font-size:15px;font-weight:800;cursor:pointer;background:#fff;color:#1849a9;white-space:nowrap}
-.sm-week-btn:last-child{border-right:0}
-.sm-week-btn:hover{background:#e8f0fe}
-.sm-week-btn[disabled]{color:#9aa8c0;cursor:default;background:#fff}
-.sm-week-this{background:#2364d2;color:#fff}.sm-week-this:hover{background:#1849a9}
-.sm-week-this:not(.on){background:#ffd43b;color:#5a3d00}
+.sm-periodbar{margin:4px 0 16px}
+.sm-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
+.sm-periodbar .easy-period-note{margin:12px 0 0}
 .sm-week-warn{margin:-6px 0 12px;padding:8px 12px;border-radius:10px;background:#fdecea;color:#b3261e;font-size:13px;font-weight:700}
-@media(max-width:700px){.sm-week-now b,.sm-week-now strong{font-size:21px}.sm-week-seg{margin-left:0;width:100%}.sm-week-btn{flex:1;padding:0 8px;font-size:14px}}
