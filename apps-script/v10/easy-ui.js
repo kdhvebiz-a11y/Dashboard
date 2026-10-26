@@ -227,7 +227,7 @@ function easyMarket(k){
 }
 const easyGoalOriginal=v10GoalView;
 // Department inquiry targets are independent daily, weekly and monthly commitments.
-const EASY_INQUIRY_TARGETS={daily:50,weekly:350,monthly:1500};
+const EASY_INQUIRY_TARGETS={daily:50,weekly:350,monthly:1516};
 const easyGoalState={mode:store.get('v10_goalMode','week'),weeks:store.get('v10_goalWeeks',{}),goals:store.get('v10_weekGoals',{})};
 const easyPad=n=>String(n).padStart(2,'0');
 function easyIsoWeek(dateText=v10Today()){
@@ -269,7 +269,7 @@ function easyWeeklyGoals(){
  const option=Array.from({length:52},(_,i)=>{const r=easyWeekRange(DB.year,i+1);return `<option value="${i+1}" ${week===i+1?'selected':''}>${i+1}주차 · ${r.label}</option>`;}).join('');
  const rows=Array.from({length:52},(_,i)=>{const w=i+1,r=easyWeekRange(DB.year,w),g=easyWeekGoals(w);return [`${w}주차`,r.label,g.total===null?'—':d1(g.total),g.power===null?'—':d1(g.power),g.meeting===null?'—':d1(g.meeting),g.contractCount===null?'—':d1(g.contractCount),g.contractCap===null?'—':d1(g.contractCap),esc(g.source)];});
  return `<div class="easy-week-select"><button class="btn" data-easy-week-step="-1" ${week===1?'disabled':''}>이전 주</button><label>조회 주차<select id="v10GoalWeek">${option}</select></label><button class="btn" data-easy-week-step="1" ${week===52?'disabled':''}>다음 주</button><strong>${DB.year}년 ${week}주차 · ${range.label}</strong></div>`
- +`<div class="easy-summary"><strong>월~금 5일을 1주로 집계</strong><span>전체 문의 기본 목표는 주 350건입니다. 일 50건·월 1,500건과 별도로 설정한 값입니다. 그 외 주간 목표는 연간 목표÷52이며, 아래에서 주차별로 조정할 수 있습니다.</span></div>`
+ +`<div class="easy-summary"><strong>월~금 5일을 1주로 집계</strong><span>전체 문의 기본 목표는 주 350건입니다. 일 50건·월 1,516건과 별도로 설정한 값입니다. 그 외 주간 목표는 연간 목표÷52이며, 아래에서 주차별로 조정할 수 있습니다.</span></div>`
  +`<div class="v10-kpis">${v10Card('주간 사업주 미팅',i(actual.meeting)+' 건',`${range.label} · 미팅일 원장`,V10.colors[3],'meetExe')}${v10Card('주간 미팅 용량',capS(actual.capacity),'월~금 사업주 미팅',V10.colors[0],'capacity')}${v10Card('주간 계약','—','계약은 원장 보고 월 단위로 집계',V10.colors[4],'contract')}${v10Card('주간 계약 용량','—','계약일로 주간 실적을 나누지 않음',V10.colors[5],'contract')}</div>`
  +v10Panel('선택 주 목표 달성','미팅은 실제 미팅일 기준입니다. 문의 접수일과 계약 보고 일자가 없어 문의·계약 주간 실적은 표시하지 않습니다.',v10GoalBar('전체 문의',null,goal.total,'건',V10.colors[0])+v10GoalBar('전체 사업 문의',null,goal.power,'건',V10.colors[1])+v10GoalBar('사업주 미팅',scoped?null:actual.meeting,goal.meeting,'건',V10.colors[3]))
  +`<div class="v10-callout">주간 문의 실적은 현재 대시보드 자료에 문의 접수 ‘일자’가 없어 임의로 나누지 않았습니다. 원본에 정확한 접수일 열을 연결하면 주간 문의 달성률도 계산할 수 있습니다.</div>`

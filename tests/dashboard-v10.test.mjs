@@ -204,9 +204,9 @@ assert.equal(run("easyWeekRange(2026,38).end"),'2026-09-18','week 38 ends on Fri
 assert.equal(run("Array.from({length:52},(_,i)=>easyWeekRange(2026,i+1)).length"),52,'weekly target selector has 52 weeks');
 assert.equal(run('easyWeekDefaultGoals().total'),350,'weekly inquiry target is independent of monthly / 52');
 assert.equal(run('EASY_INQUIRY_TARGETS.daily'),50);
-assert.equal(run('v10GoalMonth(9).total'),1500);
-assert.equal(run('v10Goals([1,2,3]).total'),4500,'quarter retains monthly target totals');
-assert.equal(run('v10Goals([7,8,9]).total'),3200,'saved July override remains intact');
+assert.equal(run('v10GoalMonth(9).total'),1516);
+assert.equal(run('v10Goals([1,2,3]).total'),4548,'quarter retains monthly target totals');
+assert.equal(run('v10Goals([7,8,9]).total'),3232,'saved July override remains intact');
 run("easyGoalState.mode='week';easyGoalState.weeks[2026]=38;state.sect='goal';state.owner='전체';state.cons='전체';state.type='전체';state.src='전체';state.corp='전체';state.region='전체';state.query=''");
 const weeklyGoalView=run('VIEWS.goal()');
 assert.ok(weeklyGoalView.includes('38주차 · 9/14(월)~9/18(금)'),'weekly goal shows exact Monday-Friday range');
@@ -323,7 +323,7 @@ if(process.argv.includes('--live')){
   audit.push({month:m,inquiries:a.total,power:a.power,cohort:a.cohort,actual:a.actual,capacityKW:a.actualCap,checks:JSON.parse(run('JSON.stringify(v10SourceChecks([auditMonth]))'))});
  }
  run("state.src='마케팅'");assert.equal(run('v10Aggregate([9]).power'),Number(payload.tongye[195][37]));run("state.src='전체'");
- assert.equal(run('v10Goals([9]).meeting'),85,'five report weeks have a 17 x 5 meeting target');
+ assert.equal(run('v10Goals([9]).meeting'),72,'monthly consulting meeting target is 72');
  assert.equal(run("v10Rows([9],'exec').length"),run('v10Aggregate([9]).actual'),'September ledger uses all reporting weeks');
  assert.equal(run('easyPresentationWeekRows(9).reduce((s,w)=>s+w.rows.length,0)'),run('v10Aggregate([9]).actual'),'staff weekly rows match monthly reported meetings');
  assert.equal(run('v10ReportLedgerComplete([9])'),true,'reported capacity and count reconcile to the same reporting-week rows');

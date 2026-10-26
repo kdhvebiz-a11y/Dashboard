@@ -230,7 +230,7 @@ function v10GoalMonth(m){
  const reportWeeks=DB.months?.find(x=>x.m===m)?.wmeet?.length||0;
  const stated=reportWeeks?reportWeeks*17:num(V10.payload?.mal?.[0]?.[86]);
  const sourceGoal=typeof contractGoal==='function'?contractGoal('전체',[m]):null;
- return {total:EASY_INQUIRY_TARGETS.monthly,power:DB.rawYear?null:GOAL.inqPwr,meeting:DB.rawYear?null:(stated>0?stated:null),contractCount:null,contractCap:sourceGoal??(x?.goalCtr>0?x.goalCtr:null),source:sourceGoal!==null?'전체 문의 월 1,500건 / 주 17건 × 보고 주차 수 / RPS 원장 월별 계약 목표':'전체 문의 월 1,500건 / 주 17건 × 보고 주차 수 / CE 계약 용량'};
+ return {total:EASY_INQUIRY_TARGETS.monthly,power:DB.rawYear?null:GOAL.inqPwr,meeting:DB.rawYear?null:72,contractCount:null,contractCap:sourceGoal??(x?.goalCtr>0?x.goalCtr:null),source:sourceGoal!==null?'전체 문의 월 1,516건 / 사업주 미팅 월 72건 / RPS 원장 월별 계약 목표':'전체 문의 월 1,500건 / 주 17건 × 보고 주차 수 / CE 계약 용량'};
 }
 function v10Goals(ms){
  if(v10Scoped())return {total:null,power:null,meeting:null,contractCount:null,contractCap:null};

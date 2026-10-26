@@ -28,6 +28,22 @@ function contractGoalProgress(){
  };
  return `<div class="contract-goal-progress">${progress(period+' 목표, 얼마나 달성했나요?',selected.capacity,periodGoal,period,V10.colors[0])}${progress(year+'년 연간 목표, 얼마나 달성했나요?',all.capacity,annual,'연간',V10.colors[4])}<p class="v10-note">위는 원본의 월별 목표 합계와 선택 기간 실적을, 아래는 ${year}년 원장 전체와 연간 목표를 비교합니다.<br>부서 전체 · 계약 원장 연도·보고 월 기준${all.missingCapacity?' · 용량 미기재 '+all.missingCapacity+'건 제외':''}${!CONTRACT_DATA.sources.some(s=>s.reportYear===year)?' · 해당 연도 전체 원장 미연결':''}</p></div>`;
 }
+// 팀별 목표 달성(선택 기간 + 연간): 전체·직영·외주·입찰 카드마다 목표 용량 / 달성 용량 / 달성률. 계약 조건 필터와 무관한 부서 전체 기준.
+function contractTeamGoals(){
+ const src=contractSourceForYear(DB.year);if(!src?.goals?.전체)return '';
+ const ms=[...new Set(selMonths())].sort((a,b)=>a-b),year=Array.from({length:12},(_,j)=>j+1);
+ const contiguous=ms.every((m,j)=>j===0||m===ms[j-1]+1);
+ const period=ms.length===1?ms[0]+'월':ms.length===3&&contiguous&&(ms[0]-1)%3===0?`${Math.ceil(ms[0]/3)}분기`:contiguous?`${ms[0]}~${ms[ms.length-1]}월`:ms.map(m=>m+'월').join('·');
+ const mw=n=>n>=1000?d1(n/1000)+'MW':i(Math.round(n))+'kW';
+ const cls=r=>r===null?'':r>=100?'ok':r>=70?'warm':'low';
+ const block=(label,goal,act,count,big)=>{const rate=goal?act/goal*100:null,c=cls(rate);
+  return `<div class="ct-team-row${big?' big':''}"><span class="ct-team-scope">${label}</span><div class="ct-team-nums"><span><small>목표</small><b>${goal?mw(goal):'—'}</b></span><span><small>달성 · ${i(count)}건</small><b>${mw(act)}</b></span><span class="ct-rate ${c}"><small>달성률</small><b>${rate===null?'—':d1(rate)+'%'}</b></span></div><div class="v10-track ct-team-track"><span class="${c}" style="width:${rate===null?0:Math.min(rate,100)}%"></span></div></div>`;};
+ const cards=[['전체',V10.colors[4]],['직영',V10.colors[0]],['외주',V10.colors[1]],['입찰',V10.colors[2]]].map(([cat,color])=>{
+  const p=contractCategoryAggregate(ms,cat),y=contractCategoryAggregate(year,cat);
+  return `<article class="ct-team${cat==='전체'?' all':''}" style="--team:${color}"><h4><i></i>${cat==='전체'?'부서 전체':cat}</h4>${block(period,contractGoal(cat,ms),p.capacity,p.count,true)}${block(`${DB.year}년 연간`,contractGoal(cat,year),y.capacity,y.count,false)}</article>`;
+ }).join('');
+ return v10Panel('팀별 목표 달성',`${period} · 직영·외주·입찰 목표 용량 대비 계약 용량 · 원본 정리base 목표, 원장 보고 월 기준 · 100% 이상 초록, 70% 이상 노랑, 그 아래 빨강`,`<div class="ct-teams">${cards}</div>`);
+}
 // 월별 목표 대비 달성: 전체·직영·외주·입찰 각 줄에 "목표 / 계약 / 달성률". 목표는 원본 정리base 시트, 계약은 원장(보고 월) 집계.
 function contractMonthlyGoalTable(){
  const src=contractSourceForYear(DB.year);if(!src?.goals?.전체)return '';
@@ -100,7 +116,7 @@ function contractView(){
  return easyLead('실제 계약 실적','RPS 계약 원장을 기준으로 계약 건수·용량·공사금액·설치 위치를 확인합니다.',contractBasisLabel())
  +contractControls(all,filters)
  +(partial?'<div class="v10-callout">선택 연도의 전체 계약 파일이 없습니다. 다른 연도 원장에 포함된 계약만 표시되므로 연간 전체 실적으로 사용하지 마세요.</div>':'')
- +contractKpis(a)+(contractGoalProgress()?v10Panel('실제 계약 목표 달성','선택 기간과 연간 계약 용량',contractGoalProgress()):'')
+ +contractKpis(a)+(contractTeamGoals()||(contractGoalProgress()?v10Panel('실제 계약 목표 달성','선택 기간과 연간 계약 용량',contractGoalProgress()):''))
  +`<p class="v10-note">계약서 수가 아닌 발전소별 원장 행을 셉니다. 동일 상담번호의 여러 발전소를 합치지 않습니다. 취소 ${a.cancelled}건 제외. 계약일이 과거 연도이거나 형식 오류여도 ${DB.year}년 원장과 보고 월이 있으면 ${DB.year}년 실적에 포함합니다.</p>`
  +contractMonthlyGoalTable()
  +contractSheetTable(a.rows)
