@@ -139,7 +139,57 @@ v10Insights=function(){const c=contractAggregate(selMonths(),{filtered:false}),b
 const contractOldReport=VIEWS.report;
 VIEWS.report=()=>contractOldReport().replace('계약 자료 안내','실제 계약 상세').replace('계약 확정 실적은 계약 엑셀을 받은 뒤 연결합니다.','계약은 RPS 원장의 계약연도·보고 월을 기준으로 별도 집계합니다.')+contractReport();
 const contractOldGoals=VIEWS.goal;
-VIEWS.goal=()=>(contractGoalProgress()?v10Panel('실제 계약 목표 달성','선택 기간과 연간 실적',contractGoalProgress()):'')+contractOldGoals().replace('계약 실적은 엑셀 자료 수신 후 연결합니다.','계약 실적은 RPS 엑셀의 계약연도·보고 월 기준입니다.');
+// 목표관리: 마케팅(전체 문의) · 컨설팅(사업주 미팅) · 필드(계약 직영·외주·입찰) — 이번 주/이번 달/매월/올해 달성·미달성.
+const GOAL_BOARD={marketing:{week:350,month:1516},consulting:{week:17,month:72}};
+function goalBoardData(){
+ const year=Number(DB.year),today=v10Today(),thisYear=Number(today.slice(0,4))===year,nowM=thisYear?Number(today.slice(5,7)):12;
+ const months=Array.from({length:12},(_,j)=>j+1),agg=months.map(m=>m<=nowM?v10Aggregate([m]):null);
+ const ct=cat=>months.map(m=>m<=nowM?contractCategoryAggregate([m],cat).capacity:null),goal=cat=>months.map(m=>contractGoal(cat,[m]));
+ const rows=[
+  {k:'marketing',team:'마케팅',label:'전체 문의',unit:'건',goals:months.map(()=>GOAL_BOARD.marketing.month),acts:agg.map(a=>a?a.total:null)},
+  {k:'consulting',team:'컨설팅',label:'사업주 미팅',unit:'건',goals:months.map(()=>GOAL_BOARD.consulting.month),acts:agg.map(a=>a?a.actual:null)},
+  ...['전체','직영','외주','입찰'].map(cat=>({k:'field-'+cat,team:'필드',label:cat==='전체'?'계약 전체':cat,unit:'kW',sub:cat!=='전체',goals:goal(cat),acts:ct(cat)}))];
+ return {year,thisYear,nowM,months,rows};
+}
+const goalFmt=(n,unit)=>n===null||n===undefined?'—':unit==='kW'?(n>=1000?d1(n/1000)+'MW':i(Math.round(n))+'kW'):i(n)+'건';
+const goalCls=(rate,live)=>rate===null?'':rate>=100?'ok':live?'live':rate>=70?'warm':'low';
+const goalBadge=(rate,live)=>rate===null?'':rate>=100?'<span class="gb-badge ok">달성</span>':live?'<span class="gb-badge live">진행 중</span>':'<span class="gb-badge low">미달성</span>';
+function goalBoard(){
+ if(v10Scoped())return v10Panel('목표관리','상세 조건이 걸려 있으면 목표를 비교할 수 없습니다.',v10Empty('상단 상세 조건을 초기화하면 부서 전체 목표 달성을 볼 수 있습니다.'));
+ const D=goalBoardData(),ms=[...new Set(selMonths())].sort((a,b)=>a-b).filter(m=>m<=D.nowM);
+ const sel=ms.length?ms:[D.nowM],live=D.thisYear&&sel.includes(D.nowM),label=sel.length===1?sel[0]+'월':`${sel[0]}~${sel[sel.length-1]}월`;
+ const ytd=D.months.filter(m=>m<=D.nowM),sum=(arr,ix)=>ix.reduce((t,m)=>arr[m-1]===null?t:t+arr[m-1],0);
+ // 이번 주(월~금 문의 · 금~목 미팅)
+ let wk=null;try{if(D.thisYear&&typeof cwData==='function'){const w=cwThisWeek(D.year),d=cwData(D.year,w);wk={w,range:d.range,inq:d.totals?d.totals.total:null,meet:d.meeting?d.meeting.n:null};}}catch(e){wk=null;}
+ const line=(title,act,goal,unit,isLive,note)=>{const rate=goal&&act!==null&&act!==undefined?act/goal*100:null;return `<div class="gb-line"><div class="gb-line-head"><span>${title}</span>${goalBadge(rate,isLive)}</div><div class="gb-line-nums"><b class="${goalCls(rate,isLive)}">${rate===null?'—':d1(rate)+'%'}</b><span>${goalFmt(act,unit)} <small>/ 목표 ${goalFmt(goal,unit)}</small></span></div><div class="v10-track gb-track"><span class="${goalCls(rate,isLive)}" style="width:${rate===null?0:Math.min(rate,100)}%"></span></div>${note?`<small class="gb-note">${note}</small>`:''}</div>`;};
+ const card=(team,sub,color,body)=>`<article class="gb-card" style="--team:${color}"><h4><i></i>${team}<small>${sub}</small></h4>${body}</article>`;
+ const R=k=>D.rows.find(r=>r.k===k);
+ const mk=R('marketing'),cs=R('consulting'),fa=R('field-전체');
+ const annualNote=(r)=>{const g=sum(r.goals,D.months),a=sum(r.acts,ytd);return `연간 목표 ${goalFmt(g,r.unit)} 중 ${g?d1(a/g*100):'—'}%`;};
+ const wkLabel=wk?`이번 주 (${wk.w}주)`:'이번 주';
+ const cards=`<div class="gb-cards">`
+  +card('마케팅','전체 문의 · 주 350건 · 월 1,516건',V10.colors[0],(wk?line(wkLabel,wk.inq,GOAL_BOARD.marketing.week,'건',true,`${cwLabel(wk.range.start,wk.range.end)} 월~금 · 말 시트 주차 표`):'')+line(label,sum(mk.acts,sel),sum(mk.goals,sel),'건',live)+line(`${D.year}년 누적 (1~${D.nowM}월)`,sum(mk.acts,ytd),sum(mk.goals,ytd),'건',false,annualNote(mk)))
+  +card('컨설팅','사업주 미팅 · 주 17건 · 월 72건',V10.colors[3],(wk?line(wkLabel,wk.meet,GOAL_BOARD.consulting.week,'건',true,`${cwLabel(wk.range.meetingStart,wk.range.meetingEnd)} 금~목 · 주간 업무 진행사항`):'')+line(label,sum(cs.acts,sel),sum(cs.goals,sel),'건',live)+line(`${D.year}년 누적 (1~${D.nowM}월)`,sum(cs.acts,ytd),sum(cs.goals,ytd),'건',false,annualNote(cs)))
+  +card('필드','계약 용량 · 직영·외주·입찰 월 목표',V10.colors[4],line(`${label} 계약 전체`,sum(fa.acts,sel),sum(fa.goals,sel),'kW',live)
+    +`<div class="gb-teams">${['직영','외주','입찰'].map(cat=>{const r=R('field-'+cat),g=sum(r.goals,sel),a=sum(r.acts,sel),rate=g?a/g*100:null,yg=sum(r.goals,ytd),ya=sum(r.acts,ytd),yr=yg?ya/yg*100:null;return `<div class="gb-team"><b>${cat}</b><span>${label} <em class="${goalCls(rate,live)}">${rate===null?'—':d1(rate)+'%'}</em><small>${goalFmt(a,'kW')} / ${goalFmt(g,'kW')}</small></span><span>누적 <em class="${goalCls(yr,false)}">${yr===null?'—':d1(yr)+'%'}</em><small>${goalFmt(ya,'kW')} / ${goalFmt(yg,'kW')}</small></span></div>`;}).join('')}</div>`
+    +line(`${D.year}년 누적 (1~${D.nowM}월)`,sum(fa.acts,ytd),sum(fa.goals,ytd),'kW',false,annualNote(fa)))
+  +`</div>`;
+ // 매월 표
+ const head=`<tr><th>팀</th><th>구분</th>${D.months.map(m=>`<th${m===D.nowM&&D.thisYear?' class="gb-now"':''}>${m}월</th>`).join('')}<th>올해 누적</th></tr>`;
+ const body=D.rows.map(r=>{
+  let done=0,due=0;
+  const cells=D.months.map(m=>{const g=r.goals[m-1],a=r.acts[m-1],isLive=D.thisYear&&m===D.nowM;
+   if(a===null)return `<td class="ct-cell future"><small>목표 ${goalFmt(g,r.unit)}</small><b>—</b><em></em></td>`;
+   const rate=g?a/g*100:null;if(!isLive&&rate!==null){due++;if(rate>=100)done++;}
+   return `<td class="ct-cell ${goalCls(rate,isLive)}"><small>목표 ${goalFmt(g,r.unit)}</small><b>${goalFmt(a,r.unit)}</b><em>${rate===null?'':d1(rate)+'%'}${isLive?' · 진행':''}</em></td>`;}).join('');
+  const yg=sum(r.goals,ytd),ya=sum(r.acts,ytd),yr=yg?ya/yg*100:null;
+  return `<tr class="${r.sub?'gb-sub':''}"><td>${r.sub?'':r.team}</td><td>${r.label}</td>${cells}<td class="ct-cell total ${goalCls(yr,false)}"><small>목표 ${goalFmt(yg,r.unit)}</small><b>${goalFmt(ya,r.unit)}</b><em>${yr===null?'':d1(yr)+'%'}</em><small class="gb-hit">${due}달 중 ${done}달 달성</small></td></tr>`;}).join('');
+ const table=v10Panel('매월 목표 달성',`${D.year}년 · 칸마다 목표 / 실적 / 달성률 · 100% 이상 초록(달성), 70% 이상 노랑, 그 아래 빨강 · 이번 달은 진행 중(파랑) · 올해 누적은 1~${D.nowM}월 목표 합계 대비`,`<div class="easy-chart-table easy-wide ct-goal gb-table"><div class="tblwrap"><table><thead>${head}</thead><tbody>${body}</tbody></table></div></div>`);
+ const basis=`<p class="v10-note gb-basis">마케팅 = 말 시트 전체 문의(월별), 컨설팅 = 실제 진행 사업주 미팅(미팅일 기준), 필드 = RPS 계약 원장 보고 월 기준 계약 용량(목표는 원본 정리base 시트). 이번 주 문의는 월~금, 미팅은 금~목 보고 주차입니다.</p>`;
+ return cards+table+basis
+  +`<details class="easy-details"><summary>예전 목표 설정 도구 (주간 52주 목표표 · 월별 직접 입력)</summary>${contractOldGoals()}</details>`;
+}
+VIEWS.goal=goalBoard;
 document.addEventListener('change',e=>{const k=e.target.dataset?.contractFilter;if(k&&Object.hasOwn(contractFilter,k)){contractFilter[k]=e.target.value;render();}});
 document.addEventListener('keydown',e=>{if(e.target.hasAttribute?.('data-contract-search')&&e.key==='Enter'){contractFilter.query=e.target.value.trim();render();}});
 document.addEventListener('click',e=>{

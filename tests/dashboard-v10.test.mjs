@@ -94,14 +94,14 @@ assert.ok(run('v10Years().includes(2027)'));
 assert.equal(run('v10Aggregate([1]).total'),0);
 run('v10ActivateYear(2026,false);v10CurrentMonth()');
 assert.equal(run('state.months[0]'),Number(run('v10Today().slice(5,7)')));
-assert.equal(run('EASY_NAV.length'),10,'workspaces include contract, follow-up, presentation and sales-meeting navigation (overview folded into the report)');
+assert.equal(run('EASY_NAV.length'),9,'workspaces include contract, follow-up, presentation and sales-meeting navigation (overview folded into the report)');
 assert.ok(!run('SECTIONS.some(s=>s.k==="overall")'),'the overview screen is gone from the rail');
 assert.equal(run("EASY_MENU[0].open"),'weekly','weekly view is the landing screen');
 assert.equal(run("EASY_NAV.find(x=>x.label==='담당자별 실적').k"),'owner','team navigation opens field meeting owner first');
 assert.equal(run("EASY_NAV.findIndex(x=>x.k==='owner')"),3,'team performance is menu 4');
 assert.equal(run("EASY_NAV.findIndex(x=>x.k==='followup')"),4,'follow-up is menu 5');
-assert.equal(run("EASY_NAV.findIndex(x=>x.k==='presentation')"),8,'performance presentation is menu 9');
-assert.equal(run("EASY_NAV.findIndex(x=>x.k==='salesMeeting')"),9,'copy-ready sales meeting report is menu 10');
+assert.equal(run("EASY_NAV.findIndex(x=>x.k==='presentation')"),7,'performance presentation is menu 9');
+assert.equal(run("EASY_NAV.findIndex(x=>x.k==='salesMeeting')"),8,'copy-ready sales meeting report is menu 10');
 run(`
  var smInquiryFixture=Array.from({length:40},()=>[]),smMeetingFixture=Array.from({length:25},()=>[]);
  smInquiryFixture[0][27]='2026';smInquiryFixture[0][28]='9';smInquiryFixture[3][27]='09월 전체';
@@ -127,13 +127,13 @@ assert.equal(run('smParseMeetingReport(smMeetingFixture).entries.length'),2);
 assert.equal(run("smParseMeetingReport(smMeetingFixture).summary.source.find(x=>x[0]==='소개')[1]"),1);
 assert.equal(run("smPeriodBounds('2026/10/12(월)~2026/10/16(금)',2026,10).start"),'2026-10-12');
 assert.equal(run("smPeriodBounds('11/2~11/6',2026,10).end"),'2026-11-06');
-run("state.mode='month';state.months=[9];state.quarters=[];V10.payload.tongye=smInquiryFixture;V10.payload.meeting26=smMeetingFixture");
+run("state.mode='month';state.months=[9];state.quarters=[];salesMeetingState.target='2026-09-04';V10.payload.tongye=smInquiryFixture;V10.payload.meeting26=smMeetingFixture");
 const salesMeetingView=run('easySalesMeeting()');
 assert.ok(salesMeetingView.includes('보고 주차 선택'));
-assert.ok(salesMeetingView.includes('문의 기준')&&salesMeetingView.includes('미팅 기준'));
+assert.ok(salesMeetingView.includes('이전 주')&&salesMeetingView.includes('다음 주')&&salesMeetingView.includes('이번 주 보고'),'sales meeting moves by week only');
 assert.ok(salesMeetingView.includes('2026년 36주차'));
 assert.ok(salesMeetingView.includes('2026/08/31(월)~2026/09/04(금)'));
-assert.ok(salesMeetingView.includes('날짜 일치'),'the selected inquiry week drives the historical meeting range');
+assert.ok(!salesMeetingView.includes('sm-week-warn'),'the selected inquiry week drives the historical meeting range');
 assert.ok(salesMeetingView.includes('월간 · 주차별 문의 현황'));
 assert.ok(salesMeetingView.includes('발전사업 (토지)'));
 assert.ok(salesMeetingView.includes('이번 주 사업주 미팅'));
@@ -148,7 +148,7 @@ run(`
   {no:'sp02-0301',year:2026,cmo:2,inquiryDate:'2026-02-03',ct:'진행',src:'마케팅',type:'발전사업 (공장, 창고)',corp:'SP'},
   {no:'02-0401',year:2026,cmo:2,inquiryDate:'2026-02-04',ct:'소개',src:'소개',type:'발전사업 (공장, 창고)',corp:'그랜드썬'}
  ]};
- state.mode='month';state.months=[2];salesMeetingState.detailKey='';
+ state.mode='month';state.months=[2];salesMeetingState.detailKey='';salesMeetingState.target='2026-02-06';
 `);
 assert.equal(run('smInquiryForSelection().month'),2,'sales report follows the selected dashboard month');
 assert.equal(run('smInquiryForSelection().details.length'),4,'February 2026 exposes four Monday-Friday reporting weeks');
@@ -332,3 +332,5 @@ if(process.argv.includes('--live')){
  await writeFile(new URL('../output/원본대조_검증결과.json',import.meta.url),JSON.stringify({checkedAt:new Date().toISOString(),source:payload.provenance,months:audit},null,2));
  console.log('PASS: all 12 months match source inquiry/development/actual/capacity cells; reconciliation report generated.');
 }
+assert.equal(run("smReportFriday('2026-10-26')"),'2026-10-23','Monday reports the previous Monday-Friday week');
+assert.equal(run("smReportFriday('2026-10-31')"),'2026-10-30','weekend reports the week that just ended');
