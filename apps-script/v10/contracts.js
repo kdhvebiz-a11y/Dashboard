@@ -136,8 +136,8 @@ easySecondary=function(a){
 };
 const contractOldInsights=v10Insights;
 v10Insights=function(){const c=contractAggregate(selMonths(),{filtered:false}),body=c.covered?`선택 기간 실제 계약은 ${i(c.count)}건, 계약 용량은 ${contractCap(c.capacity)}, 공사금액은 ${contractMoney(c.amount)}입니다.`:'선택 기간에 확인된 실제 계약 원장 실적이 없습니다.';return contractOldInsights().replace(/<h4>계약 분석 대기<\/h4>[\s\S]*?<\/p>/,`<h4>실제 계약 실적</h4><p>${body}</p>`);};
-const contractOldReport=VIEWS.report;
-VIEWS.report=()=>contractOldReport().replace('계약 자료 안내','실제 계약 상세').replace('계약 확정 실적은 계약 엑셀을 받은 뒤 연결합니다.','계약은 RPS 원장의 계약연도·보고 월을 기준으로 별도 집계합니다.')+contractReport();
+// 부서 보고서 삭제(2026-10-26): 예전 주소·저장 상태로 들어오면 실적발표로 보낸다.
+VIEWS.report=VIEWS.insight=()=>{state.sect='presentation';return VIEWS.presentation();};
 const contractOldGoals=VIEWS.goal;
 // 목표관리: 마케팅(전체 문의) · 컨설팅(사업주 미팅) · 필드(계약 직영·외주·입찰) — 이번 주/이번 달/매월/올해 달성·미달성.
 const GOAL_BOARD={marketing:{week:350,month:1516},consulting:{week:17,month:72}};

@@ -6,7 +6,6 @@ const EASY_NAV=[
  {k:'owner',label:'담당자별 실적',sub:'현장 · 컨설팅 담당'},
  {k:'source',label:'지역 · 용량 · 법인',sub:'어느 지역·용량·법인의 문의인가'},
  {k:'goal',label:'목표 관리',sub:'목표와 남은 실적'},
- {k:'report',label:'부서 보고서',sub:'보고 · 인쇄 · 내려받기'},
  {k:'presentation',label:'실적발표',sub:'월간 · 분기 · 누적 발표'}
 ];
 /*
@@ -20,7 +19,8 @@ const EASY_MENU=[
  {k:'meetings',label:'미팅실적',sub:'사업주 미팅과 담당자 성과',open:'meetExe',items:[['meetExe','미팅 현황'],['owner','담당자별 실적']]},
  {k:'contracts',label:'계약실적',sub:'계약 건수 · 용량 · 위치',open:'contract',items:[['contract','실제 계약 실적']]},
  {k:'goals',label:'목표관리',sub:'목표와 남은 실적',open:'goal',items:[['goal','목표 관리']]},
- {k:'reports',label:'보고자료',sub:'보고서 · 발표 · 회의자료',open:'report',items:[['report','부서 보고서'],['presentation','실적발표'],['salesMeeting','영업회의 자료']]},
+ {k:'presentation',label:'실적발표',sub:'월간 · 분기 · 누적 발표',open:'presentation',items:[]},
+ {k:'salesMeeting',label:'영업회의 자료',sub:'주간 영업회의 보고',open:'salesMeeting',items:[]},
  {k:'followups',label:'상담 후속관리',sub:'미팅 후 피드백 · 연락 일정',open:'followup',items:[]}
 ];
 // Legacy section-family mapping is kept for the underlying view model.
@@ -32,7 +32,8 @@ const easyMenuGroup=k=>{
  if(['meetExe','cons','owner','records'].includes(k))return 'meetings';
  if(k==='contract')return 'contracts';
  if(k==='goal')return 'goals';
- if(['report','insight','presentation','salesMeeting'].includes(k))return 'reports';
+ if(['report','insight','presentation'].includes(k))return 'presentation';
+ if(k==='salesMeeting')return 'salesMeeting';
  return 'summary';
 };
 const easySubnav=(items,selected)=>`<div class="easy-subnav">${items.map(([key,label])=>`<button data-v10-section="${key}" class="${key===selected?'on':''}">${esc(label)}</button>`).join('')}</div>`;
