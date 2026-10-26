@@ -265,3 +265,25 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .ct-goal td.ct-cell.ok{background:#e3f5ec}.ct-goal td.ct-cell.ok em{color:#0e6c4c}.ct-goal td.ct-cell.warm{background:#fff3d6}.ct-goal td.ct-cell.warm em{color:#8a5a00}.ct-goal td.ct-cell.low{background:#fdeaea}.ct-goal td.ct-cell.low em{color:#b3261e}
 .ct-goal td.ct-cell.total{background:var(--plane);font-weight:700}
 .main .ct-goal .tblwrap th:first-child,.main .ct-goal .tblwrap td:first-child{width:8%}
+
+/* 계약 — 팀별 목표 달성 카드 */
+.ct-teams{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ct-team{border:1px solid var(--border);border-top:4px solid var(--team);border-radius:12px;padding:12px 14px;background:var(--surface)}
+.ct-team.all{background:var(--plane)}
+.ct-team h4{margin:0 0 8px;font-size:16px;display:flex;align-items:center;gap:7px}.ct-team h4 i{width:10px;height:10px;border-radius:3px;background:var(--team)}
+.ct-team-row{padding:8px 0}.ct-team-row+.ct-team-row{border-top:1px dashed var(--border)}
+.ct-team-scope{display:inline-block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.ct-team-nums{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:6px;align-items:start}
+.ct-team-nums small{display:block;font-size:11.5px;color:var(--muted)}
+.ct-team-nums b{display:block;font-size:15px;line-height:1.25}.ct-team-nums em{font-style:normal;font-size:11.5px;color:var(--muted)}
+.ct-team-row.big .ct-team-nums b{font-size:19px}.ct-team-row.big .ct-rate b{font-size:22px}
+.ct-rate.ok b{color:#0e6c4c}.ct-rate.warm b{color:#a86b00}.ct-rate.low b{color:#c0392b}
+.ct-team-track{margin-top:6px;height:7px}.ct-team-track span.ok{background:#1c9c6b}.ct-team-track span.warm{background:#e0a21b}.ct-team-track span.low{background:#e0584a}.ct-team-track span{background:var(--team)}
+@media(max-width:1100px){.ct-teams{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.ct-teams{grid-template-columns:1fr}}
+/* 월별 목표 대비 계약 달성 표: 구분 칸 좁고 가운데, 월 글자 크게, 줄 높게 */
+.main .ct-goal .tblwrap th:first-child,.main .ct-goal .tblwrap td:first-child{width:64px!important;text-align:center!important;white-space:nowrap}
+.main .ct-goal .tblwrap td:first-child{font-size:14px;font-weight:700}
+.main .ct-goal .tblwrap th{font-size:15px!important;text-align:center!important;padding-top:10px!important;padding-bottom:10px!important}
+.ct-goal td.ct-cell{padding-top:11px!important;padding-bottom:11px!important;text-align:center}
+.ct-goal td.ct-cell small{font-size:11.5px}.ct-goal td.ct-cell b{font-size:16.5px;margin:2px 0}.ct-goal td.ct-cell em{font-size:13px}
