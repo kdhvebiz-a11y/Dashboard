@@ -197,3 +197,17 @@ body.sm-mode #periodbar,body.sm-mode #basisNote{display:none!important}
 .sm-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
 .sm-periodbar .easy-period-note{margin:12px 0 0}
 .sm-week-warn{margin:-6px 0 12px;padding:8px 12px;border-radius:10px;background:#fdecea;color:#b3261e;font-size:13px;font-weight:700}
+
+/* 별도 사업 메모: 숫자 두 칸 */
+.sales-extra-field{display:grid;align-content:start;gap:7px;color:var(--muted);font-size:15px;font-weight:800}
+.sm-extra-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-height:44px;color:var(--ink);font-size:16px}
+.sm-extra-row b{font-weight:700}.sm-extra-row em{font-style:normal;font-weight:600;color:var(--muted);margin-right:8px}
+.sales-minutes-controls .sm-extra-row input{width:72px;min-height:40px;text-align:center;font-weight:800;font-size:17px;padding:6px 4px;border:2px solid #adc9ee!important;border-radius:8px;background:#fff!important;color:#1849a9}
+.sales-minutes-controls .sm-extra-row input:focus{outline:none;border-color:#2364d2!important}
+
+/* 한글 양식 칸 채우기 복사 */
+.sm-hwp-copy{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px;padding:12px 14px;border:2px dashed #2364d2;border-radius:12px;background:#f3f7ff}
+.sm-hwp-copy>b{font-size:15px;color:#1849a9;margin-right:4px}
+.sm-hwp-copy .btn{font-weight:800;color:#1849a9;border-color:#adc9ee;background:#fff}
+.sm-hwp-copy .btn small{font-weight:500;color:var(--muted);margin-left:4px}
+.sm-hwp-copy p{flex-basis:100%;margin:2px 0 0;font-size:13px;color:var(--ink2)}
