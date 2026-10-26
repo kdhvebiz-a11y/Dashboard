@@ -70,3 +70,8 @@ main.main {margin-left:0}
  .v10-table th,.v10-table td{padding:6px}.v10-table button{display:inline!important;color:inherit}
  textarea{border:0!important;resize:none;overflow:visible}.v10-print-break{break-before:page}
 }
+
+/* Hovered month on chart x-axis + its points */
+svg.chart text.v10-xk-on{fill:#fff!important;font-weight:800!important}
+svg.chart rect.v10-xk-pill{fill:#2364d2;pointer-events:none}
+svg.chart circle.v10-pk-on{r:6.5px;stroke-width:2.5px}

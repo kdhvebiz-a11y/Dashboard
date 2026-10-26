@@ -26,6 +26,11 @@ html=html.replace('const showDL = cfg.series.length<=4 && cfg.labels.length>0 &&
 html=html.replace('const pts=cfg.series.map((s,si)=>({s,si,y:Y(s.values[n-1])}))','const pts=cfg.series.map((s,si)=>({s,si,y:Y(s.values[n-1])})).filter(p=>!Array.isArray(cfg.endLabels)||cfg.endLabels.includes(p.si))');
 html=html.replace('text-anchor="start" style="fill:${p.s.color};font-weight:600">${esc(p.s.name)}</text>`;','text-anchor="start" style="fill:${p.s.color};font-weight:700">${esc(p.s.endLabel||p.s.name)}</text>`;');
 html=html.replace('const P={l:100,r:Math.max(dlPad,150),t:32,b:42};','const P={l:100,r:showDL?Math.max(dlPad,150):48,t:32,b:42};');
+// Hover: tag x-axis labels (data-xk) and line points (data-pk) with their index so the hovered month can be highlighted (v10 wireCharts).
+const swap=(from,to)=>{if(!html.includes(from))throw new Error('Template chart marker missing: '+from.slice(0,60));html=html.replace(from,to);};
+swap('xl+=`<text x="${X(k).toFixed(1)}" y="${H-P.b+24}" text-anchor="middle" ${k===selectedIndex','xl+=`<text data-xk="${k}" x="${X(k).toFixed(1)}" y="${H-P.b+24}" text-anchor="middle" ${k===selectedIndex');
+swap('xl+=`<text x="${cx.toFixed(1)}" y="${H-P.b+26}" text-anchor="middle">','xl+=`<text data-xk="${k}" x="${cx.toFixed(1)}" y="${H-P.b+26}" text-anchor="middle">');
+swap('paths+=`<circle cx="${X(k).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"','paths+=`<circle data-pk="${k}" cx="${X(k).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"');
 {
  // Value labels on up to three lines. At every x the highest point is labelled above, the lowest below and a middle one to the right, so crossing lines do not stack their labels.
  const from=html.indexOf('if(!cfg.noVals && cfg.series.length<=2 && n<=13){'),to=html.indexOf('let hit=\'\';',from);

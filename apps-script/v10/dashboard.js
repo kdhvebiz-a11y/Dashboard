@@ -45,6 +45,33 @@ wireCharts=function(root){
  }));
  root.querySelectorAll('svg.chart').forEach(svg=>chartReadabilityObserver.observe(svg));
 };
+// Hovering a month also marks it on the x-axis (filled pill) and enlarges that month's points, so the tooltip's month is obvious.
+const v10WireChartsBase=wireCharts;
+wireCharts=function(root){
+ v10WireChartsBase(root);
+ const ns='http://www.w3.org/2000/svg';
+ root.querySelectorAll('svg[data-line]').forEach(svg=>{
+  const cfg=CH[svg.getAttribute('data-line')];if(!cfg||!Array.isArray(cfg.labels))return;
+  let extra=[];
+  const clear=()=>{svg.querySelectorAll('.v10-xk-on,.v10-pk-on').forEach(e=>e.classList.remove('v10-xk-on','v10-pk-on'));extra.forEach(e=>e.remove());extra=[];};
+  svg.querySelectorAll('rect.hit').forEach(h=>{
+   h.addEventListener('mouseenter',()=>{
+    clear();const k=h.getAttribute('data-k');
+    let t=svg.querySelector(`text[data-xk="${k}"]`);
+    if(!t){ // label skipped on dense axes: draw it for the hover only
+     const ref=svg.querySelector('text[data-xk]');if(!ref)return;
+     t=document.createElementNS(ns,'text');t.setAttribute('x',+h.getAttribute('x')+ +h.getAttribute('width')/2);t.setAttribute('y',ref.getAttribute('y'));t.setAttribute('text-anchor','middle');t.textContent=cfg.labels[k]??'';ref.parentNode.appendChild(t);extra.push(t);
+    }
+    t.classList.add('v10-xk-on');
+    try{const b=t.getBBox(),pad=Math.max(4,b.height*.35),pill=document.createElementNS(ns,'rect');
+     pill.setAttribute('x',b.x-pad*1.4);pill.setAttribute('y',b.y-pad*.6);pill.setAttribute('width',b.width+pad*2.8);pill.setAttribute('height',b.height+pad*1.2);pill.setAttribute('rx',(b.height+pad*1.2)/2);
+     pill.setAttribute('class','v10-xk-pill');t.parentNode.insertBefore(pill,t);extra.push(pill);}catch(e){}
+    svg.querySelectorAll(`circle[data-pk="${k}"]`).forEach(c=>c.classList.add('v10-pk-on'));
+   });
+   h.addEventListener('mouseleave',clear);
+  });
+ });
+};
 const v10OriginalRebuild = rebuild;
 function v10GroupedBars(title,sub,axis,series,unit='건'){
  const usable=series.filter(s=>s.values.some(v=>v!==null&&v!==undefined));

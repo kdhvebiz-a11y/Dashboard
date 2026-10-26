@@ -1,0 +1,13 @@
+#!/bin/sh
+# 회사 문서보안(BMS DocuRay)이 암호화한 파일이 커밋되는 것을 막는다.
+# 2026-10-20·10-26 두 번, 암호화된 .github/workflows/deploy-dashboard.yml이 올라가 자동 배포가 멈췄다.
+bad=$(git -c core.quotepath=off diff --cached --name-only --diff-filter=ACM | while IFS= read -r f; do
+  if [ "$(git show ":$f" 2>/dev/null | head -c 11)" = "BMS DocuRay" ]; then printf '%s\n' "$f"; fi
+done)
+if [ -n "$bad" ]; then
+  echo "커밋 중단: 회사 문서보안으로 암호화된 파일이 있습니다."
+  echo "$bad"
+  echo "이 파일은 체크를 풀고 커밋하세요. 원래대로 돌리려면 GitHub Desktop에서 파일을 오른쪽 클릭 > Discard changes."
+  exit 1
+fi
+exit 0
