@@ -316,3 +316,16 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 @media(max-width:1100px){.gb-cards{grid-template-columns:1fr}}
 .gb-table td.ct-cell .gb-hit{display:block;font-size:11px;color:var(--muted);margin-top:1px}
 .main .gb-table .tblwrap th:last-child,.main .gb-table .tblwrap td:last-child{width:104px}
+
+/* 실적발표 — 분기별 달성률 띠 */
+.perf-rate-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.perf-rate{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--surface);text-align:center}
+.perf-rate span{display:block;font-size:13px;font-weight:700;color:var(--muted)}
+.perf-rate b{display:block;font-size:28px;line-height:1.15;margin:2px 0}
+.perf-rate small{display:block;font-size:12px;color:var(--muted)}
+.perf-rate.ok{background:#e3f5ec;border-color:#9fdbbd}.perf-rate.ok b{color:#0e6c4c}
+.perf-rate.warm{background:#fff3d6;border-color:#f0c66b}.perf-rate.warm b{color:#8a5a00}
+.perf-rate.low{background:#fdecea;border-color:#f3b4ad}.perf-rate.low b{color:#b3261e}
+.perf-rate.future{opacity:.55}.perf-rate.future b{color:var(--muted)}
+.perf-rate.total{background:var(--plane);border-width:2px}
+@media(max-width:900px){.perf-rate-strip{grid-template-columns:repeat(3,minmax(0,1fr))}}

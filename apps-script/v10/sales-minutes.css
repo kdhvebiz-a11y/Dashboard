@@ -211,3 +211,6 @@ body.sm-mode #periodbar,body.sm-mode #basisNote{display:none!important}
 .sm-hwp-copy .btn{font-weight:800;color:#1849a9;border-color:#adc9ee;background:#fff}
 .sm-hwp-copy .btn small{font-weight:500;color:var(--muted);margin-left:4px}
 .sm-hwp-copy p{flex-basis:100%;margin:2px 0 0;font-size:13px;color:var(--ink2)}
+.sm-hwp-copy .sm-hwp-dl{font-size:15px;padding:10px 16px;background:#1849a9;color:#fff;border-color:#1849a9}
+.sm-hwp-copy .sm-hwp-dl:hover{background:#2364d2}
+.sm-hwp-sep{width:1px;height:28px;background:#adc9ee;margin:0 6px}

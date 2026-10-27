@@ -10,7 +10,11 @@ const parsedContracts=JSON.parse(contractInput);
 if(!Array.isArray(parsedContracts.sources))throw Error('Contract build data is missing or invalid');
 const contractData=JSON.stringify(parsedContracts).replaceAll('<','\\u003c').replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
 const contracts=(await read('contracts.js')).replace('__CONTRACT_DATA__',contractData);
-const extension=(await read('dashboard.js')).replace('v10Boot();','')+'\n'+await read('source-audit.js')+'\n'+await read('easy-ui.js')+'\n'+await read('sales-meeting.js')+'\n'+contracts+'\n'+await read('followup.js')+'\n'+await read('weekly.js')+'\nv10Boot();';
+// 영업회의록 한글 양식(.hwp, base64 텍스트로 보관 — 회사 DRM이 .hwp를 암호화할 수 있어 원본 파일은 저장소에 두지 않는다)
+const minutesTemplate=(await read('sales-minutes-template.hwp.b64')).replace(/\s+/g,'');
+if(!minutesTemplate.startsWith('0M8R4KGxGuE'))throw new Error('sales-minutes-template.hwp.b64 is not an OLE/HWP file');
+const salesMeeting=(await read('sales-meeting.js')).replace('__SALES_MINUTES_HWP_B64__',minutesTemplate);
+const extension=(await read('dashboard.js')).replace('v10Boot();','')+'\n'+await read('source-audit.js')+'\n'+await read('easy-ui.js')+'\n'+await read('hwp-fill.js')+'\n'+salesMeeting+'\n'+contracts+'\n'+await read('followup.js')+'\n'+await read('weekly.js')+'\nv10Boot();';
 // Apps Script strips JS comments before serving, and its scanner can lose track of quotes around nested template literals,
 // so a "//" inside a string may be cut off as if it were a comment (this broke contractMap's Kakao link and the whole page).
 // Writing every "https://" as "https:\/\/" in the v10 scripts keeps the same value but never looks like a comment.
