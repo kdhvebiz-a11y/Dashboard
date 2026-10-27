@@ -42,6 +42,10 @@ swap("hit+=`<rect x=\"${(P.l+iw*k).toFixed(1)}\" y=\"${P.t}\" width=\"${iw.toFix
 swap('xl+=`<text x="${X(k).toFixed(1)}" y="${H-P.b+24}" text-anchor="middle" ${k===selectedIndex','xl+=`<text data-xk="${k}" x="${X(k).toFixed(1)}" y="${H-P.b+24}" text-anchor="middle" ${k===selectedIndex');
 swap('xl+=`<text x="${cx.toFixed(1)}" y="${H-P.b+26}" text-anchor="middle">','xl+=`<text data-xk="${k}" x="${cx.toFixed(1)}" y="${H-P.b+26}" text-anchor="middle">');
 swap('paths+=`<circle cx="${X(k).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"','paths+=`<circle data-pk="${k}" cx="${X(k).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"');
+// Bar charts: cfg.barLabels = true → grouped bars get their series name ('목표'/'실적') right under each bar, and the category label moves one line down.
+swap("if(cfg.topLabels)P.t+=30;","if(cfg.topLabels)P.t+=30;\nif(cfg.barLabels&&!cfg.stacked)P.b+=16;");
+swap('xl+=`<text data-xk="${k}" x="${cx.toFixed(1)}" y="${H-P.b+26}" text-anchor="middle">','xl+=`<text data-xk="${k}" x="${cx.toFixed(1)}" y="${H-P.b+(cfg.barLabels&&!cfg.stacked?40:26)}" text-anchor="middle">');
+swap("if(h>0) bars+=`<path d=\"${roundTopPath(x, Y(v), bw, h, 4)}\" fill=\"${col}\"/>`;","if(h>0) bars+=`<path d=\"${roundTopPath(x, Y(v), bw, h, 4)}\" fill=\"${col}\"/>`;\nif(cfg.barLabels)xl+=`<text class=\"bl\" x=\"${(x+bw/2).toFixed(1)}\" y=\"${H-P.b+18}\" text-anchor=\"middle\" style=\"fill:${col}\">${esc(s.name)}</text>`;");
 {
  // Value labels on up to three lines. At every x the highest point is labelled above, the lowest below and a middle one to the right, so crossing lines do not stack their labels.
  const from=html.indexOf('if(!cfg.noVals && cfg.series.length<=2 && n<=13){'),to=html.indexOf('let hit=\'\';',from);

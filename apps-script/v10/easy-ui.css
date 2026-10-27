@@ -326,3 +326,12 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 
 /* 실적발표 — 막대 위 달성률 */
 .main svg.chart text.val.top{font-size:calc(var(--chart-readable-font,18px)*1.45)!important;font-weight:800}
+.perf-fold{margin-top:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.perf-fold>summary{cursor:pointer;list-style:none;padding:14px 18px;font-size:16px;font-weight:700;color:var(--ink2);display:flex;align-items:center;gap:10px}
+.perf-fold>summary::-webkit-details-marker{display:none}
+.perf-fold>summary::before{content:'';width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-left:4px}
+.perf-fold[open]>summary::before{transform:rotate(45deg)}
+.perf-fold[open]>summary{border-bottom:1px solid var(--border)}
+.perf-fold>.perf-quarter-table{padding:6px 16px 14px}
+.main svg.chart text.bl{font-size:calc(var(--chart-readable-font,18px)*0.88)!important;font-weight:800}
+@media print{.perf-fold{border:0}.perf-fold>summary{display:none}.perf-fold:not([open])>.perf-quarter-table{display:block}}
