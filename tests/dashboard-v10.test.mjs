@@ -223,8 +223,9 @@ const contractSource=JSON.parse(run('JSON.stringify(CONTRACT_DATA.sources[0])'))
 const contractTotal=Number(run('CONTRACT_DATA.records.length'));
 assert.ok(contractTotal>0&&contractSource.rows===contractTotal,'source row count matches the ledger');
 assert.ok(/^\d{4}년_RPS프로젝트_\d{4}-\d{2}-\d{2}\.xlsx$/.test(contractSource.name),'source is the RPS workbook');
-assert.equal(run('CONTRACT_DATA.issues.length'),1);
-assert.equal(run("CONTRACT_DATA.issues[0].value"),'26.26.29');
+// 날짜 형식 오류 목록은 원본 파일에 따라 달라진다(10-06 파일 '26.26.29' 1건, 10-27 파일 0건) — 모양만 검사.
+assert.ok(Array.isArray(JSON.parse(run('JSON.stringify(CONTRACT_DATA.issues)'))),'issues list exists');
+assert.ok(Number(run('CONTRACT_DATA.issues.length'))<=3,'date issues stay rare');
 run("state.mode='month';state.months=[1];contractFilter.basis='report'");
 assert.equal(run('contractAggregate([1]).count'),contractSource.monthlyControl[0].count,'report month preserves January grouping');
 run("contractFilter.basis='date'");
@@ -238,7 +239,7 @@ const lastMonth=contractSource.monthlyControl.filter(m=>m.count>0).pop();
 assert.equal(run(`contractAggregate([${lastMonth.month}],{basis:"date"}).count`),lastMonth.count,'latest month count matches the summary sheet');
 assert.ok(Math.abs(run(`contractAggregate([${lastMonth.month}],{basis:"date"}).capacity`)-lastMonth.capacity)<0.001,'latest month capacity matches the summary sheet');
 assert.ok(run("contractView().includes('카카오맵에서 위치 보기')"));
-assert.ok(run("contractView().includes('26.26.29')"));
+assert.ok(Number(run('CONTRACT_DATA.issues.length'))===0||run("contractView().includes(CONTRACT_DATA.issues[0].value)"),'date issues, when present, are listed on the contract page');
 run('v10InstallControls();easyInstall();render()');
 assert.ok(!element('#view').innerHTML.includes('화면을 그리지 못했습니다'),'startup render smoke test');
 // Validate server serialization against inline script injection and UTF-8 cache limits.
