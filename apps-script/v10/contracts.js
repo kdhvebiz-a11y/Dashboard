@@ -161,8 +161,9 @@ function goalBoard(){
  const ytd=D.months.filter(m=>m<=D.nowM),sum=(arr,ix)=>ix.reduce((t,m)=>arr[m-1]===null?t:t+arr[m-1],0);
  // 이번 주(월~금 문의 · 금~목 미팅)
  let wk=null;try{if(D.thisYear&&typeof cwData==='function'){const w=cwThisWeek(D.year),d=cwData(D.year,w);wk={w,range:d.range,inq:d.totals?d.totals.total:null,meet:d.meeting?d.meeting.n:null};}}catch(e){wk=null;}
- const line=(title,act,goal,unit,isLive,note)=>{const rate=goal&&act!==null&&act!==undefined?act/goal*100:null;return `<div class="gb-line"><div class="gb-line-head"><span>${title}</span>${goalBadge(rate,isLive)}</div><div class="gb-line-nums"><b class="${goalCls(rate,isLive)}">${rate===null?'—':d1(rate)+'%'}</b><span>${goalFmt(act,unit)} <small>/ 목표 ${goalFmt(goal,unit)}</small></span></div><div class="v10-track gb-track"><span class="${goalCls(rate,isLive)}" style="width:${rate===null?0:Math.min(rate,100)}%"></span></div>${note?`<small class="gb-note">${note}</small>`:''}</div>`;};
- const card=(team,sub,color,body)=>`<article class="gb-card" style="--team:${color}"><h4><i></i>${team}<small>${sub}</small></h4>${body}</article>`;
+ const line=(title,act,goal,unit,isLive,note)=>{const rate=goal&&act!==null&&act!==undefined?act/goal*100:null;return `<div class="gb-line"><div class="gb-line-head"><span>${title}</span>${goalBadge(rate,isLive)}</div><div class="gb-line-nums"><b class="${goalCls(rate,isLive)}">${rate===null?'—':d1(rate)+'%'}</b><span><strong>${goalFmt(act,unit)}</strong><small>목표 ${goalFmt(goal,unit)}</small></span></div><div class="v10-track gb-track"><span class="${goalCls(rate,isLive)}" style="width:${rate===null?0:Math.min(rate,100)}%"></span></div>${note?`<small class="gb-note">${note}</small>`:''}</div>`;};
+ // 카드 머리: 팀 이름 크게, 그 아래 목표 기준을 한 줄 칩으로(주 350건 · 월 1,516건).
+ const card=(team,sub,color,body)=>{const chips=String(sub).split(' · ');return `<article class="gb-card" style="--team:${color}"><header class="gb-head"><h4><i></i>${team}</h4><div class="gb-chips">${chips.map((c,ix)=>`<span class="${ix===0?'gb-chip-what':'gb-chip'}">${esc(c)}</span>`).join('')}</div></header>${body}</article>`;};
  const R=k=>D.rows.find(r=>r.k===k);
  const mk=R('marketing'),cs=R('consulting'),fa=R('field-전체');
  const annualNote=(r)=>{const g=sum(r.goals,D.months),a=sum(r.acts,ytd);return `연간 목표 ${goalFmt(g,r.unit)} 중 ${g?d1(a/g*100):'—'}%`;};

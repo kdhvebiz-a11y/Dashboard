@@ -27,6 +27,8 @@ assert.ok(texts.includes(fill.summary[4])&&texts.includes(fill.extra));
 // 글자 수 머리말 = 본문 UTF-16 글자 수 + 1(문단 끝)
 let checked=0;recs.forEach((r,i)=>{if(r.tag!==0x42)return;const n=((r.data[0]|(r.data[1]<<8)|(r.data[2]<<16)|(r.data[3]<<24))>>>0)&0x7fffffff;const t=recs[i+1]&&recs[i+1].tag===0x43?recs[i+1].data.length/2:1;assert.equal(n,t,'nchars at record '+i);checked++;});
 assert.ok(checked>60);
+// 글자 모양 수[12..14)·영역 태그 수[14..16)·줄 나눔 수[16..18) = 실제 레코드 수
+recs.forEach((r,k)=>{if(r.tag!==0x42)return;const u16=o=>r.data[o]|(r.data[o+1]<<8);let cs=0,rt=0,ls=0;for(let j=k+1;j<recs.length&&recs[j].level>r.level;j++){const x=recs[j];if(x.level!==r.level+1)continue;if(x.tag===0x44)cs=x.data.length/8;if(x.tag===0x45)ls=x.data.length/36;if(x.tag===0x46)rt=x.data.length/12;}assert.deepEqual([u16(12),u16(14),u16(16)],[cs,rt,ls],'shape/range/lineseg counts at record '+k);});
 // '마지막 문단' 비트(최상위 비트)는 각 목록의 마지막 문단에만 — 제목 문단에 켜지면 한글이 제목만 보여 준다
 const lastFlags=recs.map((r,i)=>r.tag===0x42?[i,r.level,!!(r.data[3]&0x80)]:null).filter(Boolean);
 assert.equal(lastFlags[0][2],false,'first section paragraph is not marked last');

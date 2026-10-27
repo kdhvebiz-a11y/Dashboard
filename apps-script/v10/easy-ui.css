@@ -289,22 +289,29 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .ct-goal td.ct-cell small{font-size:11.5px}.ct-goal td.ct-cell b{font-size:16.5px;margin:2px 0}.ct-goal td.ct-cell em{font-size:13px}
 
 /* 목표관리 보드 */
-.gb-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 18px}
-.gb-card{background:var(--surface);border:1px solid var(--border);border-top:5px solid var(--team);border-radius:14px;padding:14px 16px}
-.gb-card h4{margin:0 0 6px;font-size:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.gb-card h4 i{width:11px;height:11px;border-radius:3px;background:var(--team)}
-.gb-card h4 small{font-size:12px;font-weight:500;color:var(--muted)}
-.gb-line{padding:10px 0}.gb-line+.gb-line,.gb-teams+.gb-line{border-top:1px dashed var(--border)}
-.gb-line-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:var(--muted)}
-.gb-line-nums{display:flex;align-items:baseline;gap:10px;margin-top:3px}
-.gb-line-nums b{font-size:26px;line-height:1.1}.gb-line-nums span{font-size:15px;font-weight:700}.gb-line-nums small{font-weight:500;color:var(--muted);font-size:12.5px}
-.gb-track{margin-top:6px;height:8px}.gb-note{display:block;margin-top:4px;color:var(--muted);font-size:11.5px}
+.gb-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0 0 20px}
+.gb-card{background:var(--surface);border:1px solid var(--border);border-top:6px solid var(--team);border-radius:16px;padding:16px 18px 10px}
+.gb-head{margin:0 0 4px}
+.gb-card h4{margin:0 0 8px;font-size:22px;display:flex;align-items:center;gap:9px}.gb-card h4 i{width:13px;height:13px;border-radius:4px;background:var(--team)}
+.gb-chips{display:flex;flex-wrap:wrap;gap:6px}
+.gb-chip,.gb-chip-what{display:inline-block;padding:4px 11px;border-radius:999px;font-size:13.5px;font-weight:700;line-height:1.2}
+.gb-chip-what{background:var(--team);color:#fff}
+.gb-chip{background:var(--plane);color:var(--ink2);border:1px solid var(--border)}
+.gb-line{padding:14px 0 12px}.gb-line+.gb-line,.gb-teams+.gb-line{border-top:1px solid var(--border)}
+.gb-line-head{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;color:var(--ink2)}
+.gb-line-nums{display:flex;align-items:center;gap:14px;margin-top:6px}
+.gb-line-nums b{font-size:40px;line-height:1;letter-spacing:-.01em;min-width:3.2ch}
+.gb-line-nums span{display:flex;flex-direction:column;gap:2px}
+.gb-line-nums strong{font-size:20px;font-weight:800;line-height:1.1}
+.gb-line-nums small{font-weight:600;color:var(--muted);font-size:13.5px}
+.gb-track{margin-top:10px;height:12px;border-radius:7px}.gb-note{display:block;margin-top:5px;color:var(--muted);font-size:12.5px;font-weight:500}
 .gb-line-nums b.ok,.gb-team em.ok{color:#0e6c4c}.gb-line-nums b.warm,.gb-team em.warm{color:#a86b00}.gb-line-nums b.low,.gb-team em.low{color:#c0392b}.gb-line-nums b.live,.gb-team em.live{color:#2364d2}
 .gb-track span.ok{background:#1c9c6b}.gb-track span.warm{background:#e0a21b}.gb-track span.low{background:#e0584a}.gb-track span.live{background:#2364d2}
-.gb-badge{font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:10px}
+.gb-badge{font-size:13px;font-weight:800;padding:4px 12px;border-radius:999px}
 .gb-badge.ok{background:#e3f5ec;color:#0e6c4c}.gb-badge.low{background:#fdecea;color:#b3261e}.gb-badge.live{background:#e8f0fe;color:#1849a9}
-.gb-teams{display:grid;gap:4px;padding:6px 0 8px}
-.gb-team{display:grid;grid-template-columns:44px 1fr 1fr;gap:6px;align-items:center;font-size:12.5px;padding:5px 8px;border-radius:8px;background:var(--plane)}
-.gb-team b{font-size:13.5px}.gb-team span{display:flex;flex-direction:column;color:var(--muted)}.gb-team em{font-style:normal;font-weight:800;font-size:15px;color:var(--ink)}.gb-team small{font-size:11px}
+.gb-teams{display:grid;gap:6px;padding:8px 0 10px}
+.gb-team{display:grid;grid-template-columns:52px 1fr 1fr;gap:8px;align-items:center;font-size:13.5px;padding:8px 10px;border-radius:10px;background:var(--plane)}
+.gb-team b{font-size:16px}.gb-team span{display:flex;flex-direction:column;color:var(--muted)}.gb-team em{font-style:normal;font-weight:800;font-size:20px;color:var(--ink)}.gb-team small{font-size:12px}
 .gb-table td.ct-cell.live{background:#e8f0fe}.gb-table td.ct-cell.live em{color:#1849a9}
 .gb-table td.ct-cell.future b{color:var(--muted)}
 .main .gb-table .tblwrap th:nth-child(2),.main .gb-table .tblwrap td:nth-child(2){width:72px;text-align:center;white-space:nowrap;font-weight:700}
@@ -317,15 +324,5 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .gb-table td.ct-cell .gb-hit{display:block;font-size:11px;color:var(--muted);margin-top:1px}
 .main .gb-table .tblwrap th:last-child,.main .gb-table .tblwrap td:last-child{width:104px}
 
-/* 실적발표 — 분기별 달성률 띠 */
-.perf-rate-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 14px}
-.perf-rate{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--surface);text-align:center}
-.perf-rate span{display:block;font-size:13px;font-weight:700;color:var(--muted)}
-.perf-rate b{display:block;font-size:28px;line-height:1.15;margin:2px 0}
-.perf-rate small{display:block;font-size:12px;color:var(--muted)}
-.perf-rate.ok{background:#e3f5ec;border-color:#9fdbbd}.perf-rate.ok b{color:#0e6c4c}
-.perf-rate.warm{background:#fff3d6;border-color:#f0c66b}.perf-rate.warm b{color:#8a5a00}
-.perf-rate.low{background:#fdecea;border-color:#f3b4ad}.perf-rate.low b{color:#b3261e}
-.perf-rate.future{opacity:.55}.perf-rate.future b{color:var(--muted)}
-.perf-rate.total{background:var(--plane);border-width:2px}
-@media(max-width:900px){.perf-rate-strip{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* 실적발표 — 막대 위 달성률 */
+.main svg.chart text.val.top{font-size:calc(var(--chart-readable-font,18px)*1.45)!important;font-weight:800}

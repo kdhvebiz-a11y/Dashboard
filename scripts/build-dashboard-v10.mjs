@@ -32,6 +32,9 @@ html=html.replace('text-anchor="start" style="fill:${p.s.color};font-weight:600"
 html=html.replace('const P={l:100,r:Math.max(dlPad,150),t:32,b:42};','const P={l:100,r:showDL?Math.max(dlPad,150):48,t:32,b:42};');
 // Hover: tag x-axis labels (data-xk) and line points (data-pk) with their index so the hovered month can be highlighted (v10 wireCharts).
 const swap=(from,to)=>{if(!html.includes(from))throw new Error('Template chart marker missing: '+from.slice(0,60));html=html.replace(from,to);};
+// Bar charts: cfg.topLabels = [{text,color}] per category → big label above each group (e.g. quarterly achievement rate).
+swap("const P={l:110,r:24,t: cfg.ghost?36 : vRot?Math.min(90,_lw+16) : 34, b:42};","const P={l:110,r:24,t: cfg.ghost?36 : vRot?Math.min(90,_lw+16) : 34, b:42};\nif(cfg.topLabels)P.t+=30;");
+swap("hit+=`<rect x=\"${(P.l+iw*k).toFixed(1)}\" y=\"${P.t}\" width=\"${iw.toFixed(1)}\"","if(cfg.topLabels&&cfg.topLabels[k])dl+=`<text class=\"val top\" x=\"${cx.toFixed(1)}\" y=\"${(P.t-12).toFixed(1)}\" text-anchor=\"middle\" style=\"fill:${cfg.topLabels[k].color||'var(--ink)'}\">${esc(cfg.topLabels[k].text)}</text>`;\nhit+=`<rect x=\"${(P.l+iw*k).toFixed(1)}\" y=\"${P.t}\" width=\"${iw.toFixed(1)}\"");
 swap('xl+=`<text x="${X(k).toFixed(1)}" y="${H-P.b+24}" text-anchor="middle" ${k===selectedIndex','xl+=`<text data-xk="${k}" x="${X(k).toFixed(1)}" y="${H-P.b+24}" text-anchor="middle" ${k===selectedIndex');
 swap('xl+=`<text x="${cx.toFixed(1)}" y="${H-P.b+26}" text-anchor="middle">','xl+=`<text data-xk="${k}" x="${cx.toFixed(1)}" y="${H-P.b+26}" text-anchor="middle">');
 swap('paths+=`<circle cx="${X(k).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"','paths+=`<circle data-pk="${k}" cx="${X(k).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4"');

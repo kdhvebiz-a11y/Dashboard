@@ -105,7 +105,7 @@ function hwpSetParaText(records,para,text){
  // 글자 모양 위치가 새 글 길이를 넘으면 잘라내고(최소 1개), 줄 나눔 정보는 첫 줄만 남긴다(한글이 열 때 다시 계산).
  for(let k=para.start+1;k<para.end;k++){const r=records[k];if(r.level!==para.level+1)continue;
   if(r.tag===HWP_TAG.CHAR_SHAPE){const keep=[];for(let o=0;o+8<=r.data.length;o+=8){if(o===0||hwpU32(r.data,o)<nchars-1)keep.push(r.data.slice(o,o+8));}r.data=hwpConcat(keep);head.data[12]=keep.length&255;head.data[13]=keep.length>>8;}
-  if(r.tag===HWP_TAG.LINE_SEG&&r.data.length>36){r.data=r.data.slice(0,36);head.data[14]=1;head.data[15]=0;}}
+  if(r.tag===HWP_TAG.LINE_SEG&&r.data.length>36){r.data=r.data.slice(0,36);head.data[16]=1;head.data[17]=0;}}// [16..18) = 줄 나눔 수
  const rec={tag:HWP_TAG.PARA_TEXT,level:para.level+1,data:hwpConcat(parts)};
  if(nchars===1&&!ctrl.length){if(ti>=0)records.splice(ti,1);}
  else if(ti>=0)records[ti]=rec;else records.splice(para.start+1,0,rec);
