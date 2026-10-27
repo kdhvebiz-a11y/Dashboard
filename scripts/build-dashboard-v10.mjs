@@ -13,7 +13,11 @@ const contracts=(await read('contracts.js')).replace('__CONTRACT_DATA__',contrac
 // 영업회의록 한글 양식(.hwp, base64 텍스트로 보관 — 회사 DRM이 .hwp를 암호화할 수 있어 원본 파일은 저장소에 두지 않는다)
 const minutesTemplate=(await read('sales-minutes-template.hwp.b64')).replace(/\s+/g,'');
 if(!minutesTemplate.startsWith('0M8R4KGxGuE'))throw new Error('sales-minutes-template.hwp.b64 is not an OLE/HWP file');
-const salesMeeting=(await read('sales-meeting.js')).replace('__SALES_MINUTES_HWP_B64__',minutesTemplate);
+// Apps Script는 배포 HTML의 "//"를 주석으로 보고 줄 끝까지 지운다(CFB 헤더의 0xFF… 가 base64 "////"로 나옴 → 양식 문자열이 잘려 화면 전체가 멈춘 사고 10-27).
+// 그래서 base64url('-','_')로 바꿔 심고, 브라우저(hwpB64)에서 되돌린다.
+const minutesTemplateUrl=minutesTemplate.replace(/\+/g,'-').replace(/\//g,'_');
+if(/[+/]/.test(minutesTemplateUrl))throw new Error('template base64url still contains + or /');
+const salesMeeting=(await read('sales-meeting.js')).replace('__SALES_MINUTES_HWP_B64__',minutesTemplateUrl);
 const extension=(await read('dashboard.js')).replace('v10Boot();','')+'\n'+await read('source-audit.js')+'\n'+await read('easy-ui.js')+'\n'+await read('hwp-fill.js')+'\n'+salesMeeting+'\n'+contracts+'\n'+await read('followup.js')+'\n'+await read('weekly.js')+'\nv10Boot();';
 // Apps Script strips JS comments before serving, and its scanner can lose track of quotes around nested template literals,
 // so a "//" inside a string may be cut off as if it were a comment (this broke contractMap's Kakao link and the whole page).

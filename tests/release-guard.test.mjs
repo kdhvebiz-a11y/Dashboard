@@ -29,5 +29,8 @@ if(html){
  const start=html.indexOf(first);
  assert.ok(start>0,'v10 script start not found in built index.html');
  const raw=(html.slice(start).match(/https?:\/\/[^\s'"`)]{0,40}/g)||[]);
+ // 빌드본 v10 스크립트에는 "//"가 주석 시작 외에 나오면 안 된다(Apps Script가 줄 끝까지 지움). 문자열 안의 "//"를 찾는다.
+ const v10=html.slice(start);const inString=[...v10.matchAll(/(['"])((?:\\.|(?!\1)[^\\\n])*)\1/g)].filter(m=>m[2].includes('//')).map(m=>m[0].slice(0,80));
+ assert.deepEqual(inString,[],'문자열 안에 "//"가 있습니다(Apps Script가 주석으로 잘라냄)');
  assert.deepEqual(raw,[],'v10 스크립트에 그대로 남은 https:// 가 있습니다(Apps Script가 주석으로 잘라낼 수 있음)');
 }

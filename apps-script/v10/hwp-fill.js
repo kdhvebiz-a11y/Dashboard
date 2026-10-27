@@ -2,7 +2,7 @@
    구조: OLE 복합문서(CFB) 안의 BodyText/Section0 스트림(raw deflate)에 레코드(PARA_HEADER·PARA_TEXT…)가 들어 있다.
    글자 수가 달라지면 PARA_HEADER의 글자 수와 PARA_TEXT만 바꾸면 되고(문단 모양·글자 모양은 그대로), 한글이 열 때 줄을 다시 배치한다. */
 const HWP_TAG={PARA_HEADER:0x42,PARA_TEXT:0x43,CHAR_SHAPE:0x44,LINE_SEG:0x45,CTRL_HEADER:0x47,LIST_HEADER:0x48,TABLE:0x4d};
-function hwpB64(b64){const bin=atob(b64),out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
+function hwpB64(b64){const bin=atob(String(b64).replace(/-/g,'+').replace(/_/g,'/')),out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
 function hwpU32(b,o){return (b[o]|(b[o+1]<<8)|(b[o+2]<<16)|(b[o+3]<<24))>>>0;}
 function hwpU16(b,o){return b[o]|(b[o+1]<<8);}
 function hwpSetU32(b,o,v){b[o]=v&255;b[o+1]=(v>>>8)&255;b[o+2]=(v>>>16)&255;b[o+3]=(v>>>24)&255;}

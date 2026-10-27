@@ -397,7 +397,7 @@ async function smDownloadHwp(){
  const status=$('#salesCopyStatus');
  try{
   if(typeof DecompressionStream==='undefined')throw Error('이 브라우저는 지원하지 않습니다(크롬·엣지 최신 버전 필요).');
-  if(!/^0M8R4KGxGuE/.test(SM_HWP_TEMPLATE))throw Error('한글 양식이 아직 배포되지 않았습니다.');
+  if(!/^0M8R4KGxGuE/.test(SM_HWP_TEMPLATE)||SM_HWP_TEMPLATE.length<1000)throw Error('한글 양식이 아직 배포되지 않았습니다.');
   const fill=smHwpFill();if(!fill)throw Error('회의록 미리보기가 없습니다.');
   if(status)status.textContent='한글 파일을 만드는 중…';
   const bytes=await hwpFillSalesMinutes(hwpB64(SM_HWP_TEMPLATE),fill);
