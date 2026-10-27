@@ -124,6 +124,12 @@ assert.equal(run('smParseInquiryReport(smInquiryFixture).weekly[0].metrics[2].va
 assert.equal(run('smParseInquiryReport(smInquiryFixture).details[0].days[0].metrics[1].values[4]'),'22');
 assert.equal(run('smParseInquiryReport(smInquiryFixture).details[0].top[0].items[0].value'),'24');
 assert.equal(run('smParseMeetingReport(smMeetingFixture).entries.length'),2);
+assert.deepEqual(JSON.parse(run("JSON.stringify(smMinuteEntryParts('10-1926_충남_천안_공장_직원_자가소비_미팅가망_그랜드썬_(주)아마셀코리아 / 자가소비 / 1MW'))")),{main:'10-1926_충남_천안_공장_직원_자가소비_미팅가망_그랜드썬',note:'_(주)아마셀코리아 / 자가소비 / 1MW',source:'그랜드썬'},'source token ends the line; memo becomes the red "_" line');
+assert.deepEqual(JSON.parse(run("JSON.stringify(smMinuteEntryParts('10-2202_경기_화성_공장_대표_발전사업_미팅가망_276.06 kW_소개_최창민 수석 / 재진행'))")),{main:'10-2202_경기_화성_공장_대표_발전사업_미팅가망_276.06 kW_소개',note:'',source:'소개'},'referral entries carry no memo line');
+run("smSetHidden(smParseMeetingReport(smMeetingFixture),['1'])");
+assert.ok(!run("smMinutesReport(smParseInquiryReport(smInquiryFixture),smParseInquiryReport(smInquiryFixture).details[0],smParseMeetingReport(smMeetingFixture))").includes('10-0602_경남'),'hidden meeting rows leave the minutes');
+assert.ok(run("smMinutesReport(smParseInquiryReport(smInquiryFixture),smParseInquiryReport(smInquiryFixture).details[0],smParseMeetingReport(smMeetingFixture))").includes('10-0619_경기'),'remaining rows stay');
+run("smSetHidden(smParseMeetingReport(smMeetingFixture),[])");
 assert.equal(run("smParseMeetingReport(smMeetingFixture).summary.source.find(x=>x[0]==='소개')[1]"),1);
 assert.equal(run("smPeriodBounds('2026/10/12(월)~2026/10/16(금)',2026,10).start"),'2026-10-12');
 assert.equal(run("smPeriodBounds('11/2~11/6',2026,10).end"),'2026-11-06');

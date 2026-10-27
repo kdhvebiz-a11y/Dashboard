@@ -214,3 +214,13 @@ body.sm-mode #periodbar,body.sm-mode #basisNote{display:none!important}
 .sm-hwp-copy .sm-hwp-dl{font-size:15px;padding:10px 16px;background:#1849a9;color:#fff;border-color:#1849a9}
 .sm-hwp-copy .sm-hwp-dl:hover{background:#2364d2}
 .sm-hwp-sep{width:1px;height:28px;background:#adc9ee;margin:0 6px}
+
+/* 미팅가망 목록 선택 */
+.sm-pick{margin:0 0 12px}.sm-pick summary small{font-weight:500;color:var(--muted)}
+.sm-pick-tools{display:flex;gap:6px;margin:8px 0}
+.sm-pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:4px 12px}
+.sm-pick-item{display:flex;align-items:center;gap:6px;font-size:13px;padding:4px 6px;border-radius:8px;cursor:pointer;white-space:nowrap;overflow:hidden}
+.sm-pick-item:hover{background:#eef4ff}.sm-pick-item.off{opacity:.45;text-decoration:line-through}
+.sm-pick-item input{width:16px;height:16px;margin:0;flex:none}.sm-pick-item b{flex:none;min-width:26px;text-align:right}.sm-pick-item span{overflow:hidden;text-overflow:ellipsis}
+.sm-src{font-style:normal;flex:none;font-size:11px;font-weight:800;padding:1px 6px;border-radius:8px;margin-left:auto}
+.sm-src-gs{background:#cdddf4;color:#1849a9}.sm-src-sp{background:#e9c6ec;color:#6b2a70}.sm-src-ref{background:#f5dcc4;color:#8a4b00}.sm-src-ugs{background:#fff0bd;color:#7a5a00}

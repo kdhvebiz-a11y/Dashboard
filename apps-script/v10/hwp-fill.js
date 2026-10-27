@@ -101,7 +101,7 @@ function hwpSetParaText(records,para,text){
  const ctrlChars=ctrl.reduce((n,c)=>n+c.length/2,0),body=hwpEncode(String(text||'')),parts=[...ctrl];
  if(body.length)parts.push(body);parts.push(new Uint8Array([13,0]));
  const nchars=ctrlChars+body.length/2+1;
- hwpSetU32(head.data,0,(nchars|0x80000000)>>>0);
+ hwpSetU32(head.data,0,(nchars|(hwpU32(head.data,0)&0x80000000))>>>0);// 최상위 비트 = '목록의 마지막 문단' 표시, 원래 값 유지
  // 글자 모양 위치가 새 글 길이를 넘으면 잘라내고(최소 1개), 줄 나눔 정보는 첫 줄만 남긴다(한글이 열 때 다시 계산).
  for(let k=para.start+1;k<para.end;k++){const r=records[k];if(r.level!==para.level+1)continue;
   if(r.tag===HWP_TAG.CHAR_SHAPE){const keep=[];for(let o=0;o+8<=r.data.length;o+=8){if(o===0||hwpU32(r.data,o)<nchars-1)keep.push(r.data.slice(o,o+8));}r.data=hwpConcat(keep);head.data[12]=keep.length&255;head.data[13]=keep.length>>8;}
@@ -117,6 +117,21 @@ function hwpTableCells(records,tableIndex){
  for(let k=tableIndex+1;k<records.length&&records[k].level>=lv;k++){const r=records[k];if(r.tag===HWP_TAG.LIST_HEADER&&r.level===lv&&r.data.length>=16){const col=hwpU16(r.data,8),row=hwpU16(r.data,10);cells[row+','+col]=k;}}
  return cells;
 }
+// 셀(LIST_HEADER)의 문단 수를 실제와 맞춘다 — 문단을 늘리거나 줄인 뒤 이 값이 틀리면 한글이 빈 문서로 연다.
+function hwpFixListCounts(records){
+ // PARA_HEADER 첫 4바이트의 최상위 비트는 "이 목록(구역·셀)의 마지막 문단" 표시다. 문단을 넣고 빼면 다시 매긴다.
+ const setLast=(paraIdx,on)=>{const d=records[paraIdx].data,v=hwpU32(d,0)&0x7fffffff;hwpSetU32(d,0,(on?v|0x80000000:v)>>>0);};
+ const lists=[{level:0,from:0,to:records.length}];
+ records.forEach((r,k)=>{if(r.tag===HWP_TAG.LIST_HEADER||r.tag===HWP_TAG.PARA_HEADER&&false)return;});
+ records.forEach((r,k)=>{if(r.tag!==HWP_TAG.LIST_HEADER)return;let j=k+1;for(;j<records.length;j++){const x=records[j];if(x.level<r.level||(x.tag===HWP_TAG.LIST_HEADER&&x.level===r.level))break;}lists.push({level:r.level,from:k+1,to:j,header:r});});
+ lists.forEach(L=>{const paras=[];for(let j=L.from;j<L.to;j++){const x=records[j];if(x.tag===HWP_TAG.PARA_HEADER&&x.level===L.level)paras.push(j);}
+  paras.forEach((pi,ix)=>setLast(pi,ix===paras.length-1));
+  if(L.header&&L.header.data.length>=2){L.header.data[0]=paras.length&255;L.header.data[1]=(paras.length>>8)&255;}});
+}
+// 한글이 쓰는 압축 스트림 = raw deflate + CRC32(4) + 원본 크기(4)
+const HWP_CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function hwpCrc32(b){let c=0xffffffff;for(let i=0;i<b.length;i++)c=HWP_CRC[(c^b[i])&255]^(c>>>8);return (c^0xffffffff)>>>0;}
+async function hwpCompress(body){const z=await hwpDeflate(body),t=new Uint8Array(8);hwpSetU32(t,0,hwpCrc32(body));hwpSetU32(t,4,body.length);return hwpConcat([z,t]);}
 /* ---------- 영업회의록 채우기 ----------
    fill = {reporter, heading1, table1:[[4]x3], table2:[[6]x3], extra, items:[{text,note}], summary:[5]} */
 async function hwpFillSalesMinutes(templateBytes,fill){
@@ -155,7 +170,8 @@ async function hwpFillSalesMinutes(templateBytes,fill){
   }
  }
  if(h3&&fill.summary){const sums=paras().filter(p=>p.start>h3.start&&/^ㆍ/.test(p.text));fill.summary.forEach((t,ix)=>{if(sums[ix])hwpSetParaText(records,sums[ix],t);});}
+ hwpFixListCounts(records);
  const body=hwpPack(records);
- const out=cfbWrite(doc,{'BodyText/Section0':compressed?await hwpDeflate(body):body,'PrvText':hwpEncode(fill.preview||'')});
+ const out=cfbWrite(doc,{'BodyText/Section0':compressed?await hwpCompress(body):body,'PrvText':hwpEncode(fill.preview||'')});
  return out;
 }

@@ -27,4 +27,13 @@ assert.ok(texts.includes(fill.summary[4])&&texts.includes(fill.extra));
 // 글자 수 머리말 = 본문 UTF-16 글자 수 + 1(문단 끝)
 let checked=0;recs.forEach((r,i)=>{if(r.tag!==0x42)return;const n=((r.data[0]|(r.data[1]<<8)|(r.data[2]<<16)|(r.data[3]<<24))>>>0)&0x7fffffff;const t=recs[i+1]&&recs[i+1].tag===0x43?recs[i+1].data.length/2:1;assert.equal(n,t,'nchars at record '+i);checked++;});
 assert.ok(checked>60);
+// '마지막 문단' 비트(최상위 비트)는 각 목록의 마지막 문단에만 — 제목 문단에 켜지면 한글이 제목만 보여 준다
+const lastFlags=recs.map((r,i)=>r.tag===0x42?[i,r.level,!!(r.data[3]&0x80)]:null).filter(Boolean);
+assert.equal(lastFlags[0][2],false,'first section paragraph is not marked last');
+assert.equal(lastFlags[lastFlags.length-1][2],true,'final paragraph is marked last');
+// 셀마다 적힌 문단 수 = 실제 문단 수 (틀리면 한글이 빈 문서로 연다)
+recs.forEach((r,k)=>{if(r.tag!==0x48)return;const n=r.data[0]|(r.data[1]<<8);let cnt=0;for(let j=k+1;j<recs.length;j++){const x=recs[j];if(x.level<r.level||(x.tag===0x48&&x.level===r.level))break;if(x.tag===0x42&&x.level===r.level)cnt++;}assert.equal(n,cnt,'list paragraph count at record '+k);});
+// 압축 스트림 끝에 CRC32 + 원본 크기(한글 형식)
+const z=b.entries.find(e=>e.path==='BodyText/Section0').data,sizeTrailer=(z[z.length-4]|(z[z.length-3]<<8)|(z[z.length-2]<<16)|(z[z.length-1]<<24))>>>0;
+assert.equal(sizeTrailer,(await hwpInflate(z)).length,'deflate trailer carries the uncompressed size');
 console.log('PASS: hwp minutes template fill ('+checked+' paragraphs)');
