@@ -64,3 +64,5 @@ assert.equal(vm.runInContext('FU.role',c),'own');assert.equal(vm.runInContext('F
 vm.runInContext('FU.data=null;FU.autoTried=false;FU.loading=false',c);assert.match(vm.runInContext('fuView()',c),/불러오는 중/);assert.equal(vm.runInContext('FU.autoTried',c),true);
 assert.match(c.fuLogin(),/접속 종료 전까지/);assert.doesNotMatch(c.fuLogin(),/180일/);assert.equal(vm.runInContext("store.get('fu_access','')",c),'');
 console.log('PASS: owner auto-auth, remembered browser access, protected staff scope, reissue revocation, conflicts, invalid dates, shared save, contact/status extraction, and alert boundaries');
+// Pure-JS SHA-256 must match the platform digest so stored fu_record_/fu_session_ keys stay valid.
+for(const s of ['','admin-secret-for-test-only','2026:09-0015','한글 메모 ▶ 2026/10/01 · 😀'.repeat(30)])assert.equal(run(`fuSha256_(${JSON.stringify(s)})`),createHash('sha256').update(s,'utf8').digest('hex'),'fuSha256_ equals SHA-256 hex');

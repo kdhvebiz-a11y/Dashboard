@@ -84,6 +84,8 @@ const release=process.env.GITHUB_SHA||'local';
 if(release!=='local'&&!/^[a-f0-9]{40}$/i.test(release))throw Error('Invalid release identifier');
 html=html.replace('</head>',`<meta name="dashboard-release" content="${release}">\n</head>`);
 server=server.replace('  var fresh = !!p.fresh;',`  if (p.health === '1') return ContentService.createTextOutput(JSON.stringify({ok:true,release:'${release}'})).setMimeType(ContentService.MimeType.JSON);\n  var fresh = !!p.fresh;`);
+// 배포 직후 1회: 이 배포 버전으로 상담 후속관리 캐시 트리거를 다시 만들고 캐시를 채운다(배포 커밋을 알아야 호출 가능).
+server=server.replace('  var fresh = !!p.fresh;',`  if (p.followup === 'warm' && p.release === '${release}') return ContentService.createTextOutput(JSON.stringify(fuInstallWarmTrigger())).setMimeType(ContentService.MimeType.JSON);\n  var fresh = !!p.fresh;`);
 await writeFile(new URL('index.html',base),html);
 await writeFile(new URL('대시보드.gs',base),server);
 console.log('v10 Apps Script HTML and server assembled.');

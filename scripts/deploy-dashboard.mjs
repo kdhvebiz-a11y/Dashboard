@@ -100,7 +100,7 @@ export async function main(){
   await writeFile(new URL('prior.json',folder),JSON.stringify(data),{mode:0o600});
  };
  const warm=async()=>{
-  for(const q of ['?data=1&fresh=1','?weekly=1']){const r=await fetch(WEB_URL+q,{signal:AbortSignal.timeout(330000)});if(!r.ok)throw Error('warm-up '+q+' HTTP '+r.status);await r.text();}
+  for(const q of ['?data=1&fresh=1','?weekly=1','?followup=warm&release='+env.GITHUB_SHA]){const r=await fetch(WEB_URL+q,{signal:AbortSignal.timeout(330000)});if(!r.ok)throw Error('warm-up '+q+' HTTP '+r.status);await r.text();}
  };
  const result=await deploy({api,html,server,release:env.GITHUB_SHA,checkHealth,backup,warm});
  if(env.GITHUB_STEP_SUMMARY)await writeFile(env.GITHUB_STEP_SUMMARY,`## Dashboard deployed\n- Commit: ${env.GITHUB_SHA}\n- Version: ${result.version}\n- Previous version: ${result.previousVersion}\n- [Open dashboard](${WEB_URL})\n`,{flag:'a'});
