@@ -85,10 +85,14 @@ def read_rows(ws, year, fname, records, issues):
     business = DETAIL_RX.sub('', sheet).strip()
     for row_no, row in enumerate(ws.iter_rows(min_row=3, max_col=25, values_only=True), start=3):
         col = lambda letter: row[ord(letter) - ord('A')] if ord(letter) - ord('A') < len(row) else None
-        plant = text(col('O'))
-        if not plant:
-            continue
         rid = f'{year}:{sheet}:{row_no}'
+        plant = text(col('O'))
+        # 발전소명이 비어 있어도 용량·월이 적힌 행은 계약 행이다(정리base 집계와 맞추기 위해). 완전히 빈 행만 건너뛴다.
+        if not plant and not (num(col('I')) and num(col('G'))):
+            continue
+        if not plant:
+            plant = '(발전소명 미기재)'
+            issues.append({'id': rid, 'message': '발전소명 미기재', 'value': f'{sheet} {row_no}행'})
         raw_date = col('F')
         iso = parse_date(raw_date)
         if iso is None and text(raw_date):

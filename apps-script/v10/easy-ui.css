@@ -163,7 +163,7 @@ html[data-theme="dark"] .perf-comment-locked,html[data-theme="dark"] .perf-comme
 .perf-staff-table td b{font-size:16px}.perf-staff-table td small{white-space:nowrap;font-size:11px;font-variant-numeric:tabular-nums}
 .perf-staff-table .perf-person-head{font-size:21px;letter-spacing:.03em;padding:16px 8px}
 .perf-person-start{border-left:3px solid #a7b6c8!important}
-.person-0{background:#e8f0ff!important;color:#214f99!important}.person-1{background:#fff3d2!important;color:#7e5d00!important}.person-2{background:#e4f3e9!important;color:#216b45!important}.person-3{background:#f2eaff!important;color:#704ca5!important}
+.person-0{background:#ffe8de!important;color:#a8451c!important}.person-1{background:#fce4ee!important;color:#ad2f64!important}.person-2{background:#e4f3e9!important;color:#216b45!important}.person-3{background:#f2eaff!important;color:#704ca5!important}
 .perf-staff-month-total td{padding:17px 8px}.perf-staff-month-total td b{font-size:25px}.perf-staff-month-total td small{font-size:14px;color:inherit}.perf-staff-month-total td span{display:block;margin-top:7px;font-size:11px}
 html[data-theme="dark"] .perf-source-table tbody td{background:var(--surface)}
 @media(max-width:1050px){.perf-staff-table table{min-width:880px}}
