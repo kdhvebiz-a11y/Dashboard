@@ -43,9 +43,18 @@ function fuRPC(name,...args){return new Promise((resolve,reject)=>{
  google.script.run.withSuccessHandler(resolve).withFailureHandler(e=>reject(Error(e?.message||String(e))))[name](...args);
 });}
 function fuFlash(message,error=false){FU.message=error?'':message;FU.error=error?message:'';}
+// 서버 캐시(gzip+base64)를 브라우저에서 푼다. 관리자 화면은 서버가 900행을 다시 직렬화하지 않아 훨씬 빨리 열린다.
+const fuCanUnpack=()=>typeof DecompressionStream==='function'&&typeof Response==='function';
+async function fuUnpack(data){
+ const bin=atob(data.packed),bytes=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)bytes[k]=bin.charCodeAt(k);
+ const text=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+ const base=JSON.parse(text),records=data.records||{};
+ const rows=(base.rows||[]).map(r=>{const o={...r};const raw=records[o.stateKey];o.followup=raw?JSON.parse(raw):{version:0,lastContact:'',nextContact:'',note:'',history:[]};delete o.stateKey;return o;});
+ return {actor:data.actor,rows,at:base.at||data.at,today:data.today,observationWarning:base.warning||''};
+}
 async function fuLoad(fresh=false){
  if(FU.loading)return;const key=FU.key;FU.loading=true;FU.error='';render();
- try{const data=await fuRPC('getFollowupWorkspace',key,fresh===true);if(FU.key!==key)return;FU.data=data;if(!FU.data.actor.admin){FU.role=FU.data.actor.role;FU.person=FU.data.actor.name;FU.status=FU.role==='own'?'피드백 없음':'미대응 확인';}FU.page=0;}
+ try{let data=await fuRPC('getFollowupWorkspace',key,fresh===true,fuCanUnpack());if(FU.key!==key)return;if(data&&data.packed)data=await fuUnpack(data);FU.data=data;if(!FU.data.actor.admin){FU.role=FU.data.actor.role;FU.person=FU.data.actor.name;FU.status=FU.role==='own'?'피드백 없음':'미대응 확인';}FU.page=0;}
  catch(e){if(FU.key===key)fuFlash(e.message,true);}finally{if(FU.key===key){FU.loading=false;render();}}
 }
 async function fuOpen(r){

@@ -96,9 +96,11 @@ function fuExtract_(v,headers){
  return Object.assign(base,{contactRaw:contact,content:notes,kepco:field(/한전|선로|계통/,/한전|선로|계통/),municipality:field(/지자체|개발행위|인허가/,/지자체|개발행위|인허가/)});
 }
 function fuRows_(actor){
- var ss=SpreadsheetApp.openById(SHEET_ID),out=[],today=fuToday_();
- ss.getSheets().forEach(function(sh){
-  var year=Number(sh.getName());if(!/^20\d{2}$/.test(sh.getName())||year<2025||sh.getLastRow()<3)return;
+ var ss=SpreadsheetApp.openById(SHEET_ID),out=[],today=fuToday_(),thisYear=Number(fuToday_().slice(0,4));
+ // 연도 탭만 이름으로 바로 연다(시트 전체를 돌며 getLastRow를 부르지 않는다).
+ var sheets=[];for(var y=2025;y<=thisYear+1;y++){var sh=ss.getSheetByName(String(y));if(sh)sheets.push(sh);}
+ sheets.forEach(function(sh){
+  var year=Number(sh.getName());if(sh.getLastRow()<3)return;
   var values=sh.getRange(3,1,sh.getLastRow()-2,13).getDisplayValues();
   values.forEach(function(v,ix){
    var no=String(v[0]||'').trim(),m=no.match(/^(?:(?:sp|ugs)[- ]?)?(\d{1,2})-\d+/i);
@@ -114,16 +116,24 @@ function fuRows_(actor){
  var counts={};out.forEach(function(r){counts[r.id]=(counts[r.id]||0)+1;});out.forEach(function(r){r.duplicate=counts[r.id]>1;});return out;
 }
 function fuStateKey_(id){return 'fu_record_'+fuHash_(id);}
-// 상담 목록(전체)은 서버 캐시에 40분 보관한다. 30분마다 도는 캐시채우기 트리거가 미리 채워 두므로
-// 메뉴를 누르면 바로 열린다. 후속 기록(연락일·메모)은 캐시와 별개로 매번 새로 읽어 저장 즉시 반영된다.
-var FU_CACHE_KEY='fu_rows_v1',FU_CACHE_SEC=2400;
+// 상담 목록(전체)은 서버 캐시에 6시간(최대) 보관하고 30분마다 도는 캐시채우기 트리거가 새로 채운다.
+// (예전 40분 보관은 트리거 한 번이 5분 넘게 걸리거나 시간 초과되면 캐시가 비어 사용자가 1~6분짜리 전체 읽기를 떠안았다.)
+// 후속 기록(연락일·메모)은 캐시와 별개로 매번 새로 읽어 저장 즉시 반영된다.
+var FU_CACHE_KEY='fu_rows_v1',FU_CACHE_SEC=21600;
 function fuCache_(){try{return typeof CacheService!=='undefined'?CacheService.getScriptCache():null;}catch(e){return null;}}
-function fuCacheRead_(){
+// 캐시에 든 gzip+base64 문자열 그대로(서버에서 풀지 않음). 관리자 화면은 이 문자열을 받아 브라우저에서 푼다.
+function fuCacheRaw_(){
  var c=fuCache_();if(!c)return null;
  try{var head=c.get(FU_CACHE_KEY);if(!head)return null;head=JSON.parse(head);var keys=[];for(var k=0;k<head.n;k++)keys.push(FU_CACHE_KEY+'_'+k);
   var parts=c.getAll(keys),enc='';for(var z=0;z<keys.length;z++){if(!parts[keys[z]])return null;enc+=parts[keys[z]];}
-  return JSON.parse(Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(enc),'application/gzip')).getDataAsString());}catch(e){return null;}
+  return {enc:enc,at:head.at||''};}catch(e){return null;}
 }
+function fuCacheRead_(){
+ var raw=fuCacheRaw_();if(!raw)return null;
+ try{return JSON.parse(Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(raw.enc),'application/gzip')).getDataAsString());}catch(e){return null;}
+}
+// 후속 기록만 골라낸다(fu_record_*). 속성 저장소에는 내용 변경 추적 조각(fu_note_*)이 수백 KB 들어 있어 통째로 보내면 안 된다.
+function fuRecords_(props){var out={};Object.keys(props).forEach(function(k){if(k.indexOf('fu_record_')===0)out[k]=props[k];});return out;}
 function fuCacheWrite_(obj){
  var c=fuCache_();if(!c)return;
  try{var enc=Utilities.base64Encode(Utilities.gzip(Utilities.newBlob(JSON.stringify(obj),'application/json')).getBytes()),size=90000,n=Math.ceil(enc.length/size),put={};
@@ -144,10 +154,17 @@ function fuInstallWarmTrigger(){
  var out=fuWorkspaceRows_(true);return {ok:true,rows:out.rows.length,trigger:made};
 }
 function fuWarmCache(){var t0=Date.now(),out=fuWorkspaceRows_(true);Logger.log('상담 후속관리 캐시 '+out.rows.length+'행 · '+(Date.now()-t0)+'ms');}
-function getFollowupWorkspace(code,fresh){
- var actor=fuActor_(code),base=fuWorkspaceRows_(fresh===true),props=fuProps_().getProperties();
+// packed=true(브라우저가 gzip을 풀 수 있을 때): 관리자는 캐시 문자열을 그대로 받는다 — 서버가 900행을 풀고 다시 직렬화해
+// 1~2MB로 보내던 5초가 base64 300~400KB 전송으로 줄어든다. 담당자(비관리자)는 권한 필터가 필요하므로 서버에서 거른다.
+function getFollowupWorkspace(code,fresh,packed){
+ var actor=fuActor_(code),today=fuToday_();
+ if(packed===true&&actor.admin&&fresh!==true){
+  var raw=fuCacheRaw_();
+  if(raw)return {actor:actor,packed:raw.enc,at:raw.at,today:today,records:fuRecords_(fuProps_().getProperties())};
+ }
+ var base=fuWorkspaceRows_(fresh===true),props=fuProps_().getProperties();
  var rows=base.rows.filter(function(r){return fuAllowed_(actor,r);}).map(function(r){var o=Object.assign({},r);o.followup=props[o.stateKey]?JSON.parse(props[o.stateKey]):{version:0,lastContact:'',nextContact:'',note:'',history:[]};delete o.stateKey;return o;});
- return {actor:actor,rows:rows,at:base.at,today:fuToday_(),observationWarning:base.warning};
+ return {actor:actor,rows:rows,at:base.at,today:today,observationWarning:base.warning};
 }
 function getFollowupDetail(code,input){
  var actor=fuActor_(code);input=input||{};

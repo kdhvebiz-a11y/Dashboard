@@ -66,3 +66,25 @@ assert.match(c.fuLogin(),/접속 종료 전까지/);assert.doesNotMatch(c.fuLogi
 console.log('PASS: owner auto-auth, remembered browser access, protected staff scope, reissue revocation, conflicts, invalid dates, shared save, contact/status extraction, and alert boundaries');
 // Pure-JS SHA-256 must match the platform digest so stored fu_record_/fu_session_ keys stay valid.
 for(const s of ['','admin-secret-for-test-only','2026:09-0015','한글 메모 ▶ 2026/10/01 · 😀'.repeat(30)])assert.equal(run(`fuSha256_(${JSON.stringify(s)})`),createHash('sha256').update(s,'utf8').digest('hex'),'fuSha256_ equals SHA-256 hex');
+
+// 관리자 빠른 경로: 서버 캐시의 gzip+base64 문자열을 그대로 받고(packed), 후속 기록은 fu_record_* 만 따로 온다.
+{
+ const {gzipSync,gunzipSync}=await import('node:zlib');
+ const cache=new Map();
+ run('var CacheService');
+ context.CacheService={getScriptCache:()=>({get:k=>cache.get(k)||null,getAll:ks=>Object.fromEntries(ks.filter(k=>cache.has(k)).map(k=>[k,cache.get(k)])),put(k,v){cache.set(k,v)},putAll(o){Object.entries(o).forEach(([k,v])=>cache.set(k,v))}})};
+ Object.assign(context.Utilities,{gzip:b=>({getBytes:()=>[...gzipSync(Buffer.from(b.getBytes()))]}),ungzip:b=>({getDataAsString:()=>gunzipSync(Buffer.from(b.getBytes())).toString('utf8')}),base64Encode:a=>Buffer.from(a).toString('base64'),base64Decode:s=>[...Buffer.from(s,'base64')]});
+ context.Utilities.newBlob=(s)=>({getBytes:()=>Buffer.isBuffer(s)||Array.isArray(s)?Buffer.from(s):Buffer.from(String(s)),getDataAsString:()=>Buffer.from(s).toString('utf8')});
+ props.set('fu_note_x_0','junk-that-must-not-travel');
+ assert.equal(run("getFollowupWorkspace('admin-secret-for-test-only',false,true).packed"),undefined,'first call has no cache → normal rows');
+ const packed=run("JSON.stringify(getFollowupWorkspace('admin-secret-for-test-only',false,true))");
+ const data=JSON.parse(packed);
+ assert.ok(typeof data.packed==='string'&&data.packed.length>20,'second call serves the cached blob');
+ assert.ok(!Object.keys(data.records).some(k=>k.indexOf('fu_record_')!==0),'only follow-up records travel');
+ assert.ok(Object.keys(data.records).some(k=>k.indexOf('fu_record_')===0),'follow-up records included');
+ const base=JSON.parse(gunzipSync(Buffer.from(data.packed,'base64')).toString('utf8'));
+ assert.equal(base.rows.length,2);assert.ok(base.rows.every(r=>r.stateKey),'rows carry stateKey for the client merge');
+ run("var staff2=issueFollowupAccess('admin-secret-for-test-only',{name:'김상담',role:'cons'}).code");
+ assert.equal(run("getFollowupWorkspace(staff2,false,true).packed"),undefined,'members never get the unfiltered blob');
+ assert.equal(run("getFollowupWorkspace(staff2,false,true).rows.length"),1);
+}
