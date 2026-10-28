@@ -83,3 +83,5 @@ html[data-theme="dark"] .contract-basis button.on{background:#203c61}html[data-t
 .fu-content-head b{font-size:16px;color:#163a6b}.fu-content-head>span{color:var(--muted);font-size:13px}
 .fu-content-actions{margin-left:auto;display:flex;gap:6px}.fu-content-actions .btn{padding:6px 12px;font-size:13px}
 .fu-content-box .fu-content{text-align:left;padding:16px 20px;white-space:pre-wrap;line-height:1.75;font-size:15px;color:var(--ink);max-height:60vh;overflow:auto}
+.fu-expand .fu-detail-slim{margin:0 10px 12px}.fu-detail-slim .fu-detail-body{grid-template-columns:minmax(0,1fr) minmax(300px,1.1fr);padding:16px 22px}
+.fu-detail-slim>header{padding:14px 22px}.fu-detail-slim .fu-actions{margin:4px 0 10px}
