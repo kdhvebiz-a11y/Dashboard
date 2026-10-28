@@ -69,11 +69,12 @@ function forgetFollowupAccess(code){
  if(typeof code==='string'&&code.length>=20&&code.length<=100)fuProps_().deleteProperty('fu_session_'+fuHash_(code));
  return true;
 }
-// 목록용 상담 내용 요약: 빈 줄을 정리해 앞 320자. 전체 내용은 상세에서 읽는다.
+// 목록에 상담 내용 전체(빈 줄 정리, 6000자까지)를 실어 둔다 → 내용 칸을 누르면 서버 호출 없이 바로 펼쳐진다. 요약은 브라우저가 만든다.
+var FU_NOTE_MAX=6000;
 function fuPreview_(notes){
  var lines=String(notes||'').split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean);
  var text=lines.join('\n');
- return text.length>320?text.slice(0,320)+'…':text;
+ return text.length>FU_NOTE_MAX?text.slice(0,FU_NOTE_MAX)+'\n…(이하 생략 · 원본 상담일지에서 확인)':text;
 }
 function fuText_(s,max){return String(s||'').trim().slice(0,max||500);}
 function fuStatus_(s){
@@ -110,7 +111,7 @@ function fuRows_(actor){
    if(!fuAllowed_(actor,r))return;
    // 계약·종료 상담은 기본 목록에서 빠지므로 무거운 해시·날짜 분석을 건너뛴다 (상태 탭에서 고르면 기본 정보만 보인다).
    var closed=r.status==='계약'||r.status==='종료';
-   out.push(Object.assign(r,fuContact_(v),{meetingISO:fuSourceDate_(v[9],year),noteEvidence:closed?{date:'',excerpt:'',inferredYear:false,futureHeadings:0}:fuNoteEvidence_(v[12],year,today),notePreview:fuPreview_(v[12]),noteFingerprint:closed?'':fuHash_(String(v[12]||'')).slice(0,24)}));
+   out.push(Object.assign(r,fuContact_(v),{meetingISO:fuSourceDate_(v[9],year),noteEvidence:closed?{date:'',excerpt:'',inferredYear:false,futureHeadings:0}:fuNoteEvidence_(v[12],year,today),note:fuPreview_(v[12]),noteFingerprint:closed?'':fuHash_(String(v[12]||'')).slice(0,24)}));
   });
  });
  var counts={};out.forEach(function(r){counts[r.id]=(counts[r.id]||0)+1;});out.forEach(function(r){r.duplicate=counts[r.id]>1;});return out;

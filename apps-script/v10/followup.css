@@ -73,3 +73,13 @@ html[data-theme="dark"] .contract-basis button.on{background:#203c61}html[data-t
 .btn.ct-mini[disabled]{opacity:.45;cursor:default}
 .ct-bar-note{margin:6px 2px 0;font-size:11.5px;color:var(--muted)}
 @media(max-width:700px){.ct-bar-actions{margin-left:0}.ct-chip.ct-find input{width:140px!important}}
+
+.fu-pagination{gap:6px;flex-wrap:wrap}.fu-pagination .btn{padding:8px 14px}
+.fu-page-num{min-width:38px;height:38px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--ink2);font:700 15px/1 inherit;cursor:pointer}
+.fu-page-num:hover{border-color:#adc9ee;background:#f4f8ff}.fu-page-num.on{background:#2364d2;border-color:#2364d2;color:#fff}
+.fu-page-gap{color:var(--muted);padding:0 2px}.fu-page-total{margin-left:10px;color:var(--muted);font-size:13px}
+.fu-content-box{margin:0 10px 12px;background:var(--surface);border:1px solid #acc4e5;border-radius:12px;overflow:hidden}
+.fu-content-head{text-align:left;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--border);background:#eef4fd}
+.fu-content-head b{font-size:16px;color:#163a6b}.fu-content-head>span{color:var(--muted);font-size:13px}
+.fu-content-actions{margin-left:auto;display:flex;gap:6px}.fu-content-actions .btn{padding:6px 12px;font-size:13px}
+.fu-content-box .fu-content{text-align:left;padding:16px 20px;white-space:pre-wrap;line-height:1.75;font-size:15px;color:var(--ink);max-height:60vh;overflow:auto}

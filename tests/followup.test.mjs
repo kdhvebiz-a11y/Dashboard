@@ -39,7 +39,7 @@ assert.equal(parsed.customer,'홍길동');assert.equal(parsed.phone,'010-1234-56
 const listOnly=context.fuContact_(['','','','홍길동 010-1234-5678','서울시']);assert.equal(listOnly.customer,'홍길동');assert.equal('content' in listOnly,false);
 const ui=await readFile(new URL('../apps-script/v10/followup.js',import.meta.url),'utf8');
 const saved=new Map();const store={get:(k,d)=>saved.has(k)?saved.get(k):d,set:(k,v)=>saved.set(k,v),del:k=>saved.delete(k)};
-const c=vm.createContext({txt:x=>String(x||'').trim(),v10Today:()=> '2026-09-17',VIEWS:{},EASY_NAV:[],store,render(){},document:{addEventListener(){}},setTimeout(){},setInterval(){}});vm.runInContext(ui,c);
+const c=vm.createContext({txt:x=>String(x||'').trim(),v10Today:()=> '2026-09-17',VIEWS:{},EASY_NAV:[],store,render(){},document:{addEventListener(){}},setTimeout(){},setInterval(){},esc:x=>String(x==null?'':x).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])),easyLead:(a,b)=>`<h1>${a}</h1><p>${b}</p>`,v10Panel:(t,sub,body)=>`<section>${t}${sub}${body}</section>`,state:{}});vm.runInContext(ui,c);
 // HtmlService's script processing misread the previous arrow-expression URL.
 assert.equal(c.fuLink({gid:123,sourceRow:8}),'https://docs.google.com/spreadsheets/d/1PR1M6AfYkzmvYlzFKkV4KRhJWTWs0rzZBmroZ3CSwyc/edit#gid=123&range=A8%3AM8');
 const alert=(status,f,e={})=>c.fuAlert({status,followup:f,...e},'2026-09-17');
@@ -61,6 +61,17 @@ assert.equal(c.fuScope({own:'박'},'own','2026-09-17'),false);
 assert.equal(c.fuScope({cons:'김'},'cons','2026-09-17'),true);
 vm.runInContext("FU.data={today:'2026-09-17',rows:[{id:'a',no:'01-1',year:2026,month:1,cons:'김',own:'박',meetingISO:'2026-01-01',status:'미계약',noteEvidence:{date:'2026-01-01'},followup:{}},{id:'b',no:'01-2',year:2026,month:1,cons:'김',own:'박',meetingISO:'2026-01-01',status:'진행 중',followup:{}}]};",c);
 assert.equal(vm.runInContext('FU.role',c),'own');assert.equal(vm.runInContext('FU.status',c),'피드백 없음');assert.equal(vm.runInContext('fuRows().length',c),1,'row b: meeting with no later note');vm.runInContext("FU.status='미대응 확인'",c);assert.equal(vm.runInContext('fuRows().length',c),1,'row a: note on the meeting day counts as feedback, but is 30+ days old');vm.runInContext("FU.status='날짜 확인'",c);assert.equal(vm.runInContext('fuRows().length',c),0);
+// 내용 칸 클릭 → 서버 호출 없이 바로 아래에 전체 내용 칸 · 쪽 번호 1 2 3 … 버튼
+{
+ const rows=Array.from({length:85},(_,k)=>({id:'r'+k,no:'01-'+k,year:2026,month:1,cons:'김',own:'박',meetingISO:'2026-01-01',status:'진행 중',followup:{},note:'첫 줄 '.repeat(100)+'\n끝줄 '+k}));
+ vm.runInContext('FU.data='+JSON.stringify({today:'2026-09-17',actor:{admin:true,name:'관리자',role:'all'},at:'2026-09-17T00:00:00Z',rows})+";FU.role='cons';FU.person='전체';FU.status='전체';FU.page=0;FU.detail=null;FU.detailLoading=false;FU.detailFailed=false;FU.selected=fuRows()[0].id;var SEL=FU.selected",c);
+ const sel=vm.runInContext('SEL',c),html=vm.runInContext('fuView()',c);
+ assert.match(html,/fu-content-box/,'selected row expands instantly');assert.match(html,new RegExp('끝줄 '+sel.slice(1)+'<'),'full note shown');assert.doesNotMatch(html,/상담 상세를 불러오지 못했습니다/,'no detail error before the detail button');
+ assert.match(html,new RegExp('data-fu-detail="'+sel+'"'),'detail button present');
+ assert.equal((html.match(/fu-page-num/g)||[]).length,3,'85 rows → 3 page numbers');assert.match(html,/fu-page-num on" data-fu-goto="0"/);
+ assert.equal(vm.runInContext("fuNotePreview({note:'가'.repeat(400)}).length",c),321,'preview trims to 320 chars');
+ assert.equal(vm.runInContext("fuNotePreview({notePreview:'옛 캐시'})",c),'옛 캐시','old cache rows still render');
+}
 vm.runInContext('FU.data=null;FU.autoTried=false;FU.loading=false',c);assert.match(vm.runInContext('fuView()',c),/불러오는 중/);assert.equal(vm.runInContext('FU.autoTried',c),true);
 assert.match(c.fuLogin(),/접속 종료 전까지/);assert.doesNotMatch(c.fuLogin(),/180일/);assert.equal(vm.runInContext("store.get('fu_access','')",c),'');
 console.log('PASS: owner auto-auth, remembered browser access, protected staff scope, reissue revocation, conflicts, invalid dates, shared save, contact/status extraction, and alert boundaries');
