@@ -480,6 +480,18 @@ function easyDownloadPresentationPdf(){
  let win=null;
  try{win=deck?window.open('','_blank'):null;}catch(e){win=null;}
  if(!win){const before=document.title;document.title=title;try{window.print();}finally{document.title=before;}return;}
+ easyBuildPresentationPdf(win,title);
+}
+// 종합분석·개선방안은 서버에서 따로 불러오므로(비동기) 다 받은 뒤에 덱을 복사한다. 그 전에 복사하면 "저장된 종합분석이 없습니다"로 찍힌다.
+async function easyBuildPresentationPdf(win,title){
+ const month=easyPresentationCommentMonth(),key=easyPresentationCommentKey(DB.year,month);
+ try{win.document.write('<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>'+esc(title)+'<\/title><\/head><body style="font:16px sans-serif;padding:40px">발표 자료를 준비하는 중입니다…<\/body><\/html>');}catch(e){}
+ easyEnsurePresentationComment(DB.year,month);
+ for(let n=0;n<80&&!easyPresentationComments.loaded[key];n++)await new Promise(r=>setTimeout(r,100));
+ if(win.closed)return;
+ const y=window.scrollY;render();window.scrollTo({top:y,behavior:'instant'});
+ const deck=document.querySelector('.perf-deck');
+ if(!deck){win.close();return;}
  const clone=deck.cloneNode(true);
  clone.querySelectorAll('details.perf-fold').forEach(d=>d.open=true);
  clone.querySelectorAll('textarea').forEach(t=>{t.textContent=t.value;});
