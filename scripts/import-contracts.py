@@ -188,6 +188,10 @@ def main(argv):
               f"금액 {s['detailAmount']:,.0f} (요약 {c['amount'] or 0:,.0f}) · 요약 건수 {c['count']}")
     print(f"날짜 오류 {len(data['issues'])}건 · JSON {OUT_JSON.stat().st_size:,} bytes · 비밀값 {len(b64):,} chars "
           f"({'OK' if len(b64) < 48000 else '48KB 초과 — GitHub 비밀값 한도'})")
+    # 2026-10-29부터는 비밀값 대신 암호문 파일(contracts-data.enc, 저장소에 포함)을 쓴다. 열쇠가 있으면 바로 만든다.
+    import subprocess
+    r = subprocess.run(['node', str(ROOT / 'scripts/encrypt-contracts.mjs')], capture_output=True, text=True)
+    print(r.stdout.strip() or r.stderr.strip().splitlines()[-1] if (r.stdout or r.stderr) else '')
 
 
 if __name__ == '__main__':

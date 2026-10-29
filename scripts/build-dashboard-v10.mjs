@@ -5,9 +5,12 @@ const base=new URL('../apps-script/v10/',import.meta.url);
 const read=name=>readFile(new URL(name,base),'utf8');
 let html=await read('template.html');
 const css=(await read('dashboard.css'))+'\n'+(await read('easy-ui.css'))+'\n'+await read('followup.css')+'\n'+await read('readability.css')+'\n'+await read('sales-meeting.css')+'\n'+await read('sales-minutes.css')+'\n'+await read('business-parts.css')+'\n'+await read('weekly.css');
-// 비밀값(gzip+base64)을 푼다. 2026-10-29: GitHub에 저장한 값이 "incorrect data check"로 풀리지 않는 일이 있어
-// 길이·해시·앞뒤 글자를 로그로 남기고, gzip 검사(CRC)가 실패하면 본문만(raw deflate) 풀어서 JSON 검사로 대신한다.
+// 계약 자료 입력 순서: ① 열쇠(CONTRACT_DATA_KEY)+암호문 contracts-data.enc(저장소) → ② 옛 비밀값 CONTRACT_DATA_GZIP_BASE64 → ③ contracts-data.json(로컬).
+// 2026-10-29: GitHub에 저장한 24KB 비밀값이 "incorrect data check"로 풀리지 않아 ①로 바꿨다(scripts/contract-crypto.mjs).
 const contractInput=await (async()=>{
+ const {loadKey,decryptContracts}=await import('./contract-crypto.mjs');
+ const key=loadKey();
+ if(key){const text=await decryptContracts(await read('contracts-data.enc'),key);console.log('contract data: decrypted contracts-data.enc ('+text.length.toLocaleString()+' chars)');return text;}
  const b64=process.env.CONTRACT_DATA_GZIP_BASE64;
  if(!b64)return read('contracts-data.json');
  const {createHash}=await import('node:crypto');const {inflateRawSync}=await import('node:zlib');
