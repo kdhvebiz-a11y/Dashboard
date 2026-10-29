@@ -4,7 +4,7 @@ import {gunzipSync} from 'node:zlib';
 const base=new URL('../apps-script/v10/',import.meta.url);
 const read=name=>readFile(new URL(name,base),'utf8');
 let html=await read('template.html');
-const css=(await read('dashboard.css'))+'\n'+(await read('easy-ui.css'))+'\n'+await read('followup.css')+'\n'+await read('readability.css')+'\n'+await read('sales-meeting.css')+'\n'+await read('sales-minutes.css')+'\n'+await read('business-parts.css')+'\n'+await read('weekly.css');
+const css=(await read('dashboard.css'))+'\n'+(await read('easy-ui.css'))+'\n'+await read('followup.css')+'\n'+await read('readability.css')+'\n'+await read('sales-meeting.css')+'\n'+await read('sales-minutes.css')+'\n'+await read('business-parts.css')+'\n'+await read('weekly.css')+'\n'+await read('print-deck.css');
 // 계약 자료 입력 순서: ① 열쇠(CONTRACT_DATA_KEY)+암호문 contracts-data.enc(저장소) → ② 옛 비밀값 CONTRACT_DATA_GZIP_BASE64 → ③ contracts-data.json(로컬).
 // 2026-10-29: GitHub에 저장한 24KB 비밀값이 "incorrect data check"로 풀리지 않아 ①로 바꿨다(scripts/contract-crypto.mjs).
 const contractInput=await (async()=>{

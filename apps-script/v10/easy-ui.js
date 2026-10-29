@@ -472,11 +472,39 @@ async function easyRestorePresentationComment(year,month){
  }catch(error){easyPresentationComments.error[key]=error.message||String(error);}
  finally{easyPresentationComments.saving[key]=false;render();}
 }
+// PDF 저장 파일 이름은 브라우저가 "맨 바깥 창"의 제목으로 정한다. Apps Script 화면은 iframe 안이라 안쪽 제목을 바꿔도
+// 바깥(그랜드썬 컨설팅 성과 대시보드)이 쓰인다. 그래서 발표 덱만 새 창에 복사해 그 창의 제목을 "YYYY.MM 컨설팅 실적발표"로 두고 인쇄한다.
 function easyDownloadPresentationPdf(){
- const month=easyPresentationCommentMonth(),before=document.title;
- document.title=`${DB.year}년_${String(month).padStart(2,'0')}월_컨설팅_실적발표`;
- try{window.print();}finally{document.title=before;}
+ const month=easyPresentationCommentMonth(),title=`${DB.year}.${String(month).padStart(2,'0')} 컨설팅 실적발표`;
+ const deck=document.querySelector('.perf-deck');
+ let win=null;
+ try{win=deck?window.open('','_blank'):null;}catch(e){win=null;}
+ if(!win){const before=document.title;document.title=title;try{window.print();}finally{document.title=before;}return;}
+ const clone=deck.cloneNode(true);
+ clone.querySelectorAll('details.perf-fold').forEach(d=>d.open=true);
+ clone.querySelectorAll('textarea').forEach(t=>{t.textContent=t.value;});
+ const styles=[...document.querySelectorAll('style,link[rel="stylesheet"]')].map(n=>n.outerHTML).join('');
+ const theme=document.documentElement.getAttribute('data-theme');
+ const doc=win.document;
+ doc.open();
+ doc.write('<!DOCTYPE html><html lang="ko"'+(theme?' data-theme="'+esc(theme)+'"':'')+'><head><meta charset="utf-8"><title>'+esc(title)+'<\/title>'+styles
+  +'<style>@page{size:A4 landscape;margin:0}html,body{margin:0;background:#fff}main.main{margin:0;padding:18px}<\/style><\/head><body class="print-deck"><main class="main"><div id="view">'+clone.outerHTML+'<\/div><\/main><\/body><\/html>');
+ doc.close();
+ const go=()=>{try{win.focus();win.print();}catch(e){}};
+ win.addEventListener('afterprint',()=>setTimeout(()=>{try{win.close();}catch(e){}},300));
+ (doc.fonts&&doc.fonts.ready?doc.fonts.ready:Promise.resolve()).then(()=>setTimeout(go,250));
 }
+// 인쇄 시작·종료: 실적발표 화면이면 body.print-deck + @page 여백 0(브라우저 머리글·바닥글 제거) + 접힌 표 펼침. Ctrl+P 도 같은 길을 탄다.
+function easyPrintPrepare(on){
+ if(state.sect!=='presentation'&&on)return;
+ document.body.classList.toggle('print-deck',on);
+ let st=document.getElementById('easyPrintDeckPage');
+ if(on&&!st){st=document.createElement('style');st.id='easyPrintDeckPage';st.textContent='@page{size:A4 landscape;margin:0}';document.head.appendChild(st);}
+ else if(!on&&st)st.remove();
+ document.querySelectorAll('details.perf-fold').forEach(d=>{if(on){d.dataset.wasOpen=d.open?'1':'';d.open=true;}else if('wasOpen' in d.dataset){d.open=d.dataset.wasOpen==='1';delete d.dataset.wasOpen;}});
+}
+window.addEventListener('beforeprint',()=>easyPrintPrepare(true));
+window.addEventListener('afterprint',()=>easyPrintPrepare(false));
 const easyPerfMW=value=>value===null||value===undefined?'—':(value/1000).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2});
 function easyPresentationSource(a){
  const powerRows=a.rows.filter(r=>/^발전사업/.test(r.type));
@@ -496,7 +524,7 @@ function easyPresentationContractComparison(title,months){
  const categories=['전체','직영','외주','입찰'],rows=categories.map(category=>{const goal=contractGoal(category,months),actual=contractCategoryAggregate(months,category);return {category,goal,actual:actual.capacity,count:actual.count};});
  const chart=v10Panel(title,'목표(주황)와 계약 실적(초록)을 유형별로 비교합니다. 단위: MW',chartBars({labels:categories,series:[{name:'목표',color:V10.colors[1],values:rows.map(x=>x.goal===null?null:x.goal/1000)},{name:'실적',color:V10.colors[4],values:rows.map(x=>x.actual/1000)}],unit:'MW',fmt:v=>Number(v).toFixed(2),height:250,stacked:false,noTable:true,horizontalValues:true}));
  const table=`<div class="perf-contract-table"><p class="v10-note">${esc(title)} · 단위: MW</p>${v10Table(['구분','목표 용량','계약 용량','계약 건수','달성률','잔여'],rows.map(x=>[x.category,easyPerfMW(x.goal),easyPerfMW(x.actual),i(x.count)+'건',v10Rate(x.actual,x.goal),x.goal===null?'—':easyPerfMW(Math.max(x.goal-x.actual,0))]))}</div>`;
- return chart+table;
+ return `<div class="perf-compare">${chart}${table}</div>`;
 }
 function easyPresentationCapacityMatrix(last){
  const labels=['50 kW 미만','50~100 kW','100~300 kW','300~500 kW','500~1,000 kW','1,000~1,500 kW','1,500~2,000 kW','2,000 kW 이상'];
@@ -549,10 +577,10 @@ function easyPresentation(){
  const rateColor=(rate,future)=>future?'#8793a3':rate>=100?'#0e6c4c':rate>=70?'#a86b00':'#c0392b';
  const topLabels=quarterData.map((q,j)=>{const rate=q.goal&&q.actual!==null?q.actual/q.goal*100:null;return rate===null?null:{text:d1(rate)+'%',color:rateColor(rate,j+1>nowQ)};});
  const quarterChart=v10Panel('분기별 계약 용량',`분기마다 목표와 실적을 나란히 비교합니다. 단위: MW · 막대 위 큰 숫자는 분기 달성률 · 연간 달성률 ${v10Rate(annualActual,annualGoal)}`,chartBars({labels:quarters.map(q=>q.label),topLabels,series:[{name:'목표',color:V10.colors[1],values:quarterData.map(q=>q.goal===null?null:q.goal/1000)},{name:'실적',color:V10.colors[4],values:quarterData.map(q=>q.actual===null?null:q.actual/1000)}],unit:'MW',fmt:v=>Number(v).toFixed(2),height:300,stacked:false,noTable:true,horizontalValues:true,barLabels:true}));
- return `<div class="perf-deck"><div class="perf-cover"><div><span class="perf-eyebrow">GRANDSUN · CONSULTING PERFORMANCE</span><h2>${esc(DB.year)}년 ${month}월<br>컨설팅 실적발표</h2><p>계약·문의·사업주 미팅 실적을 실제 원본과 선택 월에 맞춰 구성했습니다.</p></div><div class="perf-cover-actions"><span>${v10Scoped()?'상세 조건 적용':'부서 전체'}</span></div></div>`
+ return `<div class="perf-deck"><div class="perf-cover"><div><span class="perf-eyebrow">GRANDSUN · CONSULTING PERFORMANCE</span><h2>${esc(DB.year)}년 ${month}월<br>컨설팅 실적발표</h2><p>계약·문의·사업주 미팅 실적을 실제 원본과 선택 월에 맞춰 구성했습니다.</p></div>${v10Scoped()?'<div class="perf-cover-actions"><span>상세 조건 적용</span></div>':''}</div>`
  +easyPerfSlide(1,'분기별 계약 목표와 실적',`${DB.year}년 계약 원장 연도·보고 월 기준`,quarterChart+quarterTable)
  +easyPerfSlide(2,`${month}월과 누적 계약 실적`,'전체·직영·외주·입찰의 목표와 계약 용량을 같은 기준으로 비교합니다.',`<div class="perf-two">${easyPresentationContractComparison(`${month}월`,monthSet)}${easyPresentationContractComparison(`1~${month}월 누적`,ytdMonths)}</div>`)
- +easyPerfSlide(3,'발전사업 신규 문의와 미팅','마케팅과 소개를 분리하고, 문의 접수월 기준으로 후속 미팅을 연결합니다.',sourceKpis+`<p class="v10-note">선택한 보고 월: ${month}월 · 해당 월의 숫자만 강조했습니다.</p><div class="perf-source-charts">${v10Line('마케팅 신규 문의와 미팅','전체 문의·발전사업 문의·미팅의 월별 추세',axis,marketingSeries,'건',{noTable:true,highlightLabel:month+'월'})}${v10Line('소개 신규 문의와 미팅','전체 문의·발전사업 문의·미팅의 월별 추세',axis,referralSeries,'건',{noTable:true,highlightLabel:month+'월'})}</div>`+easyPresentationHighlightMonthTable(sourceTable,month))
+ +easyPerfSlide(3,'발전사업 신규 문의와 미팅','마케팅과 소개를 분리하고, 문의 접수월 기준으로 후속 미팅을 연결합니다.',sourceKpis+`<p class="v10-note">선택한 보고 월: ${month}월 · 해당 월의 숫자만 강조했습니다.</p><div class="perf-source-charts">${v10Line('마케팅 신규 문의와 미팅','전체 문의·발전사업 문의·미팅의 월별 추세',axis,marketingSeries,'건',{noTable:true,highlightLabel:month+'월'})}${v10Line('소개 신규 문의와 미팅','전체 문의·발전사업 문의·미팅의 월별 추세',axis,referralSeries,'건',{noTable:true,highlightLabel:month+'월'})}</div>`+'<div class="perf-source-table">'+easyPresentationHighlightMonthTable(sourceTable,month)+'</div>')
  +easyPerfSlide(4,`${month}월 지역별 발전사업 신규 문의·미팅`,'마케팅·소개 발전사업 문의만 집계하며 문의월 기준 후속 미팅을 연결합니다.',`<div class="perf-region-table">${v10Table(['권역','발전사업 문의','미팅','전환율','미팅 용량','평균 용량'],region.rows)}</div>`+`<p class="perf-region-guide"><strong>권역 구분</strong> 수도권: 서울·경기·인천 / 충청권: 대전·세종·충북·충남 / 강원권: 강원<br>영남권: 부산·대구·울산·경북·경남 / 호남권: 광주·전북·전남 / 제주: 제주</p><div class="perf-data-comment"><strong>지역별 코멘트</strong><span>${esc(easyPresentationRegionComment(region))}</span></div>`)
  +easyPerfSlide(5,`${month}월 사업주 미팅 현황`,`${month}월 ${v10ReportPeriodLabel([month])}. 앞뒤 달의 날짜도 해당 보고 주차에 속하면 ${month}월 실적에 포함합니다.`,easyPresentationMeetingMonth(month))
  +easyPerfSlide(6,`${month}월 담당자별 사업주 미팅`,'기본 담당자 4명의 마케팅·소개 미팅을 주차별로 표시하며 다른 담당자를 추가할 수 있습니다.',easyPresentationStaffPanel(month))

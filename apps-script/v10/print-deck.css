@@ -1,0 +1,54 @@
+/* 실적발표 PDF 전용 인쇄 규칙. 빌드에서 맨 마지막에 넣어 다른 인쇄 규칙을 덮어쓴다.
+   인쇄 시작 때(beforeprint) body.print-deck 가 붙고 @page 여백 0 스타일이 끼워져
+   브라우저 머리글·바닥글(날짜·제목·주소·쪽수)이 사라진다. 각 슬라이드는 가로 A4 한 장. */
+.perf-cover{align-items:center;justify-content:center;text-align:center;min-height:340px;padding:46px 44px}
+.perf-cover>div{max-width:820px}
+.perf-cover p{margin:0 auto}
+@media print{
+ body.print-deck,body.print-deck html{margin:0!important;padding:0!important;--chart-readable-font:13px}
+ body.print-deck .main>:not(#view){display:none!important}
+ body.print-deck #view>:not(.perf-deck){display:none!important}
+ body.print-deck .perf-deck{display:block}
+ body.print-deck .perf-cover{width:297mm;height:210mm;box-sizing:border-box;margin:0;border:0;border-radius:0;box-shadow:none;break-after:page;break-inside:avoid;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 22mm;background:linear-gradient(135deg,#122b4b 0%,#1c4f91 62%,#2f73d2 100%)!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ body.print-deck .perf-cover>div{max-width:none}
+ body.print-deck .perf-eyebrow{font-size:14px;letter-spacing:.2em}
+ body.print-deck .perf-cover h2{font-size:56px;line-height:1.2;margin:16px 0 20px}
+ body.print-deck .perf-cover p{font-size:19px;color:#dceaff}
+ body.print-deck .perf-cover-actions{display:none!important}
+ body.print-deck .perf-slide{break-before:page;break-after:auto;break-inside:auto;min-height:0;height:auto;border:0;border-radius:0;box-shadow:none;margin:0;padding:6mm 10mm 4mm;font-size:12px}
+ body.print-deck .perf-slide-head{margin-bottom:10px;padding-bottom:8px}
+ body.print-deck .perf-slide-head h2{font-size:24px}
+ body.print-deck .perf-slide .v10-panel{break-inside:avoid;padding:12px 14px;margin-bottom:12px}
+ body.print-deck .perf-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+ body.print-deck .perf-compare{break-inside:avoid;min-width:0}
+ body.print-deck .perf-contract-table table{min-width:0!important}
+ body.print-deck .perf-source-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+ body.print-deck .perf-source-card{padding:8px 11px;break-inside:avoid}
+ body.print-deck .perf-source-card>span{margin-bottom:3px;font-size:10px}
+ body.print-deck .perf-source-card h3{margin:0 0 4px;font-size:14px}
+ body.print-deck .perf-source-card strong{font-size:22px}
+ body.print-deck .perf-source-card p{margin:5px 0 0;font-size:10.5px}
+ body.print-deck .perf-source-charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0}
+ body.print-deck .perf-source-table{break-before:page;padding-top:4mm}
+ body.print-deck .chartbox{overflow:visible}
+ body.print-deck .chartbox svg.chart{min-width:0;width:62%;height:auto;max-height:none;display:block;margin:0 auto}
+ body.print-deck :is(.perf-two,.perf-source-charts) .chartbox svg.chart{width:100%}
+ body.print-deck .perf-week-table,body.print-deck .perf-quarter-table{break-inside:avoid}
+ body.print-deck .main .legend{margin-top:8px}
+ body.print-deck .perf-fold{border:0}
+ body.print-deck .perf-fold>summary{display:none}
+ body.print-deck .perf-staff-table{break-inside:auto}
+ body.print-deck .perf-staff-table table{min-width:0}
+ body.print-deck .perf-staff-table th,body.print-deck .perf-staff-table td{padding:6px 4px}
+ body.print-deck .perf-comment-editor,body.print-deck .perf-staff-picker{display:none!important}
+ body.print-deck .perf-comment-print{display:grid!important;grid-template-columns:1fr 1.15fr;gap:16px;break-inside:auto;margin-top:0;padding:14px 16px;font-size:13px;line-height:1.6}
+ body.print-deck .perf-comment-print>div{break-inside:auto;min-width:0}
+ body.print-deck .perf-comment-print h3{margin:0 0 8px;font-size:15px}
+ body.print-deck .perf-comment-print p{margin:0 0 10px}
+ body.print-deck .perf-inquiry-metrics h4{font-size:14px}
+ body.print-deck .perf-inquiry-metrics dt,body.print-deck .perf-inquiry-metrics dd{font-size:12px}
+ body.print-deck .perf-next,body.print-deck .perf-data-comment,body.print-deck .perf-total{break-inside:avoid}
+ body.print-deck .main :is(.v10-table,.tblwrap) table{font-size:12px;min-width:0!important}
+ body.print-deck .main :is(.v10-table,.tblwrap) :is(th,td){padding:5px 5px;font-size:12px}
+ body.print-deck .v10-note{margin:6px 0}
+}
