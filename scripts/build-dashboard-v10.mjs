@@ -5,7 +5,20 @@ const base=new URL('../apps-script/v10/',import.meta.url);
 const read=name=>readFile(new URL(name,base),'utf8');
 let html=await read('template.html');
 const css=(await read('dashboard.css'))+'\n'+(await read('easy-ui.css'))+'\n'+await read('followup.css')+'\n'+await read('readability.css')+'\n'+await read('sales-meeting.css')+'\n'+await read('sales-minutes.css')+'\n'+await read('business-parts.css')+'\n'+await read('weekly.css');
-const contractInput=process.env.CONTRACT_DATA_GZIP_BASE64?gunzipSync(Buffer.from(process.env.CONTRACT_DATA_GZIP_BASE64,'base64')).toString('utf8'):await read('contracts-data.json');
+// 비밀값(gzip+base64)을 푼다. 2026-10-29: GitHub에 저장한 값이 "incorrect data check"로 풀리지 않는 일이 있어
+// 길이·해시·앞뒤 글자를 로그로 남기고, gzip 검사(CRC)가 실패하면 본문만(raw deflate) 풀어서 JSON 검사로 대신한다.
+const contractInput=await (async()=>{
+ const b64=process.env.CONTRACT_DATA_GZIP_BASE64;
+ if(!b64)return read('contracts-data.json');
+ const {createHash}=await import('node:crypto');const {inflateRawSync}=await import('node:zlib');
+ const clean=b64.replace(/\s+/g,'');
+ console.log('contract secret: chars '+b64.length+' (no-space '+clean.length+') sha256 '+createHash('sha256').update(clean).digest('hex').slice(0,16)+' head '+clean.slice(0,8)+' tail '+clean.slice(-8));
+ const bytes=Buffer.from(clean,'base64');
+ try{return gunzipSync(bytes).toString('utf8');}
+ catch(e){console.log('gunzip failed ('+e.message+'); bytes '+bytes.length+' — trying raw deflate without the trailer check');
+  if(bytes[0]!==0x1f||bytes[1]!==0x8b)throw e;
+  return inflateRawSync(bytes.subarray(10)).toString('utf8');}
+})();
 const parsedContracts=JSON.parse(contractInput);
 if(!Array.isArray(parsedContracts.sources))throw Error('Contract build data is missing or invalid');
 const contractData=JSON.stringify(parsedContracts).replaceAll('<','\\u003c').replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
