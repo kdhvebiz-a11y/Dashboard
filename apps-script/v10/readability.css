@@ -33,7 +33,7 @@ body{font-size:18px;line-height:1.65}
 .main .perf-staff-month-total td b{font-size:28px}
 .perf-staff-month-total td span,.perf-rank small,.perf-band-rank small{font-size:13px}
 .perf-rank{justify-content:center}
-.perf-week-table th:first-child{width:21%}.perf-week-table th:nth-child(2){width:12%}.perf-week-table th:nth-child(5){width:23%}
+.perf-week-table table{min-width:0!important}.perf-week-table th:first-child{width:9%}.perf-week-table th:nth-child(2){width:17%}
 .perf-contract-table{align-self:center}.perf-contract-table table{min-width:560px!important}
 .perf-contract-table>.v10-note{text-align:center}
 .perf-source-charts{grid-template-columns:minmax(0,1fr)}

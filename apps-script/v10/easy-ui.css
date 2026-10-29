@@ -337,19 +337,20 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 @media print{.perf-fold{border:0}.perf-fold>summary{display:none}.perf-fold:not([open])>.perf-quarter-table{display:block}}
 
 /* 실적발표 1번: 분기 차트 왼쪽 연간 실적 카드 */
-.perf-year-wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:stretch}
+.perf-year-wrap{display:grid;grid-template-columns:360px minmax(0,1fr);gap:28px;align-items:stretch}
 .perf-year-chart{min-width:0;display:flex;flex-direction:column}
 .perf-year-col{display:flex;flex-direction:column}.perf-year-col .perf-year-card{flex:1}
 .perf-sub-title{margin:0 0 10px;font-size:17px;font-weight:750;color:#193e71;padding-left:10px;border-left:4px solid #2364d2;line-height:1.2}
 .perf-year-chart .legend{justify-content:center}
-.perf-year-card{display:flex;flex-direction:column;justify-content:center;gap:14px;padding:22px 22px;border-radius:14px;background:linear-gradient(160deg,#eef4fd,#f8fbff);border:1px solid #c9d9ee}
-.perf-year-eyebrow{font-size:13px;font-weight:750;letter-spacing:.04em;color:#2b4f85}
-.perf-year-rate strong{display:block;font-size:46px;line-height:1;letter-spacing:-1.5px;color:var(--rate-color,#193e71)}
-.perf-year-rate small{display:block;margin-top:6px;font-size:13px;color:var(--muted)}
-.perf-year-card dl{margin:0;display:grid;gap:8px}
-.perf-year-card dl>div{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-top:1px dashed #c9d9ee;padding-top:8px}
-.perf-year-card dt{font-size:13px;color:var(--muted)}
-.perf-year-card dd{margin:0;font-size:17px;font-weight:750;color:#193e71;white-space:nowrap}
+.perf-year-chart>.perf-sub-title{text-align:center;border-left:0;padding-left:0}
+.perf-year-card{display:flex;flex-direction:column;justify-content:space-evenly;gap:18px;padding:28px 30px;border-radius:14px;background:linear-gradient(160deg,#eef4fd,#f8fbff);border:1px solid #c9d9ee}
+.perf-year-eyebrow{font-size:15px;font-weight:750;letter-spacing:.04em;color:#2b4f85}
+.perf-year-rate strong{display:block;font-size:64px;line-height:1;letter-spacing:-1.5px;color:var(--rate-color,#193e71)}
+.perf-year-rate small{display:block;margin-top:8px;font-size:15px;color:var(--muted)}
+.perf-year-card dl{margin:0;display:grid;gap:12px}
+.perf-year-card dl>div{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-top:1px dashed #c9d9ee;padding-top:12px}
+.perf-year-card dt{font-size:15px;color:var(--muted)}
+.perf-year-card dd{margin:0;font-size:21px;font-weight:750;color:#193e71;white-space:nowrap}
 @media(max-width:900px){.perf-year-wrap{grid-template-columns:1fr}.perf-year-card{flex-direction:row;flex-wrap:wrap;justify-content:space-between}}
 
 /* 실적발표 2번: 팀별 목표 달성 카드(계약실적과 같은 모양, 글자 조금 크게) + 아래 월·누적 표 */
@@ -389,3 +390,9 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .perf-week-track{margin-top:8px;height:8px}.perf-week-track span.ok{background:#1c9c6b}.perf-week-track span.warm{background:#e0a300}.perf-week-track span.low{background:#e0553b}
 .perf-week-foot{margin:8px 0 0;font-size:12px;color:var(--muted)}
 .perf-meet-row{align-items:start}
+
+/* 실적발표 5번: 주차별 표 — 달성률 색, 합계 줄 강조 */
+.perf-week-table .perf-week-n{font-size:19px}
+.perf-week-table .perf-week-rate{font-size:17px}.perf-week-table .perf-week-rate.ok{color:#0e6c4c}.perf-week-table .perf-week-rate.warm{color:#a86b00}.perf-week-table .perf-week-rate.low{color:#c0392b}
+.perf-week-table tr.perf-week-ok td{background:#eef9f3}
+.perf-meet-row .perf-source-chart .v10-panel{padding:18px 20px}
