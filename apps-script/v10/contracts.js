@@ -34,15 +34,21 @@ function contractTeamGoals(){
  const ms=[...new Set(selMonths())].sort((a,b)=>a-b),year=Array.from({length:12},(_,j)=>j+1);
  const contiguous=ms.every((m,j)=>j===0||m===ms[j-1]+1);
  const period=ms.length===1?ms[0]+'월':ms.length===3&&contiguous&&(ms[0]-1)%3===0?`${Math.ceil(ms[0]/3)}분기`:contiguous?`${ms[0]}~${ms[ms.length-1]}월`:ms.map(m=>m+'월').join('·');
+ const cards=contractTeamCards(ms,period,year,`${DB.year}년 연간`);
+ return v10Panel('팀별 목표 달성',`${period} · 직영·외주·입찰 목표 용량 대비 계약 용량 · 원본 정리base 목표, 원장 보고 월 기준 · 100% 이상 초록, 70% 이상 노랑, 그 아래 빨강`,cards);
+}
+// 팀별 카드 묶음(부서 전체·직영·외주·입찰): 첫 줄 = 첫 기간(크게), 둘째 줄 = 둘째 기간. 계약실적(선택 기간+연간)과 실적발표(선택 월+1~N월)가 같이 쓴다.
+function contractTeamCards(ms,label1,ms2,label2,{big2=false}={}){
+ const src=contractSourceForYear(DB.year);if(!src?.goals?.전체)return '';
  const mw=n=>n>=1000?d1(n/1000)+'MW':i(Math.round(n))+'kW';
  const cls=r=>r===null?'':r>=100?'ok':r>=70?'warm':'low';
  const block=(label,goal,act,count,big)=>{const rate=goal?act/goal*100:null,c=cls(rate);
   return `<div class="ct-team-row${big?' big':''}"><span class="ct-team-scope">${label}</span><div class="ct-team-nums"><span><small>목표</small><b>${goal?mw(goal):'—'}</b></span><span><small>달성 · ${i(count)}건</small><b>${mw(act)}</b></span><span class="ct-rate ${c}"><small>달성률</small><b>${rate===null?'—':d1(rate)+'%'}</b></span></div><div class="v10-track ct-team-track"><span class="${c}" style="width:${rate===null?0:Math.min(rate,100)}%"></span></div></div>`;};
  const cards=[['전체',V10.colors[4]],['직영',V10.colors[0]],['외주',V10.colors[1]],['입찰',V10.colors[2]]].map(([cat,color])=>{
-  const p=contractCategoryAggregate(ms,cat),y=contractCategoryAggregate(year,cat);
-  return `<article class="ct-team${cat==='전체'?' all':''}" style="--team:${color}"><h4><i></i>${cat==='전체'?'부서 전체':cat}</h4>${block(period,contractGoal(cat,ms),p.capacity,p.count,true)}${block(`${DB.year}년 연간`,contractGoal(cat,year),y.capacity,y.count,false)}</article>`;
+  const p=contractCategoryAggregate(ms,cat),y=contractCategoryAggregate(ms2,cat);
+  return `<article class="ct-team${cat==='전체'?' all':''}" style="--team:${color}"><h4><i></i>${cat==='전체'?'부서 전체':cat}</h4>${block(label1,contractGoal(cat,ms),p.capacity,p.count,true)}${block(label2,contractGoal(cat,ms2),y.capacity,y.count,big2)}</article>`;
  }).join('');
- return v10Panel('팀별 목표 달성',`${period} · 직영·외주·입찰 목표 용량 대비 계약 용량 · 원본 정리base 목표, 원장 보고 월 기준 · 100% 이상 초록, 70% 이상 노랑, 그 아래 빨강`,`<div class="ct-teams">${cards}</div>`);
+ return `<div class="ct-teams">${cards}</div>`;
 }
 // 월별 목표 대비 달성: 전체·직영·외주·입찰 각 줄에 "목표 / 계약 / 달성률". 목표는 원본 정리base 시트, 계약은 원장(보고 월) 집계.
 function contractMonthlyGoalTable(){

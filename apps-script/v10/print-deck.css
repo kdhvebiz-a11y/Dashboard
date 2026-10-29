@@ -20,6 +20,15 @@
  body.print-deck .perf-slide-head h2{font-size:24px}
  body.print-deck .perf-slide .v10-panel{break-inside:avoid;padding:12px 14px;margin-bottom:12px}
  body.print-deck .perf-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+ body.print-deck .perf-teams{margin-bottom:12px;break-inside:avoid}
+ body.print-deck .perf-teams .ct-teams{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+ body.print-deck .perf-teams .ct-team{padding:10px 12px}
+ body.print-deck .perf-teams .ct-team h4{font-size:15px;margin-bottom:6px}
+ body.print-deck .perf-teams .ct-team-row{padding:6px 0}
+ body.print-deck .perf-teams .ct-team-scope{font-size:12px}
+ body.print-deck .perf-teams .ct-team-nums small{font-size:10.5px}
+ body.print-deck .perf-teams .ct-team-nums b,body.print-deck .perf-teams .ct-team-row.big .ct-team-nums b{font-size:15px}
+ body.print-deck .perf-teams .ct-team-row.big .ct-rate b{font-size:19px}
  body.print-deck .perf-compare{break-inside:avoid;min-width:0}
  body.print-deck .perf-contract-table table{min-width:0!important}
  body.print-deck .perf-source-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
@@ -33,6 +42,11 @@
  body.print-deck .chartbox{overflow:visible}
  body.print-deck .chartbox svg.chart{min-width:0;width:62%;height:auto;max-height:none;display:block;margin:0 auto}
  body.print-deck :is(.perf-two,.perf-source-charts) .chartbox svg.chart{width:100%}
+ body.print-deck .perf-year-chart .chartbox svg.chart{width:84%}
+ body.print-deck .perf-year-wrap{grid-template-columns:210px minmax(0,1fr);gap:16px}
+ body.print-deck .perf-year-card{padding:14px 16px;gap:10px}
+ body.print-deck .perf-year-rate strong{font-size:36px}
+ body.print-deck .perf-year-card dd{font-size:14px}
  body.print-deck .perf-week-table,body.print-deck .perf-quarter-table{break-inside:avoid}
  body.print-deck .main .legend{margin-top:8px}
  body.print-deck .perf-fold{border:0}

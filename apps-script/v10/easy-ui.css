@@ -335,3 +335,27 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .perf-fold>.perf-quarter-table{padding:6px 16px 14px}
 .main svg.chart text.bl{font-size:calc(var(--chart-readable-font,18px)*0.88)!important;font-weight:800}
 @media print{.perf-fold{border:0}.perf-fold>summary{display:none}.perf-fold:not([open])>.perf-quarter-table{display:block}}
+
+/* 실적발표 1번: 분기 차트 왼쪽 연간 실적 카드 */
+.perf-year-wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:stretch}
+.perf-year-chart{min-width:0}
+.perf-year-card{display:flex;flex-direction:column;justify-content:center;gap:14px;padding:22px 22px;border-radius:14px;background:linear-gradient(160deg,#eef4fd,#f8fbff);border:1px solid #c9d9ee}
+.perf-year-eyebrow{font-size:13px;font-weight:750;letter-spacing:.04em;color:#2b4f85}
+.perf-year-rate strong{display:block;font-size:46px;line-height:1;letter-spacing:-1.5px;color:var(--rate-color,#193e71)}
+.perf-year-rate small{display:block;margin-top:6px;font-size:13px;color:var(--muted)}
+.perf-year-card dl{margin:0;display:grid;gap:8px}
+.perf-year-card dl>div{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-top:1px dashed #c9d9ee;padding-top:8px}
+.perf-year-card dt{font-size:13px;color:var(--muted)}
+.perf-year-card dd{margin:0;font-size:17px;font-weight:750;color:#193e71;white-space:nowrap}
+@media(max-width:900px){.perf-year-wrap{grid-template-columns:1fr}.perf-year-card{flex-direction:row;flex-wrap:wrap;justify-content:space-between}}
+
+/* 실적발표 2번: 팀별 목표 달성 카드(계약실적과 같은 모양, 글자 조금 크게) + 아래 월·누적 표 */
+.perf-teams{margin-bottom:18px}
+.perf-teams .ct-team{padding:16px 18px}
+.perf-teams .ct-team h4{font-size:19px;margin-bottom:10px}
+.perf-teams .ct-team-row{padding:10px 0}
+.perf-teams .ct-team-scope{font-size:15px;color:#2b4f85}
+.perf-teams .ct-team-nums small{font-size:13.5px}
+.perf-teams .ct-team-nums b{font-size:21px}
+.perf-teams .ct-team-row.big .ct-team-nums b{font-size:22px}.perf-teams .ct-team-row.big .ct-rate b{font-size:26px}
+.perf-teams .ct-team-track{height:9px;margin-top:8px}
