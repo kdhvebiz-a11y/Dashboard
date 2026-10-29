@@ -43,6 +43,12 @@
  body.print-deck .perf-week-table .perf-week-n,body.print-deck .perf-meet-row .perf-week-table .perf-week-n{font-size:14px}
  body.print-deck .perf-week-table .perf-week-rate,body.print-deck .perf-meet-row .perf-week-table .perf-week-rate{font-size:13px}
  body.print-deck .perf-meet-row .perf-week-table :is(th,td){font-size:12px!important}
+ body.print-deck .perf-meet-row{grid-template-columns:230px minmax(0,1fr)}
+ body.print-deck .perf-meet-row .perf-source-card{padding:9px 12px}
+ body.print-deck .perf-meet-row .perf-source-card h3{font-size:15px}
+ body.print-deck .perf-meet-row .perf-source-card strong{font-size:26px}
+ body.print-deck .perf-meet-row .perf-source-card p,body.print-deck .perf-meet-row .perf-meet-split{font-size:11.5px!important}
+ body.print-deck .perf-meet-row .perf-week-table tr.perf-total :is(th,td),body.print-deck .perf-meet-row .perf-week-table tr.perf-total .perf-week-rate{font-size:14px!important}
  body.print-deck .perf-source-chart .v10-panel{padding:8px 12px}
  body.print-deck .perf-source-chart .v10-panel h3{font-size:14px;margin:0 0 2px}
  body.print-deck .perf-source-row .v10-note{margin:0 0 4px}
@@ -59,7 +65,7 @@
  body.print-deck .perf-year-card dt{font-size:12px}
  body.print-deck .perf-year-card dl{gap:5px}
  body.print-deck .perf-year-card dl>div{padding-top:5px}
- body.print-deck .perf-sub-title{font-size:14px;margin-bottom:6px}
+ body.print-deck .perf-sub-title,body.print-deck .perf-year-wrap .perf-sub-title{font-size:16px;margin-bottom:6px}
  body.print-deck .perf-week-table,body.print-deck .perf-quarter-table{break-inside:avoid}
  body.print-deck .main .legend{margin-top:8px}
  body.print-deck .perf-fold{border:0}

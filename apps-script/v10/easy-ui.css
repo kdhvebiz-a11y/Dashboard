@@ -410,3 +410,18 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .perf-meet-row .perf-week-table thead th{font-size:15px!important}
 .perf-meet-row .perf-week-table .perf-week-n{font-size:21px}
 .perf-meet-row .perf-week-table .perf-week-rate{font-size:19px}
+
+/* 실적발표 5번: 왼쪽 카드 넓고 크게, 합계 줄 글자도 위 줄만큼 */
+.perf-meet-row{grid-template-columns:340px minmax(0,1fr)}
+.perf-meet-row .perf-source-card{padding:20px 22px}
+.perf-meet-row .perf-source-card>span{font-size:13px}
+.perf-meet-row .perf-source-card h3{font-size:20px}
+.perf-meet-row .perf-source-card strong{font-size:40px}
+.perf-meet-row .perf-source-card strong small{font-size:16px}
+.perf-meet-row .perf-source-card p{font-size:14px}
+.perf-meet-row .perf-meet-split{font-size:16px!important}
+.perf-meet-row .perf-week-table tr.perf-total :is(th,td){font-size:21px!important;font-weight:800}
+.perf-meet-row .perf-week-table tr.perf-total .perf-week-rate{font-size:21px}
+
+/* 실적발표 1번: '2026년 연간'·'분기별' 소제목 가운데, 더 크게 */
+.perf-year-wrap .perf-sub-title{text-align:center;border-left:0;padding-left:0;font-size:21px;margin-bottom:12px}
