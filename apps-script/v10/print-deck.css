@@ -37,7 +37,16 @@
  body.print-deck .perf-source-card h3{margin:0 0 4px;font-size:14px}
  body.print-deck .perf-source-card strong{font-size:22px}
  body.print-deck .perf-source-card p{margin:5px 0 0;font-size:10.5px}
- body.print-deck .perf-source-charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0}
+ body.print-deck .perf-source-row{grid-template-columns:200px minmax(0,1fr);gap:10px;margin-bottom:10px;break-inside:avoid}
+ body.print-deck .perf-source-stack{gap:8px}
+ body.print-deck .perf-source-chart .chartbox svg.chart{width:72%}
+ body.print-deck .perf-week-cards{gap:8px}
+ body.print-deck .perf-week-card{padding:9px 11px}
+ body.print-deck .perf-week-main strong{font-size:26px}.perf-week-main em{font-size:17px}
+ body.print-deck .perf-week-card header b{font-size:14px}
+ body.print-deck .perf-source-chart .v10-panel{padding:8px 12px}
+ body.print-deck .perf-source-chart .v10-panel h3{font-size:14px;margin:0 0 2px}
+ body.print-deck .perf-source-row .v10-note{margin:0 0 4px}
  body.print-deck .perf-source-table{break-before:page;padding-top:4mm}
  body.print-deck .chartbox{overflow:visible}
  body.print-deck .chartbox svg.chart{min-width:0;width:62%;height:auto;max-height:none;display:block;margin:0 auto}
@@ -47,6 +56,7 @@
  body.print-deck .perf-year-card{padding:14px 16px;gap:10px}
  body.print-deck .perf-year-rate strong{font-size:36px}
  body.print-deck .perf-year-card dd{font-size:14px}
+ body.print-deck .perf-sub-title{font-size:14px;margin-bottom:6px}
  body.print-deck .perf-week-table,body.print-deck .perf-quarter-table{break-inside:avoid}
  body.print-deck .main .legend{margin-top:8px}
  body.print-deck .perf-fold{border:0}

@@ -338,7 +338,10 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 
 /* 실적발표 1번: 분기 차트 왼쪽 연간 실적 카드 */
 .perf-year-wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:stretch}
-.perf-year-chart{min-width:0}
+.perf-year-chart{min-width:0;display:flex;flex-direction:column}
+.perf-year-col{display:flex;flex-direction:column}.perf-year-col .perf-year-card{flex:1}
+.perf-sub-title{margin:0 0 10px;font-size:17px;font-weight:750;color:#193e71;padding-left:10px;border-left:4px solid #2364d2;line-height:1.2}
+.perf-year-chart .legend{justify-content:center}
 .perf-year-card{display:flex;flex-direction:column;justify-content:center;gap:14px;padding:22px 22px;border-radius:14px;background:linear-gradient(160deg,#eef4fd,#f8fbff);border:1px solid #c9d9ee}
 .perf-year-eyebrow{font-size:13px;font-weight:750;letter-spacing:.04em;color:#2b4f85}
 .perf-year-rate strong{display:block;font-size:46px;line-height:1;letter-spacing:-1.5px;color:var(--rate-color,#193e71)}
@@ -359,3 +362,30 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .perf-teams .ct-team-nums b{font-size:21px}
 .perf-teams .ct-team-row.big .ct-team-nums b{font-size:22px}.perf-teams .ct-team-row.big .ct-rate b{font-size:26px}
 .perf-teams .ct-team-track{height:9px;margin-top:8px}
+
+/* 실적발표 3번: 왼쪽 문의·미팅 카드 세로 2장 + 오른쪽 추세 그래프(마케팅 줄, 소개 줄) */
+.perf-source-row{display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:stretch;margin-bottom:16px}
+.perf-source-stack{display:grid;grid-template-rows:1fr 1fr;gap:12px}
+.perf-source-stack .perf-source-card{display:flex;flex-direction:column;justify-content:center}
+.perf-source-chart{min-width:0}.perf-source-chart .v10-panel{margin-bottom:0;height:100%;box-sizing:border-box}
+@media(max-width:900px){.perf-source-row{grid-template-columns:1fr}.perf-source-stack{grid-template-rows:none;grid-template-columns:1fr 1fr}}
+
+/* 실적발표 5번: 왼쪽 사업주 미팅·용량·평균 카드 3장 + 오른쪽 주차별 그래프 */
+.perf-meet-stack{grid-template-rows:1.25fr 1fr 1fr}
+.perf-meet-split{font-size:14px!important}
+.perf-meet-split b{font-weight:800}
+
+/* 실적발표 5번: 주차별 카드 */
+.perf-week-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-content:start}
+.perf-week-card{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--plane);border-top:4px solid #8793a3}
+.perf-week-card.ok{border-top-color:#1c9c6b}.perf-week-card.warm{border-top-color:#e0a300}.perf-week-card.low{border-top-color:#c0392b}
+.perf-week-card header{display:flex;justify-content:space-between;align-items:baseline;gap:6px;margin-bottom:8px}
+.perf-week-card header b{font-size:17px}.perf-week-card header span{font-size:12.5px;color:var(--muted)}
+.perf-week-main{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.perf-week-main strong{font-size:34px;line-height:1;letter-spacing:-1px}.perf-week-main strong small{font-size:14px;margin-left:2px;color:var(--muted);font-weight:600}
+.perf-week-main em{font-style:normal;font-size:22px;font-weight:800}
+.perf-week-card.ok em{color:#0e6c4c}.perf-week-card.warm em{color:#a86b00}.perf-week-card.low em{color:#c0392b}
+.perf-week-split{margin:8px 0 0;font-size:13.5px}.perf-week-split b{font-weight:800}
+.perf-week-track{margin-top:8px;height:8px}.perf-week-track span.ok{background:#1c9c6b}.perf-week-track span.warm{background:#e0a300}.perf-week-track span.low{background:#e0553b}
+.perf-week-foot{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.perf-meet-row{align-items:start}
