@@ -368,14 +368,17 @@ function easyPresentationCommentMonth(ms=selMonths()){
  return months.includes(saved)?saved:(months[months.length-1]||Number(v10Today().slice(5,7)));
 }
 function easyPresentationCommentBlank(year,month){return {year:Number(year),month:Number(month),text:'',updatedAt:'',updatedBy:'',locked:false,hasPrevious:false,seeded:false};}
+// 칸 위에 이미 '종합분석'·'개선방안' 제목이 있으므로, 본문 첫 줄이 같은 제목이면 떼어 낸다(예전 기본 양식으로 저장된 글 포함). 2026-10-30
+function easyPresentationStripHeading(text,re){return txt(text).replace(re,'').replace(/^\s*\n/,'');}
 function easyPresentationCommentParts(text){
  const raw=txt(text);if(!raw)return {analysis:'',inquiryAnalysis:'',improvement:''};
+ const clean=p=>({analysis:easyPresentationStripHeading(p.analysis,/^\s*종합\s*분석\s*:?[ \t]*(\r?\n|$)/),inquiryAnalysis:p.inquiryAnalysis,improvement:easyPresentationStripHeading(p.improvement,/^\s*(\d{1,2}\s*월\s*)?개선\s*방안\s*:?[ \t]*(\r?\n|$)/)});
  try{
   const parsed=JSON.parse(raw);
-  if(parsed?.version===3)return {analysis:txt(parsed.analysis),inquiryAnalysis:txt(parsed.inquiryAnalysis),improvement:txt(parsed.improvement)};
-  if(parsed?.version===2)return {analysis:txt(parsed.analysis),inquiryAnalysis:'',improvement:txt(parsed.improvement)};
+  if(parsed?.version===3)return clean({analysis:txt(parsed.analysis),inquiryAnalysis:txt(parsed.inquiryAnalysis),improvement:txt(parsed.improvement)});
+  if(parsed?.version===2)return clean({analysis:txt(parsed.analysis),inquiryAnalysis:'',improvement:txt(parsed.improvement)});
  }catch(error){}
- return {analysis:raw,inquiryAnalysis:'',improvement:''};
+ return clean({analysis:raw,inquiryAnalysis:'',improvement:''});
 }
 function easyPresentationCommentText(parts){return parts.analysis||parts.inquiryAnalysis||parts.improvement?JSON.stringify({version:3,analysis:txt(parts.analysis),inquiryAnalysis:txt(parts.inquiryAnalysis),improvement:txt(parts.improvement)}):'';}
 function easyPresentationCommentFormText(form){
@@ -384,9 +387,9 @@ function easyPresentationCommentFormText(form){
  return easyPresentationCommentText({analysis:data.get('analysis'),inquiryAnalysis:data.get('inquiryAnalysis')??previous.inquiryAnalysis,improvement:data.get('improvement')});
 }
 function easyPresentationDefaultParts(month){return {
- analysis:`종합분석\n\n· 목표 대비 실적: \n· 원인 및 특이사항: \n· 발표 핵심: `,
+ analysis:`· 목표 대비 실적: \n· 원인 및 특이사항: \n· 발표 핵심: `,
  inquiryAnalysis:'',
- improvement:`${month}월 개선방안\n\n① 마케팅\n· \n\n② 컨설팅\n· \n\n③ 한전수전합리화 사업\n· \n\n④ 교육 및 역량 강화\n· `
+ improvement:`① 마케팅\n· \n\n② 컨설팅\n· \n\n③ 한전수전합리화 사업\n· \n\n④ 교육 및 역량 강화\n· `
 };}
 function easyPresentationCommentRPC(name,...args){return new Promise((resolve,reject)=>{
  if(!RUN_MODE){reject(Error('운영 대시보드에서 팀 공용 저장소에 연결됩니다.'));return;}

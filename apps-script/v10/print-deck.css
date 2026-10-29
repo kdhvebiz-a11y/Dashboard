@@ -40,8 +40,9 @@
  body.print-deck .perf-source-row{grid-template-columns:200px minmax(0,1fr);gap:10px;margin-bottom:10px;break-inside:avoid}
  body.print-deck .perf-source-stack{gap:8px}
  body.print-deck .perf-source-chart .chartbox svg.chart{width:72%}
- body.print-deck .perf-week-table .perf-week-n{font-size:14px}
- body.print-deck .perf-week-table .perf-week-rate{font-size:13px}
+ body.print-deck .perf-week-table .perf-week-n,body.print-deck .perf-meet-row .perf-week-table .perf-week-n{font-size:14px}
+ body.print-deck .perf-week-table .perf-week-rate,body.print-deck .perf-meet-row .perf-week-table .perf-week-rate{font-size:13px}
+ body.print-deck .perf-meet-row .perf-week-table :is(th,td){font-size:12px!important}
  body.print-deck .perf-source-chart .v10-panel{padding:8px 12px}
  body.print-deck .perf-source-chart .v10-panel h3{font-size:14px;margin:0 0 2px}
  body.print-deck .perf-source-row .v10-note{margin:0 0 4px}

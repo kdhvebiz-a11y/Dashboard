@@ -396,3 +396,17 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .perf-week-table .perf-week-rate{font-size:17px}.perf-week-table .perf-week-rate.ok{color:#0e6c4c}.perf-week-table .perf-week-rate.warm{color:#a86b00}.perf-week-table .perf-week-rate.low{color:#c0392b}
 .perf-week-table tr.perf-week-ok td{background:#eef9f3}
 .perf-meet-row .perf-source-chart .v10-panel{padding:18px 20px}
+
+/* 실적발표 3번: 그래프 제목 옆에 설명, 범례 가운데 */
+.perf-source-chart .v10-panel>h3{display:inline-block;margin-right:14px;vertical-align:baseline}
+.perf-source-chart .v10-panel>h3+.v10-note{display:inline-block;margin:0 0 6px;vertical-align:baseline}
+.perf-source-chart .legend{justify-content:center}
+/* 실적발표 5번: 오른쪽 주차 표가 왼쪽 카드 높이에 맞게 늘어나도록 */
+.perf-meet-row{align-items:stretch}
+.perf-meet-row .perf-source-chart .v10-panel{height:100%;display:flex;flex-direction:column}
+.perf-meet-row .perf-week-table{flex:1;display:flex}
+.perf-meet-row .perf-week-table table{height:100%}
+.perf-meet-row .perf-week-table :is(th,td){font-size:17px!important}
+.perf-meet-row .perf-week-table thead th{font-size:15px!important}
+.perf-meet-row .perf-week-table .perf-week-n{font-size:21px}
+.perf-meet-row .perf-week-table .perf-week-rate{font-size:19px}
