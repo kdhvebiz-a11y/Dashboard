@@ -27,6 +27,7 @@ jobs:
           node-version: '22'
       - name: Build with private inputs
         env:
+          CONTRACT_DATA_KEY: ${{ secrets.CONTRACT_DATA_KEY }}
           CONTRACT_DATA_GZIP_BASE64: ${{ secrets.CONTRACT_DATA_GZIP_BASE64 }}
           FOLLOWUP_ADMIN_HASH: ${{ secrets.FOLLOWUP_ADMIN_HASH }}
         run: node scripts/build-dashboard-v10.mjs
