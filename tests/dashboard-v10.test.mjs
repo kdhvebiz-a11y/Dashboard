@@ -159,7 +159,25 @@ run(`
 assert.equal(run('smInquiryForSelection().month'),2,'sales report follows the selected dashboard month');
 assert.equal(run('smInquiryForSelection().details.length'),4,'February 2026 exposes four Monday-Friday reporting weeks');
 assert.equal(run("smInquiryForSelection().details[0].period"),'2/2~2/6');
-assert.equal(run("smInquiryForSelection().details[0].total[0].values[4]"),3,'selected week is rebuilt from inquiry dates');
+// 연도 탭 원장 = 발전사업 문의 원장: 원장 건수는 '발전사업 주간 문의'로, 상태 '진행'은 '발전사업 주간 진행'으로 센다. '전체 주간문의'는 말 시트 주차 표에서만 온다(없으면 빈칸).
+assert.equal(run("smInquiryForSelection().details[0].total[1].label"),'발전사업 주간 문의');
+assert.equal(run("smInquiryForSelection().details[0].total[1].values[4]"),3,'selected week is rebuilt from inquiry dates');
+assert.equal(run("smInquiryForSelection().details[0].total[2].values[4]"),2,'progress counts records whose status says 진행');
+assert.equal(run("smInquiryForSelection().details[0].total[0].label"),'전체 주간문의');
+assert.ok(run("String(smInquiryForSelection().details[0].total[0].values[4])")!=='3','전체 주간문의 is never the ledger row count');
+// 미팅가망 목록은 미팅 시트 왼쪽 표(A~M)에서 선택 주차(A열)를 직접 골라 만든다 — 시트 오른쪽 목록(O2 주차)이 다른 주를 보고 있어도 같다.
+assert.equal(JSON.stringify(run(`(()=>{const rows=[
+ ['45','김','2026/11/03(화)','11-0311','부산','영도구','공장','직원','발전사업','2026/11/09(월)','177.375 kW','그랜드썬','메모A'],
+ ['46','김','2026/11/12(목)','11-1217','경기','고양시','창고','대표','발전사업','미팅가망','','그랜드썬','메모B'],
+ ['46','배','2026/11/13(금)','11-1310','부산','사하구','공장','대표','발전사업','미팅가망','','소개','메모C'],
+ ['47','김','2026/11/16(월)','11-1601','경기','','공장','대표','발전사업','미팅가망','','그랜드썬','메모D']];
+ const m=smParseMeetingRows(rows,{year:2026,month:11,week:2,period:'11/9~11/13'});
+ return [m.week,m.entries.length,m.entries[0].text,m.entries[1].text,smParseMeetingRows([],{year:2026,month:11,period:'11/9~11/13'}).ready];})()`)),
+ JSON.stringify([46,2,'11-1217_경기_고양시_창고_대표_발전사업_미팅가망_그랜드썬_메모B','11-1310_부산_사하구_공장_대표_발전사업_미팅가망_소개_메모C',false]));
+// 시트 블록 제목이 지난달 주차(10월 5주)여도 기간이 11/2~11/6이면 11월 1주로 읽는다.
+assert.equal(JSON.stringify(run(`(()=>{const r=[];r[0]=[];r[0][27]='2026';r[0][28]='10';const put=(i,ab,ac,v)=>{r[i]=r[i]||[];r[i][27]=ab;r[i][28]=ac;if(v)v.forEach((x,j)=>r[i][29+j]=x);};
+ put(3,'2026년 10월 5주 진행사항 (11/2~11/6)','');put(4,'주간전체','전체 주간문의',['144','7','','','151']);put(5,'','발전사업 주간 문의',['107','6','','12','125']);put(6,'','발전사업 주간 진행',['30','5','','8','43']);
+ const d=smParseInquiryReport(r).details[0];return [d.month,d.week,d.sheetMonth,d.sheetWeek,d.total[1].values[4]];})()`)),JSON.stringify([11,1,10,5,'125']));
 const februarySalesView=run('easySalesMeeting()');
 assert.ok(februarySalesView.includes('2026년 2월 1주차'));
 assert.ok(!februarySalesView.includes('문의 2026년 10월'),'February must never silently show October inquiry weeks');

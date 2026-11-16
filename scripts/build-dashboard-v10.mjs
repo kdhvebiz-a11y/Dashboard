@@ -92,7 +92,7 @@ server=server.replace("'gsdash_v9'","'gsdash_v10'").replace('var CHUNK     = 900
 server=server.replace('var CACHE_SEC = 21600','var CACHE_SEC = 7200');
 server=server.replace('[  5,   0,   3,  14]','[  1,   0,   1,  14]');
 server=server.replace('var out = { at: new Date().toISOString() };','var out = { at: new Date().toISOString(), version: 10 };');
-server=server.replace('    return out;\n  } catch (err)',"    out.yearData = collectYearDataV10(SpreadsheetApp.openById(SHEET_ID));\n    return out;\n  } catch (err)");
+server=server.replace('    return out;\n  } catch (err)',"    var v10Book = SpreadsheetApp.openById(SHEET_ID);\n    out.yearData = collectYearDataV10(v10Book);\n    out.meeting26Rows = collectMeetingRowsV10(v10Book);\n    return out;\n  } catch (err)");
 // Large year ledgers make HtmlService template evaluation very slow when embedded.
 // Render the shell immediately, then use the existing google.script.run loader.
 server=server.replace('var warm = fresh ? null : readCache();','var warm = null;');

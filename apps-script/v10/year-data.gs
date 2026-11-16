@@ -33,3 +33,22 @@ function collectYearDataV10(ss) {
   });
   return result;
 }
+
+/* v10: 미팅NN 시트 왼쪽 표(A~M: 주차·담당·문의일·상담번호·지역1·지역2·사업장·문의자·사업형태·미팅가망·용량·유입분류·내용).
+   오른쪽 N/O 목록은 O2에 적힌 주차 하나만 보여 주므로, 대시보드가 고른 주차의 목록을 직접 만들 수 있게 원본 행을 넘긴다.
+   최근 400행만(약 4~5개월) — 그 이전 주차는 예전처럼 실제 미팅 원장으로 대신한다. */
+function collectMeetingRowsV10(ss) {
+  try {
+    var sheets = ss.getSheets().filter(function(sh) { return /^미팅\d{2}$/.test(sh.getName()); });
+    if (!sheets.length) return [];
+    sheets.sort(function(a, b) { return a.getName() < b.getName() ? 1 : -1; });
+    var sh = sheets[0], last = sh.getLastRow();
+    if (last < 3) return [];
+    var first = Math.max(3, last - 399);
+    var rows = sh.getRange(first, 1, last - first + 1, Math.min(sh.getMaxColumns(), 13)).getDisplayValues();
+    return rows.filter(function(v) { return String(v[3] || '').trim(); })
+      .map(function(v) { return v.map(function(c) { return String(c == null ? '' : c).trim(); }); });
+  } catch (err) {
+    return [];
+  }
+}

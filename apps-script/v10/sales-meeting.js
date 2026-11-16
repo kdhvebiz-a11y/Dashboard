@@ -14,6 +14,8 @@ const salesMeetingState={
 const SM_COL={AB:27,AC:28,AD:29,AE:30,AF:31,AG:32,AH:33,AI:34,N:13,O:14,P:15,Q:16};
 const smCell=(rows,r,c)=>txt(rows?.[r]?.[c]);
 const smNumber=value=>{const t=txt(value);return t?`${v10Number(num(t))}`:'—';};
+// 회의록 표(한글 파일로 옮기는 부분)는 값이 없으면 '—' 대신 빈칸.
+const smBlankNumber=value=>{const t=txt(value);return t?`${v10Number(num(t))}`:'';};
 const smDatePad=value=>String(value).padStart(2,'0');
 function smPeriodBounds(value,year,monthHint){
  const parts=[...txt(value).matchAll(/(?:(20\d{2})[\/.\-])?(\d{1,2})[\/.\-](\d{1,2})/g)].map(match=>({year:num(match[1]),month:num(match[2]),day:num(match[3])}));
@@ -76,6 +78,16 @@ function smParseInquiryReport(rows){
   if(!m||smCell(rows,r,SM_COL.AC)!=='전체 주간문의')continue;
   weekly.push({week:Number(m[1]),period:txt(m[2]).replace(/^\s+/,''),metrics:smMetricBlock(rows,r)});
  }
+ // 2026-11-09: 시트 제목의 월·주(예: '10월 5주 (11/2~11/6)')와 기간이 어긋나면 기간을 믿는다 — 대시보드 규칙(수요일이 속한 달)으로 11월 1주.
+ const normalize=head=>{
+  const m=txt(head.period).match(/^(\d{1,2})\/(\d{1,2})\s*~\s*(\d{1,2})\/(\d{1,2})/);if(!m||!head.year)return head;
+  const start=`${head.year}-${smDatePad(Number(m[1]))}-${smDatePad(Number(m[2]))}`;
+  for(const mo of [head.month,head.month%12+1,(head.month+10)%12+1]){
+   const hit=smMonthWorkweeks(head.year,mo).find(w=>w.start===start);
+   if(hit)return {...head,month:mo,week:hit.week,sheetMonth:head.month,sheetWeek:head.week};
+  }
+  return head;
+ };
  const details=detailStarts.map((head,index)=>{
   const end=detailStarts[index+1]?.row??Math.min(rows.length,190),days=[];
   let total=[],top=[];
@@ -86,7 +98,7 @@ function smParseInquiryReport(rows){
    if(/문의\s*TOP\s*3/.test(day))top=[SM_COL.AB,SM_COL.AD,SM_COL.AF,SM_COL.AH].map(c=>({source:smCell(rows,r,c).replace(/\s*문의\s*TOP\s*3.*/,''),items:[1,2,3].map(offset=>({label:smCell(rows,r+offset,c),value:smCell(rows,r+offset,c+1)})).filter(x=>x.label)}));
   }
   const overview=weekly.find(w=>w.week===head.week);
-  return {...head,period:head.period||overview?.period||'',days,total:total.length?total:(overview?.metrics||[]),top};
+  return normalize({...head,period:head.period||overview?.period||'',days,total:total.length?total:(overview?.metrics||[]),top});
  });
  return {year,month,monthly,weekly,details,ready:monthly.length>0||weekly.length>0||details.length>0};
 }
@@ -127,13 +139,21 @@ function smDerivedMetric(label,records){
  const sources=['그랜드썬','SP','유지에스','소개'],values=sources.map(source=>records.filter(record=>smInquirySource(record)===source).length);
  return {label,values:[...values,values.reduce((sum,value)=>sum+value,0)]};
 }
-function smDerivedMetrics(records){
- const business=records.filter(record=>/^발전사업/.test(txt(record.type))),progress=business.filter(record=>/진행/.test(txt(record.ct)));
- return [smDerivedMetric('전체 주간문의',records),smDerivedMetric('발전사업 주간 문의',business),smDerivedMetric('발전사업 주간 진행',progress)];
+// 연도 탭 원장은 '발전사업 문의 원장'(무응답·자가소비 등 유형 포함)이라 원장 전체 = 발전사업 주간 문의, 상태에 '진행' = 발전사업 주간 진행.
+// 전체 주간문의(발전사업 외 포함)는 말 시트 주차 표에서만 알 수 있어 week 정보가 있을 때 거기서 가져오고, 없으면 빈칸. (2026-11-09: 전에는 원장 전체를 '전체 주간문의'로 잘못 세었음)
+function smDerivedMetrics(records,week){
+ const progress=records.filter(record=>/진행/.test(txt(record.ct)));
+ const all=week?smMalWeekMetric(week):{label:'전체 주간문의',values:['','','','','']};
+ return [all,smDerivedMetric('발전사업 주간 문의',records),smDerivedMetric('발전사업 주간 진행',progress)];
+}
+function smMalWeekMetric(week){
+ const block=(DB?.months||[]).find(x=>Number(x.m)===Number(week.month)),row=(block?.weeks||[]).find(w=>num(txt(w.wk).replace(/[^\d]/g,''))===Number(week.week));
+ if(!row)return {label:'전체 주간문의',values:['','','','','']};
+ return {label:'전체 주간문의',values:[String(row.gs||''),String(row.sp||''),String(row.ug||''),'',String(row.total||'')]};
 }
 function smDerivedTop(records){
  return ['그랜드썬','SP','유지에스','소개'].map(source=>{
-  const values=smCountMap(records.filter(record=>smInquirySource(record)===source&&/^발전사업/.test(txt(record.type))),record=>txt(record.type));
+  const values=smCountMap(records.filter(record=>smInquirySource(record)===source),record=>txt(record.type));
   return {source,items:values.slice(0,3).map(([label,value])=>({label,value:String(value)}))};
  });
 }
@@ -146,13 +166,16 @@ function smParseInquiryLedger(year,month,records){
    const date=smIsoDate(cursor),rows=selected.filter(record=>record._inquiryDate===date);
    days.push({day:`${smDatePad(cursor.getUTCMonth()+1)}-${smDatePad(cursor.getUTCDate())}`,metrics:smDerivedMetrics(rows)});
   }
-  return {...range,year,month,days,total:smDerivedMetrics(selected),top:smDerivedTop(selected),derived:true};
+  return {...range,year,month,days,total:smDerivedMetrics(selected,{year,month,week:range.week}),top:smDerivedTop(selected),derived:true};
  });
  return {year,month,monthly:smDerivedMetrics(records),weekly:details.map(({week,period,total})=>({week,period,metrics:total})),details,ready:true,derived:true};
 }
 function smInquiryForSelection(){
  const target=smSelectedPeriod(),sheet=smParseInquiryReport(V10.payload?.tongye);
  if(sheet.year===target.year&&sheet.month===target.month&&sheet.details.length)return sheet;
+ // 시트 머리글은 지난달인데 선택한 달의 주차 블록(기간 기준)이 들어 있으면 그 블록을 쓴다(월 바뀌는 주).
+ const same=sheet.year===target.year?sheet.details.filter(d=>d.month===target.month):[];
+ if(same.length)return {...sheet,month:target.month,monthly:[],weekly:[],details:same,mixed:true};
  const records=V10.payload?.yearData?.[target.year]?.records||[];
  return smParseInquiryLedger(target.year,target.month,records);
 }
@@ -208,6 +231,30 @@ function smParseMeetingLedger(rows,detail){
  const start=new Date(`${bounds.start}T00:00:00Z`),end=new Date(`${bounds.end}T00:00:00Z`),period=`${bounds.start.replace(/-/g,'/')}(${smWorkdayName(start)})~${bounds.end.replace(/-/g,'/')}(${smWorkdayName(end)})`;
  return {year:Number(bounds.start.slice(0,4)),week:smIsoWeek(bounds.start),period,current:'선택 문의 주차와 같은 기간의 실제 미팅 원장',count:entries.length,entries,summary:{source:smCountMap(entries,e=>e.source),branch:smCountMap(entries,e=>e.branch),site:smCountMap(entries,e=>e.site),relation:[],status:smCountMap(entries,e=>e.status)},ready:true,basis:'ledger'};
 }
+// 미팅26 왼쪽 표(payload.meeting26Rows, A~M)에서 선택한 주차의 '미팅가망 및 특이사항' 목록을 직접 만든다.
+// 시트 오른쪽 목록과 같은 규칙: A열 주차가 같은 행을 표 순서대로, D~M을 빈칸 빼고 '_'로 이음. (2026-11-16: 시트 O2 주차와 무관하게 13건 그대로 나오도록)
+function smParseMeetingRows(rows,detail){
+ rows=Array.isArray(rows)?rows:[];
+ const bounds=detail?.start&&detail?.end?{start:detail.start,end:detail.end}:smPeriodBounds(detail?.period,detail?.year,detail?.month);
+ if(!bounds||!rows.length)return {ready:false,entries:[]};
+ const week=smIsoWeek(bounds.start),years=new Set([bounds.start.slice(0,4),bounds.end.slice(0,4)]),entries=[];
+ rows.forEach(row=>{
+  const cell=k=>txt(row?.[k]),date=v10Date(cell(2)),sheetWeek=num(cell(0));
+  if(!cell(3))return;
+  if(date&&!years.has(date.slice(0,4)))return;
+  const inWeek=sheetWeek?sheetWeek===week:(date&&date>=bounds.start&&date<=bounds.end);
+  if(!inWeek)return;
+  const text=[3,4,5,6,7,8,9,10,11,12].map(cell).filter(Boolean).join('_');
+  entries.push({no:entries.length+1,text});
+ });
+ const start=new Date(`${bounds.start}T00:00:00Z`),end=new Date(`${bounds.end}T00:00:00Z`),period=`${bounds.start.replace(/-/g,'/')}(${smWorkdayName(start)})~${bounds.end.replace(/-/g,'/')}(${smWorkdayName(end)})`;
+ return {year:Number(bounds.start.slice(0,4)),week,period,current:'미팅 시트 원본 행',count:entries.length,entries,summary:{source:smCountMap(entries,e=>smEntrySource(e.text)),branch:smCountMap(entries,e=>smEntryBranch(e.text)),site:smCountMap(entries,e=>smEntrySite(e.text)),relation:smCountMap(entries,e=>smEntryRelation(e.text)),status:smCountMap(entries,e=>smEntryStatus(e.text))},ready:entries.length>0,basis:'rows'};
+}
+// 미팅 목록 출처 순서: ① 미팅 시트 원본 행(선택 주차) → ② 시트 오른쪽 목록(O2 주차가 선택 주차와 같을 때) → ③ 실제 미팅 원장.
+function smMeetingForDetail(detail,weeklyMeeting){
+ if(detail){const fromRows=smParseMeetingRows(V10.payload?.meeting26Rows,detail);if(fromRows.ready)return fromRows;}
+ return detail&&smDetailMeetingMatch(detail,weeklyMeeting)?weeklyMeeting:smParseMeetingLedger(V10.payload?.tongye,detail);
+}
 function smMetricsTable(rows,firstHeader='구분'){
  return `<div class="v10-table sales-table"><table><thead><tr>${[firstHeader,'그랜드썬','SP','유지에스','소개','합계'].map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><th>${esc(r.label)}</th>${r.values.map(v=>`<td>${esc(smNumber(v))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
@@ -238,11 +285,11 @@ function smMinuteSources(detail){
 }
 function smMinuteInquiryTable(detail,sources){
  const rowClass=label=>label==='전체 주간문의'?'minutes-row-total':label==='발전사업 주간 문의'?'minutes-row-business':'minutes-row-progress';
- return `<div class="minutes-table-wrap"><table class="minutes-inquiry-table"><thead><tr><th></th>${sources.map(source=>`<th class="minutes-source-${source.cls}">${esc(source.name)}</th>`).join('')}<th class="minutes-source-sum">합계</th></tr></thead><tbody>${detail.total.map(row=>`<tr class="${rowClass(row.label)}"><th>${esc(row.label)}</th>${sources.map(source=>`<td>${esc(smNumber(row.values[source.index]))}</td>`).join('')}<td>${esc(smNumber(row.values[4]))}</td></tr>`).join('')}</tbody></table></div>`;
+ return `<div class="minutes-table-wrap"><table class="minutes-inquiry-table"><thead><tr><th></th>${sources.map(source=>`<th class="minutes-source-${source.cls}">${esc(source.name)}</th>`).join('')}<th class="minutes-source-sum">합계</th></tr></thead><tbody>${detail.total.map(row=>`<tr class="${rowClass(row.label)}"><th>${esc(row.label)}</th>${sources.map(source=>`<td>${esc(smBlankNumber(row.values[source.index]))}</td>`).join('')}<td>${esc(smBlankNumber(row.values[4]))}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function smMinuteTopTable(detail,sources){
  const groups=sources.map(source=>({source,group:detail.top.find(group=>group.source===source.name)||{items:[]}}));
- return `<div class="minutes-table-wrap"><table class="minutes-top-table"><thead><tr><th>순위</th>${groups.map(({source})=>`<th colspan="2" class="minutes-source-${source.cls}">${esc(source.name)} 문의 TOP 3</th>`).join('')}</tr></thead><tbody>${[0,1,2].map(index=>`<tr><th>${index+1}위</th>${groups.map(({group})=>{const item=group.items[index];return `<td>${esc(item?.label||'—')}</td><td class="minutes-count">${item?esc(smNumber(item.value)):'—'}</td>`;}).join('')}</tr>`).join('')}</tbody></table></div>`;
+ return `<div class="minutes-table-wrap"><table class="minutes-top-table"><thead><tr><th>순위</th>${groups.map(({source})=>`<th colspan="2" class="minutes-source-${source.cls}">${esc(source.name)} 문의 TOP 3</th>`).join('')}</tr></thead><tbody>${[0,1,2].map(index=>`<tr><th>${index+1}위</th>${groups.map(({group})=>{const item=group.items[index];return `<td>${esc(item?.label||'')}</td><td class="minutes-count">${item?esc(smBlankNumber(item.value)):''}</td>`;}).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 // 미팅 원장 한 줄: 상담번호_지역_시군_장소_관계_사업_상태_[용량]_출처(그랜드썬·소개·SP·유지에스)_메모
 // → 본문은 출처까지(출처가 맨 끝), 메모는 "_메모" 로 빨간 줄. 소개 유입은 메모를 붙이지 않는다.
@@ -277,7 +324,7 @@ function smMinutesReport(inquiry,detail,meeting){
  const extra=salesMeetingState.extra?`<p class="minutes-extra">※${esc(salesMeetingState.extra)}</p>`:'';
  const actions=salesMeetingState.actions?`<h3>4. 후속 조치</h3><div class="minutes-actions">${esc(salesMeetingState.actions).replace(/\n/g,'<br>')}</div>`:'';
  const matched=smDetailMeetingMatch(detail,meeting),mismatch=matched?'':`<p class="minutes-period-warning">※ 문의 주차와 미팅 원본의 날짜가 다릅니다. 각 제목의 기간을 확인하세요.</p>`;
- return `<section id="salesMinutesCopy" class="sales-minutes-report"><h2 class="minutes-report-title"><span>■</span>컨설팅-${esc(salesMeetingState.reporter)}</h2><div class="minutes-report-box"><div class="minutes-box-title">* 컨설팅 내용</div><div class="minutes-period-basis"><b>문의 ${esc(detail.year)}년 ${i(detail.month)}월 ${i(detail.week)}주차</b><span>${esc(smPeriodLabel(detail.period))} · 월~금</span><b>미팅 ${esc(meeting.year)}년 ${i(meeting.week)}주차</b><span>${esc(smPeriodLabel(meeting.period))} · ${meeting.basis==='ledger'?'실제 미팅 원장':'원본 기준'}</span></div>${mismatch}<h3>1. 유입별 문의건수 <span>[ ${i(detail.month)}월 ${i(detail.week)}주 진행사항 (${esc(detail.period)}) ]</span></h3>${smMinuteInquiryTable(detail,sources)}<h3>2. 사업형태별 문의건수</h3>${smMinuteTopTable(detail,sources)}${extra}<h3>3. 미팅가망 및 특이사항 <span>[ ${esc(meeting.year)}년 ${i(meeting.week)}주차 (${esc(meeting.period)}) ]</span></h3><ol class="minutes-meeting-list">${entries.length?entries.map(entry=>`<li><span>${esc(entry.main)}</span>${entry.note?`<strong>${esc(entry.note)}</strong>`:''}</li>`).join(''):'<li><span>해당 기간 실제 미팅 없음</span></li>'}</ol><ul class="minutes-summary">${smMinuteSummaryLine('유입별 미팅가망',meeting.summary.source)}${smMinuteSummaryLine('지역별 대응예정',meeting.summary.branch)}${smMinuteSummaryLine('문의',meeting.summary.relation)}${smMinuteSummaryLine('설치장소',meeting.summary.site)}${smMinuteSummaryLine('미팅가망 및 확정',meeting.summary.status)}</ul>${actions}</div></section>`;
+ return `<section id="salesMinutesCopy" class="sales-minutes-report"><h2 class="minutes-report-title"><span>■</span>컨설팅-${esc(salesMeetingState.reporter)}</h2><div class="minutes-report-box"><div class="minutes-box-title">* 컨설팅 내용</div><div class="minutes-period-basis"><b>문의 ${esc(detail.year)}년 ${i(detail.month)}월 ${i(detail.week)}주차</b><span>${esc(smPeriodLabel(detail.period))} · 월~금</span><b>미팅 ${esc(meeting.year)}년 ${i(meeting.week)}주차</b><span>${esc(smPeriodLabel(meeting.period))} · ${meeting.basis==='ledger'?'실제 미팅 원장':'원본 기준'}</span></div>${mismatch}<h3>1. 유입별 문의건수 <span>[ ${i(detail.month)}월 ${i(detail.week)}주 진행사항 (${esc(detail.period)}) ]</span></h3>${smMinuteInquiryTable(detail,sources)}<h3>2. 사업형태별 문의건수</h3>${smMinuteTopTable(detail,sources)}${extra}<h3>3. 미팅가망 및 특이사항</h3><ol class="minutes-meeting-list">${entries.length?entries.map(entry=>`<li><span>${esc(entry.main)}</span>${entry.note?`<strong>${esc(entry.note)}</strong>`:''}</li>`).join(''):'<li><span>해당 기간 실제 미팅 없음</span></li>'}</ol><ul class="minutes-summary">${smMinuteSummaryLine('유입별 미팅가망',meeting.summary.source)}${smMinuteSummaryLine('지역별 대응예정',meeting.summary.branch)}${smMinuteSummaryLine('문의',meeting.summary.relation)}${smMinuteSummaryLine('설치장소',meeting.summary.site)}${smMinuteSummaryLine('미팅가망 및 확정',meeting.summary.status)}</ul>${actions}</div></section>`;
 }
 // 별도 사업 메모: 한전수전합리화사업 건수·제안 건수만 숫자로 입력 → "한전수전합리화사업 - N건 (제안M건)" 문장으로 회의록에 들어간다.
 function smKepco(){const m=txt(salesMeetingState.extra).match(/(\d+)\s*건\s*\(\s*제안\s*(\d+)\s*건\s*\)/);return {count:m?Number(m[1]):0,proposal:m?Number(m[2]):0};}
@@ -298,7 +345,7 @@ function smAlignMonth(target){
 function easySalesMeeting(){
  if(!salesMeetingState.target)salesMeetingState.target=smReportFriday();
  smAlignMonth(salesMeetingState.target);
- const inquiry=smInquiryForSelection(),weeklyMeeting=smParseMeetingReport(V10.payload?.meeting26),detail=smSelectDetail(inquiry,weeklyMeeting),meeting=detail&&smDetailMeetingMatch(detail,weeklyMeeting)?weeklyMeeting:smParseMeetingLedger(V10.payload?.tongye,detail);
+ const inquiry=smInquiryForSelection(),weeklyMeeting=smParseMeetingReport(V10.payload?.meeting26),detail=smSelectDetail(inquiry,weeklyMeeting),meeting=smMeetingForDetail(detail,weeklyMeeting);
  salesMeetingState.detailKey=smDetailKey(detail);salesMeetingState.week=detail?.week||0;
  const matched=smDetailMeetingMatch(detail,meeting);window.__smMeeting=meeting;
  const inquirySection=inquiry.ready?`<section id="salesInquiryCopy" class="sales-report-card sales-copy-section"><header><div><p class="sales-kicker">${esc(inquiry.year)}년 ${i(inquiry.month)}월 ${inquiry.derived?'문의 원장 재집계':'원본 집계'}</p><h3>월간 · 주차별 문의 현황</h3><p>상단에서 선택한 연도·월의 문의 접수일을 기준으로 월~금 주차를 표시합니다.</p></div><strong>${i(inquiry.month)}월</strong></header><h4 class="sales-subtitle">월 전체 문의</h4>${smMetricsTable(inquiry.monthly)}<p class="sales-note">${inquiry.derived?'상담번호의 문의 접수일을 기준으로 다시 집계했습니다.':'합계는 원본 통계 시트의 값을 그대로 표시합니다.'}</p><h4 class="sales-subtitle">주차별 문의</h4>${smWeeklyOverview(inquiry)}${detail?`<div class="sales-detail-head"><div><h4>${detail.month}월 ${detail.week}주차 일자별 문의</h4><p>${esc(detail.period)} · 월요일~금요일</p></div></div>${smDailyTable(detail)}${smTopThree(detail)}`:''}</section>`:`<section id="salesInquiryCopy" class="sales-report-card sales-copy-section"><h3>월간 · 주차별 문의 현황</h3><p class="sales-empty">선택한 연도·월의 문의 자료를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p></section>`;
