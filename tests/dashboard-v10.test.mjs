@@ -172,8 +172,8 @@ assert.equal(JSON.stringify(run(`(()=>{const rows=[
  ['46','배','2026/11/13(금)','11-1310','부산','사하구','공장','대표','발전사업','미팅가망','','소개','메모C'],
  ['47','김','2026/11/16(월)','11-1601','경기','','공장','대표','발전사업','미팅가망','','그랜드썬','메모D']];
  const m=smParseMeetingRows(rows,{year:2026,month:11,week:2,period:'11/9~11/13'});
- return [m.week,m.entries.length,m.entries[0].text,m.entries[1].text,smParseMeetingRows([],{year:2026,month:11,period:'11/9~11/13'}).ready];})()`)),
- JSON.stringify([46,2,'11-1217_경기_고양시_창고_대표_발전사업_미팅가망_그랜드썬_메모B','11-1310_부산_사하구_공장_대표_발전사업_미팅가망_소개_메모C',false]));
+ return [m.week,m.entries.length,m.entries[0].text,m.entries[1].text,smParseMeetingRows([],{year:2026,month:11,period:'11/9~11/13'}).ready,JSON.stringify(m.summary.source),JSON.stringify(m.summary.branch),JSON.stringify(m.summary.status)];})()`)),
+ JSON.stringify([46,2,'11-1217_경기_고양시_창고_대표_발전사업_미팅가망_그랜드썬_메모B','11-1310_부산_사하구_공장_대표_발전사업_미팅가망_소개_메모C',false,'[["그랜드썬",1],["소개",1]]','[["부산지사",1],["안성지사",1]]','[["미팅가망",2]]']));
 // 시트 블록 제목이 지난달 주차(10월 5주)여도 기간이 11/2~11/6이면 11월 1주로 읽는다.
 assert.equal(JSON.stringify(run(`(()=>{const r=[];r[0]=[];r[0][27]='2026';r[0][28]='10';const put=(i,ab,ac,v)=>{r[i]=r[i]||[];r[i][27]=ab;r[i][28]=ac;if(v)v.forEach((x,j)=>r[i][29+j]=x);};
  put(3,'2026년 10월 5주 진행사항 (11/2~11/6)','');put(4,'주간전체','전체 주간문의',['144','7','','','151']);put(5,'','발전사업 주간 문의',['107','6','','12','125']);put(6,'','발전사업 주간 진행',['30','5','','8','43']);

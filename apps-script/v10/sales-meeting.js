@@ -245,10 +245,14 @@ function smParseMeetingRows(rows,detail){
   const inWeek=sheetWeek?sheetWeek===week:(date&&date>=bounds.start&&date<=bounds.end);
   if(!inWeek)return;
   const text=[3,4,5,6,7,8,9,10,11,12].map(cell).filter(Boolean).join('_');
-  entries.push({no:entries.length+1,text});
+  // 요약(유입별·지역·설치장소·문의·가망/확정)은 글자 조각이 아니라 열 값으로 센다 — 시트 요약표와 같은 기준(L 유입분류, E 지역, G 사업장, H 문의온 사람, J 미팅가망/미팅일).
+  const src=cell(11),source=/^sp$/i.test(src)?'SP':/유지에스|UGS/i.test(src)?'유지에스':['그랜드썬','소개'].includes(src)?src:(src||'기타');
+  const region=cell(4).replace(/(특별시|광역시|특별자치시|특별자치도|도)$/,''),branch=smEntryBranch(`_${({경상북:'경북',경상남:'경남',전라북:'전북',전라남:'전남',충청북:'충북',충청남:'충남'})[region]||region}_`);
+  const status=/미팅가망|미팅예정/.test(cell(9))?'미팅가망':/\d{4}\/\d{1,2}\/\d{1,2}/.test(cell(9))?'미팅확정':'확인 필요';
+  entries.push({no:entries.length+1,text,source,branch,site:cell(6)||'기타',relation:cell(7)||'기타',status});
  });
  const start=new Date(`${bounds.start}T00:00:00Z`),end=new Date(`${bounds.end}T00:00:00Z`),period=`${bounds.start.replace(/-/g,'/')}(${smWorkdayName(start)})~${bounds.end.replace(/-/g,'/')}(${smWorkdayName(end)})`;
- return {year:Number(bounds.start.slice(0,4)),week,period,current:'미팅 시트 원본 행',count:entries.length,entries,summary:{source:smCountMap(entries,e=>smEntrySource(e.text)),branch:smCountMap(entries,e=>smEntryBranch(e.text)),site:smCountMap(entries,e=>smEntrySite(e.text)),relation:smCountMap(entries,e=>smEntryRelation(e.text)),status:smCountMap(entries,e=>smEntryStatus(e.text))},ready:entries.length>0,basis:'rows'};
+ return {year:Number(bounds.start.slice(0,4)),week,period,current:'미팅 시트 원본 행',count:entries.length,entries,summary:{source:smCountMap(entries,e=>e.source),branch:smCountMap(entries,e=>e.branch),site:smCountMap(entries,e=>e.site),relation:smCountMap(entries,e=>e.relation),status:smCountMap(entries,e=>e.status)},ready:entries.length>0,basis:'rows'};
 }
 // 미팅 목록 출처 순서: ① 미팅 시트 원본 행(선택 주차) → ② 시트 오른쪽 목록(O2 주차가 선택 주차와 같을 때) → ③ 실제 미팅 원장.
 function smMeetingForDetail(detail,weeklyMeeting){
