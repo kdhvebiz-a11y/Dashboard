@@ -188,6 +188,23 @@ function easyMeetingMonthlyTable(axis,vals){
  const caps=[{name:'미팅 용량',color:c[3],cells:vals.map(x=>x.actual?`<b>${capS(x.actualCap)}</b>`:'<span class="easy-dim">—</span>')},{name:'건당 평균',color:c[4],cells:vals.map(x=>x.actual?`<b>${d1(x.actualCap/x.actual)} kW</b>`:'<span class="easy-dim">—</span>')}];
  return v10Panel('월별 미팅 요약','보고 주차 기준 · 건수(전체·마케팅·소개)와 용량·건당 평균을 한 표에 · 건수 줄은 가장 많은 달 1위, 가장 적은 달 최저 표시',easyChartTable(axis,counts,'건','월',partial).replace('class="easy-chart-table"','class="easy-chart-table easy-wide"')+easyPlainTable(axis,caps).replace('class="easy-chart-table','class="easy-chart-table easy-wide easy-tight'));
 }
+// 담당자별 실적 맨 아래: 마케팅·소개 미팅 추이(전체 인원 또는 담당자 한 명). 칩을 누르면 이 칸만 바꿔 그린다(화면 위로 튀지 않게).
+const easyPeopleSrcState={who:'전체'};
+function easyPeopleSourceTrend(){
+ const axis=easyTrendAxis(),monthly=axis.map(g=>v10PeopleData('own',state.basis,g.months).people);
+ const totals=new Map();
+ monthly.forEach(people=>people.forEach(p=>totals.set(p.name,(totals.get(p.name)||0)+(p.n||0))));
+ const names=[...totals].filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ko')).map(x=>x[0]);
+ if(easyPeopleSrcState.who!=='전체'&&!names.includes(easyPeopleSrcState.who))easyPeopleSrcState.who='전체';
+ const who=easyPeopleSrcState.who,pick=people=>who==='전체'?people:people.filter(p=>p.name===who);
+ const sum=key=>monthly.map(people=>pick(people).reduce((a,p)=>a+(p[key]||0),0));
+ const all=sum('n'),mk=sum('mk'),ref=sum('ref'),tot=v=>v.reduce((a,x)=>a+x,0);
+ const chips=`<div class="easy-people-src-chips" role="group" aria-label="추이를 볼 담당자">${['전체',...names].map(name=>`<button type="button" class="${name===who?'on':''}" data-easy-people-src="${esc(name)}">${name==='전체'?'전체 인원':esc(name)}</button>`).join('')}</div>`;
+ const label=who==='전체'?'전체 인원':who;
+ const kpi=`<p class="easy-people-src-sum"><b>${esc(label)}</b> · 기간 합계 ${i(tot(all))}건 = <span style="color:${EASY_SRC.마케팅}">마케팅 ${i(tot(mk))}건</span> + <span style="color:${EASY_SRC.소개}">소개 ${i(tot(ref))}건</span>${tot(all)-tot(mk)-tot(ref)>0?` + 유입 미분류 ${i(tot(all)-tot(mk)-tot(ref))}건`:''}</p>`;
+ const chart=v10Line(`${label} 마케팅 · 소개 미팅 추이`,'위 표와 같은 집계 기준 · 월별 마케팅(파랑) / 소개(분홍) 미팅 건수',axis,[{name:'전체',color:'#8793a3',values:all},{name:'마케팅',color:EASY_SRC.마케팅,values:mk},{name:'소개',color:EASY_SRC.소개,values:ref}]);
+ return chips+kpi+chart;
+}
 function easyPeople(role){
  role='own'; // 컨설팅 담당자 실적은 문의·미팅 전환 화면(월별 표)으로 옮겼다. 이 화면은 현장 미팅 담당자만.
  const axis=easyTrendAxis(),current=v10PeopleData(role,state.basis,selMonths()).people;
@@ -213,6 +230,7 @@ function easyPeople(role){
  +v10PeoplePanel(role,state.basis)
  +v10Line('담당자별 월간 미팅 흐름','위 담당자 표와 같은 집계 기준으로 매월 실적을 비교합니다.',axis,series)
  +v10Panel('담당자별 월간 미팅 수치','위 차트와 같은 기준 · 칸마다 전체 건수와 그 아래 마케팅(파랑) / 소개(분홍) 건수',v10Table(['담당자',...axis.map(g=>g.label),'합계','월평균'],trendRows)).replace('<section class="v10-panel">','<section class="v10-panel easy-people-months">')
+ +`<div id="easyPeopleSrcTrend" class="easy-people-src">${easyPeopleSourceTrend()}</div>`
  +`<details class="easy-details" open><summary>담당자별 미팅 원장 (접으려면 클릭)</summary>${v10Ledger(state.basis)}</details>`;
 }
 function easyMarket(k){
@@ -699,6 +717,7 @@ function easyInstall(){
  document.addEventListener('click',e=>{const b=e.target.closest('[data-easy-preset]');if(b)easyPreset(b.dataset.easyPreset);});
  document.addEventListener('change',e=>{if(e.target.id==='easyQuarter')easyPickQuarter(e.target.value);if(e.target.id==='easyYtd')easyPickYtd(e.target.value);});
  document.addEventListener('change',e=>{if(e.target.id==='easyTeamBasis'){state.basis=e.target.value;render();}});
+ document.addEventListener('click',e=>{const chip=e.target.closest('[data-easy-people-src]');if(!chip)return;easyPeopleSrcState.who=chip.dataset.easyPeopleSrc;const box=document.getElementById('easyPeopleSrcTrend');if(!box)return;box.innerHTML=easyPeopleSourceTrend();if(typeof wireCharts==='function')wireCharts(box);});
  document.addEventListener('change',e=>{if(e.target.id==='easyPresentationCommentMonth'){easyPresentationComments.months[DB.year]={month:Number(e.target.value),period:easyPresentationPeriodSig()};store.set('v10_presentation_comment_months',easyPresentationComments.months);render();}});
  document.addEventListener('change',e=>{if(e.target.id==='v10GoalWeek'){easyGoalState.weeks[DB.year]=Number(e.target.value);store.set('v10_goalWeeks',easyGoalState.weeks);render();}});
  document.addEventListener('click',e=>{const mode=e.target.closest('[data-easy-goal-mode]');if(mode){easyGoalState.mode=mode.dataset.easyGoalMode;store.set('v10_goalMode',easyGoalState.mode);render();return;}const step=e.target.closest('[data-easy-week-step]');if(step){easyGoalState.weeks[DB.year]=Math.max(1,Math.min(52,easyGoalWeek()+Number(step.dataset.easyWeekStep)));store.set('v10_goalWeeks',easyGoalState.weeks);render();return;}const restore=e.target.closest('[data-easy-week-action="restore"]');if(restore){delete easyGoalState.goals[`${DB.year}-W${easyPad(easyGoalWeek())}`];store.set('v10_weekGoals',easyGoalState.goals);render();}});

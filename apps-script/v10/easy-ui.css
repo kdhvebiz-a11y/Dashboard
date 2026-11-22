@@ -425,3 +425,12 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 
 /* 실적발표 1번: '2026년 연간'·'분기별' 소제목 가운데, 더 크게 */
 .perf-year-wrap .perf-sub-title{text-align:center;border-left:0;padding-left:0;font-size:21px;margin-bottom:12px}
+
+/* 담당자별 실적: 마케팅·소개 미팅 추이(담당자 칩 + 차트) */
+.easy-people-src{margin:0 0 18px}
+.easy-people-src-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.easy-people-src-chips button{border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--muted);font:inherit;font-size:15px;padding:8px 16px;cursor:pointer}
+.easy-people-src-chips button.on{background:#2364d2;border-color:#2364d2;color:#fff;font-weight:700}
+.easy-people-src-sum{margin:0 0 10px;font-size:16px}.easy-people-src-sum span{font-weight:700}
+.easy-people-src .legend{justify-content:center}
+@media print{.easy-people-src-chips{display:none}}
