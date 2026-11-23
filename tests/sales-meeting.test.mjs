@@ -14,7 +14,7 @@ assert.ok(html.includes('회의록 형식 복사'),'generated dashboard exposes 
 assert.ok(html.includes('원본 상세 전체 복사'),'generated dashboard retains raw-detail copy');
 assert.ok(html.includes('문의표만 복사')&&html.includes('미팅표만 복사'));
 assert.ok(html.includes('text/html'),'clipboard keeps table formatting for Hangul');
-assert.ok(source.includes('1. 유입별 문의건수')&&source.includes('2. 사업형태별 문의건수')&&source.includes('3. 미팅가망 및 특이사항'),'minutes preview follows the supplied meeting-note order');
+assert.ok(source.includes('1. 유입별 문의건수')&&source.includes('2. 사업형태별 문의건수')&&source.includes('3. 미팅가망</h3>')&&source.includes('4. 특이사항'),'minutes preview follows the supplied meeting-note order');
 assert.ok(source.includes('후속 조치 · 담당/기한'),'minutes can append accountable next actions');
 assert.ok(source.includes("kind==='minutes'?'#salesMinutesCopy'"),'minutes copy is isolated from raw-detail tables');
 assert.ok(source.includes('상단에서 선택한 연도·월의 문의 접수일을 기준'),'selected dashboard month controls the meeting report');

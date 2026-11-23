@@ -229,3 +229,7 @@ body.sm-mode #periodbar,body.sm-mode #basisNote{display:none!important}
 .sm-pick-item input{width:16px;height:16px;margin:0;flex:none}.sm-pick-item b{flex:none;min-width:26px;text-align:right}.sm-pick-item span{overflow:hidden;text-overflow:ellipsis}
 .sm-src{font-style:normal;flex:none;font-size:11px;font-weight:800;padding:1px 6px;border-radius:8px;margin-left:auto}
 .sm-src-gs{background:#cdddf4;color:#1849a9}.sm-src-sp{background:#e9c6ec;color:#6b2a70}.sm-src-ref{background:#f5dcc4;color:#8a4b00}.sm-src-ugs{background:#fff0bd;color:#7a5a00}
+
+/* 4. 특이사항: 제목 + '-' 한 줄(한글에서 직접 적는 자리) */
+.sales-minutes-report .minutes-special-title{margin-top:26px}
+.sales-minutes-report .minutes-special{min-height:1.6em;padding-left:6px}

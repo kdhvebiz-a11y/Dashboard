@@ -133,7 +133,7 @@ const HWP_CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;
 function hwpCrc32(b){let c=0xffffffff;for(let i=0;i<b.length;i++)c=HWP_CRC[(c^b[i])&255]^(c>>>8);return (c^0xffffffff)>>>0;}
 async function hwpCompress(body){const z=await hwpDeflate(body),t=new Uint8Array(8);hwpSetU32(t,0,hwpCrc32(body));hwpSetU32(t,4,body.length);return hwpConcat([z,t]);}
 /* ---------- 영업회의록 채우기 ----------
-   fill = {reporter, heading1, table1:[[4]x3], table2:[[6]x3], extra, items:[{text,note}], summary:[5]} */
+   fill = {reporter, heading1, table1:[[4]x3], table2:[[6]x3], extra, items:[{text,note}], summary:[5], heading3?, special?:{heading,lines:[]}} */
 async function hwpFillSalesMinutes(templateBytes,fill){
  const doc=cfbRead(templateBytes),sec=doc.entries.find(e=>e.path==='BodyText/Section0');if(!sec)throw Error('양식에 본문이 없습니다.');
  const compressed=hwpU32(doc.entries.find(e=>e.path==='FileHeader').data,36)&1;
@@ -170,6 +170,21 @@ async function hwpFillSalesMinutes(templateBytes,fill){
   }
  }
  if(h3&&fill.summary){const sums=paras().filter(p=>p.start>h3.start&&/^ㆍ/.test(p.text));fill.summary.forEach((t,ix)=>{if(sums[ix])hwpSetParaText(records,sums[ix],t);});}
+ // 6) 3번 제목 글자 바꾸기(예: '3. 미팅가망') + 맨 끝에 '4. 특이사항' 제목과 '-' 줄 붙이기
+ if(h3&&fill.heading3){const p=findPara(/^3\.\s*미팅가망/);if(p)hwpSetParaText(records,p,fill.heading3);}
+ if(fill.special&&fill.special.heading){
+  const h=findPara(/^3\.\s*미팅가망/);
+  if(h){
+   const same=paras().filter(p=>p.start>h.start&&p.level===h.level);
+   if(same.length){
+    const item=same[0],tail=same[same.length-1],blank=same.slice().reverse().find(p=>p.text==='')||tail;
+    const mk=(proto,text)=>({recs:hwpCloneParagraph(records,proto),text});
+    const made=[mk(blank,''),mk(h,fill.special.heading),...(fill.special.lines||[]).map(t=>mk(item,t))];
+    const at=tail.end;records.splice(at,0,...made.flatMap(m=>m.recs));
+    let cursor=at;made.forEach(m=>{const q=paras().find(x=>x.start===cursor);hwpSetParaText(records,q,m.text);cursor=paras().find(x=>x.start===cursor).end;});
+   }
+  }
+ }
  hwpFixListCounts(records);
  const body=hwpPack(records);
  const out=cfbWrite(doc,{'BodyText/Section0':compressed?await hwpCompress(body):body,'PrvText':hwpEncode(fill.preview||'')});

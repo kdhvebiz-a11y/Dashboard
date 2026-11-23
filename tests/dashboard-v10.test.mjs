@@ -146,7 +146,7 @@ assert.ok(salesMeetingView.includes('이번 주 사업주 미팅'));
 assert.ok(salesMeetingView.includes('회의록 형식 복사'));
 assert.ok(salesMeetingView.includes('1. 유입별 문의건수'));
 assert.ok(salesMeetingView.includes('2. 사업형태별 문의건수'));
-assert.ok(salesMeetingView.includes('3. 미팅가망 및 특이사항'));
+assert.ok(salesMeetingView.includes('3. 미팅가망</h3>'));
 assert.ok(salesMeetingView.includes('컨설팅-김동호'));
 run(`
  V10.payload.yearData[2026]={records:[
