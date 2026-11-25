@@ -496,6 +496,23 @@ renderPeriod=function(){
  yearSel.innerHTML=v10Years().map(y=>`<option value="${y}" ${y===Number(DB.year)?'selected':''}>${y}년</option>`).join('');
  $('#psum').innerHTML=`<b>${esc(DB.year)}년 · ${esc(periodLabel())}</b> · ${state.mode==='month'?'여러 월을 선택해 비교할 수 있습니다.':state.mode==='quarter'?'여러 분기를 선택해 비교할 수 있습니다.':''}`;
 };
+// 말 시트 미팅 주차 표는 달마다 5칸이라, 같은 주(날짜 구간)가 이번 달 마지막 주와 다음 달 1주차에 함께 적히는 경우가 있다
+// (예: 11/27~12/3 이 11월 5주차이면서 12월 1주차). 그런 주는 다음 달 것으로 보고 이번 달에서는 뺀다 — "11월은 4주차까지" (2026-11-25).
+// 월 합계(mtTot)에서도 그 주 숫자를 빼서, 원장 대조(v10ReportLedgerComplete)와 목표 주 수(주 17건 × 주 수)가 4주 기준으로 맞게 한다.
+function v10TrimSharedReportWeeks(months){
+ const norm=value=>txt(value).replace(/\s+/g,'');
+ (months||[]).forEach(cur=>{
+  const next=(months||[]).find(x=>x.m===cur.m+1);
+  if(!next||!cur.wmeet?.length||!next.wmeet?.length)return;
+  const last=cur.wmeet[cur.wmeet.length-1],first=next.wmeet[0];
+  if(!norm(last.label)||norm(last.label)!==norm(first.label))return;
+  cur.wmeet=cur.wmeet.slice(0,-1);cur.cutWeek={...last};
+  if(cur.mtTot)['cap','n','mkCap','mkN','refCap','refN'].forEach(k=>{cur.mtTot[k]=Math.max(0,(Number(cur.mtTot[k])||0)-(Number(last[k])||0));});
+ });
+ return months;
+}
+const v10ParseMalOriginal=parseMal;
+parseMal=function(rows){const out=v10ParseMalOriginal(rows);v10TrimSharedReportWeeks(out?.months);return out;};
 const v10FiltersOriginal=refreshFilters;
 refreshFilters=function(){
  v10FiltersOriginal();

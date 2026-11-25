@@ -165,6 +165,13 @@ assert.equal(run("smInquiryForSelection().details[0].total[1].values[4]"),3,'sel
 assert.equal(run("smInquiryForSelection().details[0].total[2].values[4]"),2,'progress counts records whose status says 진행');
 assert.equal(run("smInquiryForSelection().details[0].total[0].label"),'전체 주간문의');
 assert.ok(run("String(smInquiryForSelection().details[0].total[0].values[4])")!=='3','전체 주간문의 is never the ledger row count');
+// 같은 주가 이번 달 마지막 주와 다음 달 1주차에 함께 적혀 있으면 다음 달 것으로 본다(11월은 4주차까지).
+assert.equal(JSON.stringify(run(`(()=>{const w=(label,wk,n,cap)=>({label,wk,n,cap,mkN:n,mkCap:cap,refN:0,refCap:0});
+ const months=[{m:10,wmeet:[w('10/2~10/8','1주차',16,100),w('10/23~10/29','4주차',10,50)],mtTot:{n:26,cap:150,mkN:26,mkCap:150,refN:0,refCap:0}},
+  {m:11,wmeet:[w('10/30~11/5','1주차',16,600),w('11/20~11/26','4주차',8,300),w('11/27~12/3','5주차',1,40)],mtTot:{n:25,cap:940,mkN:25,mkCap:940,refN:0,refCap:0}},
+  {m:12,wmeet:[w('11/27 ~ 12/3','1주차',1,40),w('12/4~12/10','2주차',0,0)],mtTot:{n:1,cap:40,mkN:1,mkCap:40,refN:0,refCap:0}}];
+ v10TrimSharedReportWeeks(months);return [months[0].wmeet.length,months[1].wmeet.length,months[1].wmeet.at(-1).wk,months[1].mtTot.n,months[1].mtTot.cap,months[1].cutWeek.wk,months[2].wmeet.length,months[2].mtTot.n];})()`)),
+ JSON.stringify([2,2,'4주차',24,900,'5주차',2,1]));
 // 미팅가망 목록은 미팅 시트 왼쪽 표(A~M)에서 선택 주차(A열)를 직접 골라 만든다 — 시트 오른쪽 목록(O2 주차)이 다른 주를 보고 있어도 같다.
 assert.equal(JSON.stringify(run(`(()=>{const rows=[
  ['45','김','2026/11/03(화)','11-0311','부산','영도구','공장','직원','발전사업','2026/11/09(월)','177.375 kW','그랜드썬','메모A'],
