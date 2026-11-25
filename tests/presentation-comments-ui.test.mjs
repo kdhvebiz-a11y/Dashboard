@@ -57,8 +57,16 @@ assert.equal(run("easyPresentationCommentParts(easyPresentationComments.drafts['
 assert.equal(run("easyPresentationComments.saving['2026-09']"),false);
 
 run('easyEnsurePresentationComment(2026,8)');await tick(0);
-await tick(12000);
+const callsBeforeRetry=calls.length;
+// 응답이 늦으면(25초) 두 번까지 자동으로 다시 시도한 뒤에야 오류로 끝낸다. 그동안은 '불러오는 중'으로 남고 빈 양식을 보여 주지 않는다.
+await tick(25000);
+assert.equal(run("easyPresentationComments.loading['2026-08']"),true,'first timeout schedules a quiet retry');
+assert.ok(/placeholder="저장된 내용을 불러오는 중입니다…"/.test(run('easyPresentationCommentEditor([8])'))&&!run('easyPresentationCommentEditor([8])').includes('① 마케팅'),'blank template is not shown while the saved comment is unknown');
+assert.ok(/<button class="btn primary" disabled>불러오는 중…/.test(run('easyPresentationCommentEditor([8])')),'saving is blocked until the saved comment is loaded');
+await tick(1500);await tick(0);await tick(25000);await tick(1500);await tick(0);await tick(25000);
+assert.equal(calls.length,callsBeforeRetry+2,'two automatic retries');
 assert.equal(run("easyPresentationComments.loading['2026-08']"),false,'timeout ends loading');
+assert.ok(run("easyPresentationComments.error['2026-08']").includes('저장 내용은 그대로'),'error explains that saved content is intact');
 const count=calls.length;
 run('easyEnsurePresentationComment(2026,8)');await tick(0);
 assert.equal(calls.length,count,'render does not retry failed loads forever');
