@@ -38,9 +38,10 @@ function contractTeamGoals(){
  return v10Panel('팀별 목표 달성',`${period} · 직영·외주·입찰 목표 용량 대비 계약 용량 · 원본 정리base 목표, 원장 보고 월 기준 · 100% 이상 초록, 70% 이상 노랑, 그 아래 빨강`,cards);
 }
 // 팀별 카드 묶음(부서 전체·직영·외주·입찰): 첫 줄 = 첫 기간(크게), 둘째 줄 = 둘째 기간. 계약실적(선택 기간+연간)과 실적발표(선택 월+1~N월)가 같이 쓴다.
-function contractTeamCards(ms,label1,ms2,label2,{big2=false}={}){
+function contractTeamCards(ms,label1,ms2,label2,{big2=false,digits=null}={}){
  const src=contractSourceForYear(DB.year);if(!src?.goals?.전체)return '';
- const mw=n=>n>=1000?d1(n/1000)+'MW':i(Math.round(n))+'kW';
+ // digits를 주면(실적발표) 항상 MW로, 소수점 자릿수를 고정해 보여 준다(예: 107.35 MW). 단위 글자는 작게 — 칸 너비를 넘지 않게.
+ const mw=n=>digits!=null?`${(Number(n)/1000).toLocaleString('ko-KR',{minimumFractionDigits:digits,maximumFractionDigits:digits})}<span class="ct-unit">MW</span>`:(n>=1000?d1(n/1000)+'MW':i(Math.round(n))+'kW');
  const cls=r=>r===null?'':r>=100?'ok':r>=70?'warm':'low';
  const block=(label,goal,act,count,big)=>{const rate=goal?act/goal*100:null,c=cls(rate);
   return `<div class="ct-team-row${big?' big':''}"><span class="ct-team-scope">${label}</span><div class="ct-team-nums"><span><small>목표</small><b>${goal?mw(goal):'—'}</b></span><span><small>달성 · ${i(count)}건</small><b>${mw(act)}</b></span><span class="ct-rate ${c}"><small>달성률</small><b>${rate===null?'—':d1(rate)+'%'}</b></span></div><div class="v10-track ct-team-track"><span class="${c}" style="width:${rate===null?0:Math.min(rate,100)}%"></span></div></div>`;};

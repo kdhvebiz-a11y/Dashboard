@@ -434,3 +434,8 @@ html[data-theme="dark"] .easy-max,html[data-theme="dark"] .main .easy-chart-tabl
 .easy-people-src-sum{margin:0 0 10px;font-size:16px}.easy-people-src-sum span{font-weight:700}
 .easy-people-src .legend{justify-content:center}
 @media print{.easy-people-src-chips{display:none}}
+
+/* 실적발표 2번 카드: 용량을 소수 둘째 자리까지(107.35 MW) — 숫자는 줄바꿈 없이, 단위는 작게 */
+.ct-team-nums b .ct-unit{font-size:.6em;font-weight:700;margin-left:2px;color:var(--muted)}
+.perf-teams .ct-team-nums{grid-template-columns:1.1fr 1.1fr .95fr;gap:8px}
+.perf-teams .ct-team-nums b{white-space:nowrap;letter-spacing:-.3px}
